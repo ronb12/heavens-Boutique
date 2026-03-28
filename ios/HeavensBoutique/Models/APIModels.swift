@@ -60,10 +60,16 @@ struct OrderDTO: Decodable, Identifiable {
     let discountCents: Int?
     let totalCents: Int
     let trackingNumber: String?
+    /// Present on paid orders; use in Stripe Dashboard to find the PaymentIntent for refunds.
+    let stripePaymentIntentId: String?
     let createdAt: String?
     let userEmail: String?
     let userName: String?
     let items: [OrderItemDTO]?
+}
+
+struct OrderDetailResponse: Decodable {
+    let order: OrderDTO
 }
 
 struct OrderItemDTO: Decodable, Identifiable {

@@ -120,7 +120,7 @@ CREATE TABLE orders (
   user_id         UUID REFERENCES users(id) ON DELETE CASCADE,
   guest_email     TEXT,
   status          TEXT NOT NULL DEFAULT 'pending'
-    CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled')),
+    CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded')),
   subtotal_cents  INTEGER NOT NULL,
   discount_cents  INTEGER NOT NULL DEFAULT 0,
   tax_cents       INTEGER NOT NULL DEFAULT 0,

@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const auth = requireAdmin(req);
+      const auth = await requireAdmin(req);
       if (auth.error) return json(res, auth.status, { error: auth.error });
 
       const body = await readJson(req);

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { getDb } from './db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-change-me';
 
@@ -48,9 +49,18 @@ export function optionalUser(req) {
   return { userId: decoded.sub, role: decoded.role || 'customer' };
 }
 
-export function requireAdmin(req) {
+/**
+ * Admin authorization uses the database role (source of truth), not the JWT claim.
+ * That way accounts promoted to admin in Postgres (or via login promotion) work
+ * without forcing a new token when only the DB was updated.
+ */
+export async function requireAdmin(req) {
   const r = requireUser(req);
   if (r.error) return r;
-  if (r.role !== 'admin') return { error: 'Forbidden', status: 403 };
-  return r;
+  const sql = getDb();
+  const rows = await sql`SELECT role FROM users WHERE id = ${r.userId} LIMIT 1`;
+  if (rows[0]?.role !== 'admin') {
+    return { error: 'Forbidden', status: 403 };
+  }
+  return { userId: r.userId, role: 'admin' };
 }

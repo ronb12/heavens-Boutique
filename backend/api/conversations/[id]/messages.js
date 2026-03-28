@@ -14,10 +14,14 @@ export default async function handler(req, res) {
     const auth = requireUser(req);
     if (auth.error) return json(res, auth.status, { error: auth.error });
 
+    const roleRows = await sql`SELECT role FROM users WHERE id = ${auth.userId} LIMIT 1`;
+    const dbRole = roleRows[0]?.role || auth.role || 'customer';
+    const isAdmin = dbRole === 'admin';
+
     const conv = await sql`SELECT * FROM conversations WHERE id = ${conversationId} LIMIT 1`;
     const c = conv[0];
     if (!c) return json(res, 404, { error: 'Not found' });
-    if (c.user_id !== auth.userId && auth.role !== 'admin') {
+    if (c.user_id !== auth.userId && !isAdmin) {
       return json(res, 403, { error: 'Forbidden' });
     }
 
@@ -31,7 +35,7 @@ export default async function handler(req, res) {
         LIMIT 500
       `;
 
-      if (auth.role === 'admin') {
+      if (isAdmin) {
         await sql`
           UPDATE messages SET read_at = now()
           WHERE conversation_id = ${conversationId} AND sender_id = ${c.user_id} AND read_at IS NULL
@@ -74,7 +78,7 @@ export default async function handler(req, res) {
       `;
 
       const m = ins[0];
-      const recipientId = auth.role === 'admin' ? c.user_id : (await sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`)[0]?.id;
+      const recipientId = isAdmin ? c.user_id : (await sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`)[0]?.id;
 
       if (recipientId) {
         const u = await sql`SELECT fcm_token FROM users WHERE id = ${recipientId} LIMIT 1`;

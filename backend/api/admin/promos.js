@@ -4,7 +4,7 @@ import { json, readJson, handleCors } from '../../lib/http.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
-  const admin = requireAdmin(req);
+  const admin = await requireAdmin(req);
   if (admin.error) return json(res, admin.status, { error: admin.error });
 
   const sql = getDb();

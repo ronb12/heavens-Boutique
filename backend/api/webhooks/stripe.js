@@ -134,7 +134,7 @@ export default async function handler(req, res) {
             token,
             title: 'Order confirmed',
             body: 'Your payment was successful. We will ship soon.',
-            data: { type: 'order', orderId },
+            data: { type: 'order', orderId, status: 'paid' },
           });
         }
       }

@@ -6,13 +6,15 @@ struct ProfileView: View {
     @EnvironmentObject private var cart: CartStore
     @EnvironmentObject private var appModel: AppModel
     @StateObject private var ordersVM = OrdersViewModel()
+    @State private var ordersNavPath = NavigationPath()
     @State private var wishlist: [ProductDTO] = []
     @State private var showDeleteConfirm = false
     @State private var deleteError: String?
     @State private var showDeleteError = false
+    @State private var showAdminHub = false
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $ordersNavPath) {
             Group {
                 if session.isLoggedIn {
                     memberProfileList
@@ -23,6 +25,9 @@ struct ProfileView: View {
             .scrollContentBackground(.hidden)
             .background(HBColors.cream.ignoresSafeArea())
             .navigationTitle("Profile")
+            .navigationDestination(for: String.self) { id in
+                CustomerOrderDetailView(orderId: id)
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
@@ -39,6 +44,7 @@ struct ProfileView: View {
                     await ordersVM.load(api: api, adminAll: false)
                     await loadWishlist()
                     await session.refreshProfile()
+                    openPendingOrderIfNeeded()
                 }
             }
             .refreshable {
@@ -46,6 +52,14 @@ struct ProfileView: View {
                 await ordersVM.load(api: api, adminAll: false)
                 await loadWishlist()
                 await session.refreshProfile()
+            }
+            .onChange(of: appModel.pendingOrderIdToOpen) { _, _ in
+                openPendingOrderIfNeeded()
+            }
+            .onChange(of: session.user?.id) { _, _ in
+                if session.isLoggedIn {
+                    openPendingOrderIfNeeded()
+                }
             }
             .confirmationDialog(
                 "Delete your account?",
@@ -65,6 +79,11 @@ struct ProfileView: View {
                 }
             } message: {
                 Text(deleteError ?? "Unknown error")
+            }
+            .sheet(isPresented: $showAdminHub) {
+                AdminHubView()
+                    .environmentObject(api)
+                    .environmentObject(appModel)
             }
         }
     }
@@ -127,8 +146,39 @@ struct ProfileView: View {
                             .foregroundStyle(HBColors.gold)
                             .padding(.top, 4)
                     }
+                    if appModel.showAdminChrome {
+                        Text("Store admin")
+                            .font(HBFont.caption().weight(.semibold))
+                            .foregroundStyle(HBColors.rosePink)
+                            .padding(.top, 2)
+                    }
                 }
                 .listRowBackground(HBColors.surface)
+            }
+
+            if appModel.showAdminChrome {
+                Section("Store admin") {
+                    Button {
+                        showAdminHub = true
+                    } label: {
+                        Label("Admin tools", systemImage: "gearshape.2")
+                            .foregroundStyle(HBColors.charcoal)
+                    }
+                    .listRowBackground(HBColors.surface)
+                }
+            }
+
+            if session.isAdmin && appModel.customerViewPreview {
+                Section("Customer view") {
+                    Button {
+                        appModel.exitCustomerViewPreview()
+                        HBFeedback.light()
+                    } label: {
+                        Label("Exit customer view", systemImage: "arrow.uturn.backward.circle")
+                            .foregroundStyle(HBColors.charcoal)
+                    }
+                    .listRowBackground(HBColors.surface)
+                }
             }
 
             Section("Orders") {
@@ -162,19 +212,27 @@ struct ProfileView: View {
                         .listRowBackground(HBColors.surface)
                 } else {
                     ForEach(ordersVM.orders) { o in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(o.status.capitalized)
-                                .font(HBFont.caption().weight(.semibold))
-                                .foregroundStyle(HBColors.charcoal)
-                            Text(formatCents(o.totalCents))
-                                .font(HBFont.caption())
-                                .foregroundStyle(HBColors.mutedGray)
-                            if let t = o.trackingNumber, !t.isEmpty {
-                                Text("Tracking: \(t)")
-                                    .font(HBFont.caption())
-                                    .foregroundStyle(HBColors.gold)
-                                    .accessibilityLabel("Tracking number \(t)")
+                        NavigationLink(value: o.id) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text(formatCents(o.totalCents))
+                                        .font(HBFont.caption().weight(.semibold))
+                                        .foregroundStyle(HBColors.charcoal)
+                                    Spacer()
+                                    Text(o.status.replacingOccurrences(of: "_", with: " ").capitalized)
+                                        .font(HBFont.caption())
+                                        .foregroundStyle(HBColors.mutedGray)
+                                }
+                                OrderTrackingStatusBar(status: o.status, compact: true)
+                                if let t = o.trackingNumber, !t.isEmpty {
+                                    Text("Tracking: \(t)")
+                                        .font(HBFont.caption())
+                                        .foregroundStyle(HBColors.gold)
+                                        .lineLimit(1)
+                                        .accessibilityLabel("Tracking number \(t)")
+                                }
                             }
+                            .padding(.vertical, 4)
                         }
                         .listRowBackground(HBColors.surface)
                     }
@@ -202,6 +260,7 @@ struct ProfileView: View {
             Section {
                 Button("Sign out", role: .destructive) {
                     HBFeedback.light()
+                    appModel.exitCustomerViewPreview()
                     session.logout()
                 }
                 .listRowBackground(HBColors.surface)
@@ -225,6 +284,7 @@ struct ProfileView: View {
         do {
             try await api.requestVoid("/users/me", method: "DELETE")
             cart.clear()
+            appModel.exitCustomerViewPreview()
             session.logout()
             HBFeedback.success()
         } catch {
@@ -243,6 +303,12 @@ struct ProfileView: View {
             let r: ProductsResponse = try await api.request("/wishlist", method: "GET")
             wishlist = r.products
         } catch { }
+    }
+
+    private func openPendingOrderIfNeeded() {
+        guard session.isLoggedIn, let id = appModel.pendingOrderIdToOpen else { return }
+        appModel.pendingOrderIdToOpen = nil
+        ordersNavPath.append(id)
     }
 }
 

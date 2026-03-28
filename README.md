@@ -7,7 +7,7 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
 ### 1. Database (Neon)
 
 1. Create a Neon project and copy the **connection string**.
-2. In the Neon SQL editor (or `psql`), run `database/schema.sql`. If you already have a live database from an older schema, apply incremental migrations under `database/migrations/` in order (e.g. **`002_orders_guest_checkout.sql`** for guest checkout — nullable `orders.user_id` and `guest_email`).
+2. In the Neon SQL editor (or `psql`), run `database/schema.sql`. If you already have a live database from an older schema, apply incremental migrations under `database/migrations/` in order (e.g. **`002_orders_guest_checkout.sql`** for guest checkout; **`003_orders_refunded_status.sql`** adds `refunded` to `orders.status`).
 3. **Admin account:** Set Vercel (and local `.env`) **`ADMIN_EMAILS`** to your admin email (comma-separated for several). That email gets **admin** on **register**, and if you already registered as a customer, the next **login** promotes you to **admin** automatically. To create or reset the owner in Postgres, run **`npm run seed:admin`** (defaults: **`heavenbowie0913@gmail.com`** / **`password1234`** — bcrypt 10 rounds; **change this password after first login**):
 
    ```bash
@@ -76,6 +76,18 @@ npm run deploy
    Events: at least `payment_intent.succeeded`.
 2. Copy the **signing secret** into `STRIPE_WEBHOOK_SECRET`.
 3. Use **test** keys until go-live.
+
+### Refunds (manual, recommended flow)
+
+Stripe does **not** automatically set order status in this app when you issue a refund in the Dashboard.
+
+1. In [Stripe Dashboard](https://dashboard.stripe.com) → **Payments**, open the payment (search by amount, customer email, or copy the **PaymentIntent** id from the admin order screen in the app).
+2. Issue a **full or partial refund** as appropriate.
+3. In the iOS app, open **Admin** (long-press the boutique name on Home) → **Orders** → tap the order → set **Status** to **Refunded** (or **Cancelled** if you did not capture payment) and tap **Save**.
+
+Registered customers get an in-app **Order update** notification when status changes. **Guest checkout** orders have no app user, so there is no in-app notification; they rely on Stripe’s receipt email.
+
+**Inventory:** Adjust variant stock yourself (admin catalog / database) if you returned items to sellable inventory.
 
 ### 4. iOS app
 

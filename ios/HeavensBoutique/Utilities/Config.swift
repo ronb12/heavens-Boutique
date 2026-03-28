@@ -63,4 +63,10 @@ enum Config {
     }
 
     static let supportPhoneDisplay = "706-261-8323"
+
+    /// Settings → About: developer credit.
+    static let builtByName = "Ronell Bradley"
+
+    /// Settings → About: owning company (separate from developer credit).
+    static let productOfCompany = "Bradley Virtual Solutions, LLC"
 }

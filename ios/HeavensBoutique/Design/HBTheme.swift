@@ -24,8 +24,10 @@ enum HBColors {
     static var cream: Color { adaptive(light: 0xFFF8F2, dark: 0x12100E) }
     /// List rows, cards on the main background.
     static var surface: Color { adaptive(light: 0xFFF8F2, dark: 0x1F1D1B) }
-    static var charcoal: Color { adaptive(light: 0x2B2B2B, dark: 0xEAE3DC) }
-    static var mutedGray: Color { adaptive(light: 0x8A8A8A, dark: 0x8C8680) }
+    /// Primary text. In dark mode, blush pink for boutique legibility on deep brown-black.
+    static var charcoal: Color { adaptive(light: 0x2B2B2B, dark: 0xF5D8E4) }
+    /// Secondary / caption text. In dark mode, dusty rose (still clearly pink-tinted).
+    static var mutedGray: Color { adaptive(light: 0x8A8A8A, dark: 0xD4A8B8) }
     static var softPink: Color { adaptive(light: 0xEBC6D4, dark: 0xBC96A3) }
     static var rosePink: Color { adaptive(light: 0xDC9BA8, dark: 0xC68B9A) }
     static var gold: Color { adaptive(light: 0xD4AF37, dark: 0xE0C25A) }

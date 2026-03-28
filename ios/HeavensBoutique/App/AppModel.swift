@@ -14,6 +14,11 @@ final class AppModel: ObservableObject {
     @Published var tabSelection: Int = 0
     /// When set, `ConversationsListView` can push this conversation (e.g. after a notification tap).
     @Published var pendingConversationIdToOpen: String?
+    /// When set, `ProfileView` pushes order detail (e.g. after an order notification tap).
+    @Published var pendingOrderIdToOpen: String?
+
+    /// Admins only: hide admin entry points and use customer APIs (e.g. Messages = my threads only).
+    @Published var customerViewPreview = false
 
     let api: APIClient
     let session: SessionViewModel
@@ -36,5 +41,14 @@ final class AppModel: ObservableObject {
 
     func openMessagesTab() {
         tabSelection = 2
+    }
+
+    /// Admin toolbar, Profile/Settings admin rows, long-press shortcut, and `?all=1` message list.
+    var showAdminChrome: Bool {
+        session.isAdmin && !customerViewPreview
+    }
+
+    func exitCustomerViewPreview() {
+        customerViewPreview = false
     }
 }

@@ -5,6 +5,8 @@ struct ConversationsListView: View {
     @EnvironmentObject private var session: SessionViewModel
     @EnvironmentObject private var appModel: AppModel
 
+    private var useAdminMessageList: Bool { appModel.showAdminChrome }
+
     private var needsSignIn: Bool { !session.isLoggedIn }
     @StateObject private var vm = MessagesViewModel()
     @State private var path = NavigationPath()
@@ -31,7 +33,7 @@ struct ConversationsListView: View {
                         title: "Couldn’t load messages",
                         message: err,
                         retryTitle: "Try again",
-                        retry: { Task { await vm.loadConversations(api: api, adminAll: session.isAdmin) } }
+                        retry: { Task { await vm.loadConversations(api: api, adminAll: useAdminMessageList) } }
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if vm.conversations.isEmpty {
@@ -103,15 +105,19 @@ struct ConversationsListView: View {
             }
             .task {
                 guard !needsSignIn else { return }
-                await vm.loadConversations(api: api, adminAll: session.isAdmin)
+                await vm.loadConversations(api: api, adminAll: useAdminMessageList)
                 openPendingConversationIfNeeded()
             }
             .onChange(of: appModel.pendingConversationIdToOpen) { _, _ in
                 openPendingConversationIfNeeded()
             }
+            .onChange(of: appModel.customerViewPreview) { _, _ in
+                guard !needsSignIn else { return }
+                Task { await vm.loadConversations(api: api, adminAll: useAdminMessageList) }
+            }
             .refreshable {
                 guard !needsSignIn else { return }
-                await vm.loadConversations(api: api, adminAll: session.isAdmin)
+                await vm.loadConversations(api: api, adminAll: useAdminMessageList)
             }
         }
     }

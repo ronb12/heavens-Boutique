@@ -12,7 +12,8 @@ final class SessionViewModel: ObservableObject {
     }
 
     var isLoggedIn: Bool { user != nil }
-    var isAdmin: Bool { user?.role == "admin" }
+    /// Matches API `users.role` (Postgres); tolerate any casing.
+    var isAdmin: Bool { (user?.role ?? "").lowercased() == "admin" }
 
     func restore() async {
         isRestoring = true

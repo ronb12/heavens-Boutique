@@ -124,17 +124,20 @@ jobs:
           echo "Deploy target: project=$PROJ (repo_slug=$REPO_SLUG_LOWER)"
 
           if [ -n "${VERCEL_ORG_ID:-}" ] && [ -n "${VERCEL_PROJECT_ID:-}" ]; then
-            echo "::notice::Using VERCEL_ORG_ID + VERCEL_PROJECT_ID from secrets (slug link skipped)."
-            npx --yes "$VERCEL_PKG" deploy --prod --yes --token "$VERCEL_TOKEN"
+            echo "::notice::Using VERCEL_ORG_ID + VERCEL_PROJECT_ID from secrets; writing .vercel/project.json (Vercel CLI 50+ needs a linked project file, not env vars alone)."
+            node -e "const fs=require('fs');const o=process.env.VERCEL_ORG_ID;const p=process.env.VERCEL_PROJECT_ID;if(!o||!p){console.error('missing org/project');process.exit(1)}fs.mkdirSync('.vercel',{recursive:true});fs.writeFileSync('.vercel/project.json',JSON.stringify({orgId:o,projectId:p},null,2)+'\n');"
+            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive \
+              --token "$VERCEL_TOKEN" \
+              "${SCOPE_ARGS[@]}"
           else
             # CLI reads these env vars during deploy; a lone VERCEL_ORG_ID triggers "forgot VERCEL_PROJECT_ID".
             unset VERCEL_ORG_ID VERCEL_PROJECT_ID
             # Non-interactive deploy with --project alone is brittle; link first writes .vercel/project.json.
-            npx --yes "$VERCEL_PKG" link --yes \
+            npx --yes "$VERCEL_PKG" link --yes --non-interactive \
               --token "$VERCEL_TOKEN" \
               "${SCOPE_ARGS[@]}" \
               --project "$PROJ"
-            npx --yes "$VERCEL_PKG" deploy --prod --yes \
+            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive \
               --token "$VERCEL_TOKEN" \
               "${SCOPE_ARGS[@]}"
           fi
@@ -145,10 +148,19 @@ jobs:
         run: |
           set -euo pipefail
           base="${SMOKE_BASE:-https://heavens-boutique.vercel.app}"
-          code=$(curl -sS -o /tmp/hb-api-smoke.json -w "%{http_code}" "${base}/api/products")
-          if [ "$code" != "200" ]; then
-            echo "Expected GET ${base}/api/products → 200, got HTTP $code"
-            cat /tmp/hb-api-smoke.json || true
+          ok=0
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/hb-api-smoke.json -w "%{http_code}" "${base}/api/products" || echo "000")
+            if [ "$code" = "200" ]; then
+              ok=1
+              break
+            fi
+            echo "Attempt $i: GET ${base}/api/products → HTTP $code (retrying in 12s…)"
+            cat /tmp/hb-api-smoke.json 2>/dev/null || true
+            sleep 12
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::Expected GET ${base}/api/products → 200 after retries"
             exit 1
           fi
           echo "GET ${base}/api/products OK (200)"

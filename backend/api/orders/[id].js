@@ -1,6 +1,81 @@
 import { getDb } from '../../lib/db.js';
 import { requireUser, requireAdmin } from '../../lib/auth.js';
+import { isAllowedOrderStatus } from '../../lib/orderStatuses.js';
+import { sendPushToToken } from '../../lib/fcm.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
+
+/**
+ * @param {{ status: string, statusChanged: boolean, trackingChanged: boolean, trackingNumber: string | null }} p
+ */
+function orderCustomerNotificationCopy(p) {
+  const { status, statusChanged, trackingChanged, trackingNumber } = p;
+  const trackingHint = trackingChanged
+    ? trackingNumber
+      ? ` Tracking: ${trackingNumber}`
+      : ' Tracking details were updated.'
+    : '';
+
+  if (statusChanged) {
+    const map = {
+      pending: {
+        title: 'Order received',
+        body: "We're processing your order." + trackingHint,
+        pushTitle: 'Order update',
+        pushBody: 'Tap to see your order status.',
+      },
+      paid: {
+        title: 'Payment confirmed',
+        body: "We're preparing your order for shipment." + trackingHint,
+        pushTitle: 'Order confirmed',
+        pushBody: "We're preparing your order.",
+      },
+      shipped: {
+        title: 'On the way',
+        body: 'Your package has shipped.' + trackingHint,
+        pushTitle: 'Shipped!',
+        pushBody: 'Your order is on the way — tap to track.',
+      },
+      delivered: {
+        title: 'Delivered',
+        body: 'Your order has been delivered. Thank you!' + trackingHint,
+        pushTitle: 'Delivered',
+        pushBody: 'Your order arrived — tap for details.',
+      },
+      cancelled: {
+        title: 'Order cancelled',
+        body: 'This order is no longer active.',
+        pushTitle: 'Order cancelled',
+        pushBody: 'Tap for details.',
+      },
+      refunded: {
+        title: 'Refund processed',
+        body: 'Your refund has been completed.',
+        pushTitle: 'Refund processed',
+        pushBody: 'Tap for order details.',
+      },
+    };
+    const row = map[status] || {
+      title: 'Order update',
+      body: `Your order status is now ${status}.` + trackingHint,
+      pushTitle: 'Order update',
+      pushBody: 'Tap to view your order.',
+    };
+    return row;
+  }
+
+  if (trackingChanged) {
+    return {
+      title: 'Tracking updated',
+      body: trackingNumber
+        ? `Your shipment tracking: ${trackingNumber}`
+        : 'Your order has new tracking information — see the app for details.',
+      pushTitle: 'Tracking updated',
+      pushBody: 'Tap to view tracking and delivery progress.',
+    };
+  }
+
+  return { title: 'Order update', body: 'Your order was updated.', pushTitle: 'Order update', pushBody: 'Tap to view your order.' };
+}
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -18,7 +93,7 @@ export default async function handler(req, res) {
       const o = rows[0];
       if (!o) return json(res, 404, { error: 'Not found' });
       if (o.user_id !== auth.userId) {
-        const admin = requireAdmin(req);
+        const admin = await requireAdmin(req);
         if (admin.error) return json(res, admin.status, { error: admin.error });
       }
 
@@ -36,6 +111,7 @@ export default async function handler(req, res) {
           discountCents: o.discount_cents,
           totalCents: o.total_cents,
           trackingNumber: o.tracking_number,
+          stripePaymentIntentId: o.stripe_payment_intent_id,
           createdAt: o.created_at,
           items: items.map((i) => ({
             id: i.id,
@@ -50,14 +126,17 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      const admin = requireAdmin(req);
+      const admin = await requireAdmin(req);
       if (admin.error) return json(res, admin.status, { error: admin.error });
 
       const body = await readJson(req);
-      const status = body.status;
+      const status = body.status != null ? String(body.status).trim() : '';
       const trackingNumber = body.trackingNumber;
 
       if (status) {
+        if (!isAllowedOrderStatus(status)) {
+          return json(res, 400, { error: 'Invalid status' });
+        }
         await sql`UPDATE orders SET status = ${status}, updated_at = now() WHERE id = ${id}`;
       }
       if (trackingNumber !== undefined) {
@@ -68,15 +147,36 @@ export default async function handler(req, res) {
       const o = rows[0];
       if (!o) return json(res, 404, { error: 'Not found' });
 
-      const label = status || trackingNumber !== undefined ? `Status: ${o.status}` : 'Your order was updated';
-      await sql`
-        INSERT INTO notifications (user_id, type, title, body, data)
-        VALUES (
-          ${o.user_id}, 'order', 'Order update',
-          ${label},
-          ${JSON.stringify({ orderId: id, status: o.status, trackingNumber: o.tracking_number })}::jsonb
-        )
-      `;
+      const statusChanged = Boolean(status);
+      const trackingChanged = trackingNumber !== undefined;
+      const didUpdate = statusChanged || trackingChanged;
+      if (didUpdate && o.user_id) {
+        const copy = orderCustomerNotificationCopy({
+          status: o.status,
+          statusChanged,
+          trackingChanged,
+          trackingNumber: o.tracking_number,
+        });
+        await sql`
+          INSERT INTO notifications (user_id, type, title, body, data)
+          VALUES (
+            ${o.user_id}, 'order', ${copy.title},
+            ${copy.body},
+            ${JSON.stringify({ orderId: id, status: o.status, trackingNumber: o.tracking_number })}::jsonb
+          )
+        `;
+
+        const users = await sql`SELECT fcm_token FROM users WHERE id = ${o.user_id} LIMIT 1`;
+        const token = users[0]?.fcm_token;
+        if (token) {
+          await sendPushToToken({
+            token,
+            title: copy.pushTitle,
+            body: copy.pushBody,
+            data: { type: 'order', orderId: id, status: o.status },
+          });
+        }
+      }
 
       return json(res, 200, { ok: true });
     }

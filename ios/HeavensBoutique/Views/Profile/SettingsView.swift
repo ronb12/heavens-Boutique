@@ -2,10 +2,43 @@ import SwiftUI
 import UIKit
 
 struct SettingsView: View {
+    @EnvironmentObject private var session: SessionViewModel
+    @EnvironmentObject private var api: APIClient
+    @EnvironmentObject private var appModel: AppModel
     @AppStorage(HBAppearancePreference.storageKey) private var appearanceRaw: String = HBAppearancePreference.system.rawValue
+    @State private var showAdminHub = false
 
     var body: some View {
         List {
+            if appModel.showAdminChrome {
+                Section("Store admin") {
+                    Button {
+                        showAdminHub = true
+                    } label: {
+                        Label("Admin tools", systemImage: "gearshape.2")
+                            .foregroundStyle(HBColors.charcoal)
+                    }
+                    .listRowBackground(HBColors.surface)
+                }
+            }
+
+            if session.isAdmin && appModel.customerViewPreview {
+                Section("Customer view") {
+                    Button {
+                        appModel.exitCustomerViewPreview()
+                        HBFeedback.light()
+                    } label: {
+                        Label("Exit customer view", systemImage: "arrow.uturn.backward.circle")
+                            .foregroundStyle(HBColors.charcoal)
+                    }
+                    .listRowBackground(HBColors.surface)
+                } footer: {
+                    Text("You’re previewing the app as a shopper. Admin controls are hidden until you exit.")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                }
+            }
+
             Section {
                 Picker("Appearance", selection: $appearanceRaw) {
                     ForEach(HBAppearancePreference.allCases) { mode in
@@ -79,24 +112,50 @@ struct SettingsView: View {
                 }
             }
 
-            Section("About") {
+            Section("About the app") {
+                Text(SettingsView.aboutAppDescription)
+                    .font(HBFont.body())
+                    .foregroundStyle(HBColors.charcoal)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowBackground(HBColors.surface)
+            } footer: {
+                Text("Curated luxury with soft pink moments — shop, save, and stay in touch with Heaven’s Boutique.")
+                    .font(HBFont.caption())
+                    .foregroundStyle(HBColors.mutedGray)
+            }
+
+            Section {
                 LabeledContent("Version", value: Config.appMarketingVersion)
                     .listRowBackground(HBColors.surface)
                 LabeledContent("Build", value: Config.appBuildNumber)
                     .listRowBackground(HBColors.surface)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Copyright © \(Calendar.current.component(.year, from: Date())) Heaven's Boutique. All rights reserved.")
-                    Text("Built by Ronell Bradley.")
-                    Text("Property of Bradley Virtual Solutions, LLC.")
-                }
-                .font(HBFont.caption())
-                .foregroundStyle(HBColors.mutedGray)
-                .listRowBackground(HBColors.surface)
+                LabeledContent("Built by", value: Config.builtByName)
+                    .foregroundStyle(HBColors.charcoal)
+                    .listRowBackground(HBColors.surface)
+                LabeledContent("Product of", value: Config.productOfCompany)
+                    .foregroundStyle(HBColors.charcoal)
+                    .listRowBackground(HBColors.surface)
+            } header: {
+                Text("App information")
+            } footer: {
+                Text("Copyright © \(Calendar.current.component(.year, from: Date())) Heaven's Boutique. All rights reserved.")
+                    .font(HBFont.caption())
+                    .foregroundStyle(HBColors.mutedGray)
             }
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .scrollContentBackground(.hidden)
         .background(HBColors.cream.ignoresSafeArea())
+        .sheet(isPresented: $showAdminHub) {
+            AdminHubView()
+                .environmentObject(api)
+                .environmentObject(appModel)
+        }
     }
+
+    private static let aboutAppDescription = """
+    Heaven’s Boutique brings the boutique to your iPhone: discover curated pieces, save favorites to your wishlist, and check out securely. Create an account to sync your bag, track orders with shipment updates, get notifications, and message our stylists for fit and styling help — or browse and use guest checkout when you prefer.
+    """
 }

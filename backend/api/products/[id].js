@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PUT' || req.method === 'PATCH') {
-      const auth = requireAdmin(req);
+      const auth = await requireAdmin(req);
       if (auth.error) return json(res, auth.status, { error: auth.error });
 
       const body = await readJson(req);
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      const auth = requireAdmin(req);
+      const auth = await requireAdmin(req);
       if (auth.error) return json(res, auth.status, { error: auth.error });
       await sql`DELETE FROM products WHERE id = ${id}`;
       return json(res, 200, { ok: true });

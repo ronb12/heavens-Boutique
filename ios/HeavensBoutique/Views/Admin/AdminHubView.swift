@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Hidden admin surface — surfaced from Home via long-press on the boutique name (admin accounts only).
+/// Store admin: catalog snapshot, orders, customer notifications. Open from Home (gear), Profile, Settings, or long-press the wordmark.
 struct AdminHubView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var api: APIClient
+    @EnvironmentObject private var appModel: AppModel
     @State private var products: [ProductDTO] = []
     @State private var orders: [OrderDTO] = []
     @State private var isLoading = false
@@ -15,6 +16,7 @@ struct AdminHubView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                customerPreviewEntry
                 Picker("Section", selection: $tab) {
                     Text("Products").tag(0)
                     Text("Orders").tag(1)
@@ -50,6 +52,38 @@ struct AdminHubView: View {
         }
     }
 
+    private var customerPreviewEntry: some View {
+        Button {
+            appModel.customerViewPreview = true
+            dismiss()
+            HBFeedback.light()
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("View as customer")
+                        .font(HBFont.headline())
+                        .foregroundStyle(HBColors.charcoal)
+                    Text("Hides admin controls and loads your personal messages. Use the banner or Profile to exit.")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Image(systemName: "eye.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(HBColors.gold)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(HBColors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+        .accessibilityHint("Closes admin and shows the shopper experience.")
+    }
+
     private var productSection: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -82,22 +116,27 @@ struct AdminHubView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(orders) { o in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(o.status.capitalized)
-                            .font(HBFont.headline())
-                            .foregroundStyle(HBColors.charcoal)
-                        if let email = o.userEmail {
-                            Text(email)
+                    NavigationLink {
+                        AdminOrderDetailView(orderId: o.id)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(o.status.replacingOccurrences(of: "_", with: " ").capitalized)
+                                .font(HBFont.headline())
+                                .foregroundStyle(HBColors.charcoal)
+                            if let email = o.userEmail {
+                                Text(email)
+                                    .font(HBFont.caption())
+                                    .foregroundStyle(HBColors.mutedGray)
+                            }
+                            Text(NumberFormatter.localizedString(from: NSNumber(value: Double(o.totalCents) / 100), number: .currency))
                                 .font(HBFont.caption())
-                                .foregroundStyle(HBColors.mutedGray)
+                                .foregroundStyle(HBColors.gold)
                         }
-                        Text(NumberFormatter.localizedString(from: NSNumber(value: Double(o.totalCents) / 100), number: .currency))
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.gold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .hbCardStyle()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .hbCardStyle()
+                    .buttonStyle(.plain)
                 }
             }
             .padding()

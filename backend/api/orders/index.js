@@ -14,12 +14,12 @@ export default async function handler(req, res) {
       const asAdmin = url.searchParams.get('all') === '1';
 
       if (asAdmin) {
-        const admin = requireAdmin(req);
+        const admin = await requireAdmin(req);
         if (admin.error) return json(res, admin.status, { error: admin.error });
         const orders = await sql`
           SELECT o.*, u.email as user_email, u.full_name as user_name
           FROM orders o
-          INNER JOIN users u ON u.id = o.user_id
+          LEFT JOIN users u ON u.id = o.user_id
           ORDER BY o.created_at DESC
           LIMIT 200
         `;
@@ -55,7 +55,7 @@ function mapOrderRow(o, items) {
   return {
     id: o.id,
     userId: o.user_id,
-    userEmail: o.user_email,
+    userEmail: o.user_email || o.guest_email || null,
     userName: o.user_name,
     status: o.status,
     subtotalCents: o.subtotal_cents,
@@ -64,6 +64,7 @@ function mapOrderRow(o, items) {
     shippingCents: o.shipping_cents,
     totalCents: o.total_cents,
     trackingNumber: o.tracking_number,
+    stripePaymentIntentId: o.stripe_payment_intent_id,
     createdAt: o.created_at,
     items: (items || []).map((i) => ({
       id: i.id,

@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var api: APIClient
     @EnvironmentObject private var session: SessionViewModel
+    @EnvironmentObject private var appModel: AppModel
     @StateObject private var vm = HomeViewModel()
     @State private var showAdmin = false
     @State private var heroAppeared = false
@@ -52,6 +53,17 @@ struct HomeView: View {
             }
             .hbScreenBackground()
             .toolbar {
+                if appModel.showAdminChrome {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showAdmin = true
+                        } label: {
+                            Image(systemName: "gearshape.2")
+                                .foregroundStyle(HBColors.gold)
+                        }
+                        .accessibilityLabel("Store admin")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
                         CartView()
@@ -128,10 +140,11 @@ struct HomeView: View {
                             .foregroundStyle(HBColors.charcoal)
                             .minimumScaleFactor(0.8)
                             .onLongPressGesture(minimumDuration: 1.2) {
-                                if session.isAdmin {
+                                if appModel.showAdminChrome {
                                     showAdmin = true
                                 }
                             }
+                            .accessibilityHint(appModel.showAdminChrome ? "Also open admin from the gear button above or Profile." : "")
                     }
 
                     Text("Curated luxury, soft pink moments.")

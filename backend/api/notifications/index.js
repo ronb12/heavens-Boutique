@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const admin = requireAdmin(req);
+      const admin = await requireAdmin(req);
       if (admin.error) return json(res, admin.status, { error: admin.error });
       const body = await readJson(req);
       const userId = body.userId;

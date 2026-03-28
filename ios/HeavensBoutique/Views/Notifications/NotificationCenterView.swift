@@ -113,7 +113,10 @@ struct NotificationCenterView: View {
     }
 
     private func routeFromNotification(_ n: NotificationDTO) {
-        if n.data?.orderId != nil || n.type.lowercased() == "order" {
+        if let oid = n.data?.orderId, !oid.isEmpty {
+            appModel.pendingOrderIdToOpen = oid
+            appModel.openProfileTab()
+        } else if n.type.lowercased() == "order" {
             appModel.openProfileTab()
         }
         if let cid = n.data?.conversationId {

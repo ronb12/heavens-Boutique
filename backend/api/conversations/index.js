@@ -15,8 +15,8 @@ export default async function handler(req, res) {
       const all = url.searchParams.get('all') === '1';
 
       let rows;
-      if (all && auth.role === 'admin') {
-        const admin = requireAdmin(req);
+      if (all) {
+        const admin = await requireAdmin(req);
         if (admin.error) return json(res, admin.status, { error: admin.error });
         rows = await sql`
           SELECT c.*, u.email as customer_email, u.full_name as customer_name
