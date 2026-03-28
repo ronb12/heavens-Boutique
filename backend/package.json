@@ -1,0 +1,16 @@
+{
+  "name": "heavens-boutique-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check lib/*.js 2>/dev/null || true"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "stripe": "^17.4.0",
+    "uuid": "^11.0.3"
+  }
+}

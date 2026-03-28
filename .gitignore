@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Node
+backend/node_modules/
+npm-debug.log*
+
+# Xcode / iOS
+ios/**/*.xcodeproj/xcuserdata/
+ios/**/*.xcworkspace/xcuserdata/
+ios/**/*.xcworkspace/xcshareddata/swiftpm/configuration/
+DerivedData/
+*.xcuserstate
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift PM (if used outside XcodeGen resolve)
+.build/
+
+# Vercel
+.vercel

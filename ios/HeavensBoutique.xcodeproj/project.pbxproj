@@ -1,0 +1,609 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00CE0FF3736C72A14EED184A /* NotificationCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9581342C1C6444D4B1E77CF /* NotificationCenterView.swift */; };
+		027D933EA69EB4A7FACE2DCA /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00BE348F37EC22BF54AF24E9 /* HomeViewModel.swift */; };
+		04A6BA76D52B01F87E57DDA7 /* ShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7317BFC3102A4F48CB18EF8B /* ShopView.swift */; };
+		1BED776C9ED25F99451206B0 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7FB756C2F91E8575EBC8913 /* HomeView.swift */; };
+		1D2024DCA39D9C46ABB53793 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84F0213178CDCB0393B9F93 /* Config.swift */; };
+		22ED7C47CF4B771C61FCD617 /* NotificationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA245E015398258B1D2A013F /* NotificationsViewModel.swift */; };
+		24C1858281A32BAEF09D6CCF /* ConversationsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D768E2CED99231AE00FFCB7B /* ConversationsListView.swift */; };
+		24F91CE004304C60A822AF2B /* CartStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F977D07FCB219EF2DD0B73B /* CartStore.swift */; };
+		28B80CBEA8B27FBCF8606966 /* PaymentPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B609F93A0AD7AF8C65BD9124 /* PaymentPresenter.swift */; };
+		34355FFE411D4594A04AEED2 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = 4537FE35FE58CE000B69AC44 /* StripePaymentSheet */; };
+		39C7F1FAEAE20E2D41461A53 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E869DA0B21045C204490F78 /* KeychainStore.swift */; };
+		413EE72BD74AD17602655C43 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B05EC0B3E9B79CE4DB763B /* APIClient.swift */; };
+		607D863708B6395AA26BB243 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A2B3B1DBD20A5444C77831 /* RootView.swift */; };
+		64FE923A82CC8EDBBB614293 /* CartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADBD53BC8AC43EA42622B40 /* CartView.swift */; };
+		66C374008B5CFAC08D48C844 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A1F0F45432C908463CDB1A /* ChatView.swift */; };
+		685DB75E2E73D3F3C91C30E5 /* ShopViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B2F2AC0BDD39F3AE307AD37 /* ShopViewModel.swift */; };
+		6AFFD46F812D502B1702FD46 /* HBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B8EA4BB03A950D2F99CB15 /* HBTheme.swift */; };
+		7D78532921790D9981662607 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BFBFC6AD5D335E365FF4CC /* LoginView.swift */; };
+		83F2A8E7164F9374B1837EE4 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED7449AA4978CAD8A917121 /* ProfileView.swift */; };
+		846277C0C4F322ACED48306D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB6E56D7ED0817C6C05A6A5 /* AppModel.swift */; };
+		8B1F03F72F869C1EEBC9ABCA /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ADFCFA211904EB89EB853A /* APIModels.swift */; };
+		8D45728110571FF745EBD709 /* MessagesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E197BA37B4F8F84D3ECC58FE /* MessagesViewModel.swift */; };
+		998B12C32396423346766FD1 /* ProductDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9225DDC43C3A0A0E3B01245A /* ProductDetailView.swift */; };
+		9D45596D214ED1229EAFDBD1 /* ProductCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC689C9CCDABFCF43D7D940 /* ProductCardView.swift */; };
+		A616109F1BACDBD626D61045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 814DDAD1C5A0CF913A818056 /* Assets.xcassets */; };
+		B54F202B20EB2E45EB9B02BC /* SessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC78CFCE9D2548D2AEDCA24B /* SessionViewModel.swift */; };
+		B966B2B5F73E269DC4C83930 /* CartModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F0D4DF1629745B3F825942 /* CartModels.swift */; };
+		CFD43104A79BE0A4749B291A /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 377C27B155E970AC33481398 /* RegisterView.swift */; };
+		DA88785DBECCED8743B284EF /* HeavensBoutiqueApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB89513D46F62C50BE3E59 /* HeavensBoutiqueApp.swift */; };
+		EB814134E251CDCF62EC716E /* StripePayments in Frameworks */ = {isa = PBXBuildFile; productRef = EEE3A79DDB703613E21BCD2C /* StripePayments */; };
+		F353ECBA526EE6FB91612765 /* HBButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A062756BD06050C71DD62D0 /* HBButtons.swift */; };
+		F87A3933B447BD6CE87FFB40 /* CheckoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B52C2276C121AA9AFCAF0D /* CheckoutView.swift */; };
+		F93976800DED3941A038FFE7 /* AdminHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461BFC3988E33A54D6875737 /* AdminHubView.swift */; };
+		FBFD5AA2B6A234F49F96DE2B /* OrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6836C4252819E4AB00BC99 /* OrdersViewModel.swift */; };
+		FD6F3B59F52DDF7E4AB4C141 /* HBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C984E38435CBFD30E23ABF /* HBTypography.swift */; };
+		FE41EF9D9A73A2D69762FA59 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123748103D0CBA623D08E388 /* MainTabView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		00B52C2276C121AA9AFCAF0D /* CheckoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckoutView.swift; sourceTree = "<group>"; };
+		00BE348F37EC22BF54AF24E9 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		0B2F2AC0BDD39F3AE307AD37 /* ShopViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopViewModel.swift; sourceTree = "<group>"; };
+		123748103D0CBA623D08E388 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		26C984E38435CBFD30E23ABF /* HBTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBTypography.swift; sourceTree = "<group>"; };
+		27ADFCFA211904EB89EB853A /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		2FB6E56D7ED0817C6C05A6A5 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		362CF2010CB463A527FCB548 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		377C27B155E970AC33481398 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
+		461BFC3988E33A54D6875737 /* AdminHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminHubView.swift; sourceTree = "<group>"; };
+		4ADBD53BC8AC43EA42622B40 /* CartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartView.swift; sourceTree = "<group>"; };
+		5E869DA0B21045C204490F78 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		6ED7449AA4978CAD8A917121 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		72A1F0F45432C908463CDB1A /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		7317BFC3102A4F48CB18EF8B /* ShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopView.swift; sourceTree = "<group>"; };
+		7A062756BD06050C71DD62D0 /* HBButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBButtons.swift; sourceTree = "<group>"; };
+		7F977D07FCB219EF2DD0B73B /* CartStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartStore.swift; sourceTree = "<group>"; };
+		814DDAD1C5A0CF913A818056 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9225DDC43C3A0A0E3B01245A /* ProductDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailView.swift; sourceTree = "<group>"; };
+		A84F0213178CDCB0393B9F93 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		B609F93A0AD7AF8C65BD9124 /* PaymentPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentPresenter.swift; sourceTree = "<group>"; };
+		B9A2B3B1DBD20A5444C77831 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B9B05EC0B3E9B79CE4DB763B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		BC6836C4252819E4AB00BC99 /* OrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersViewModel.swift; sourceTree = "<group>"; };
+		C0CB89513D46F62C50BE3E59 /* HeavensBoutiqueApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeavensBoutiqueApp.swift; sourceTree = "<group>"; };
+		D3BFBFC6AD5D335E365FF4CC /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		D768E2CED99231AE00FFCB7B /* ConversationsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsListView.swift; sourceTree = "<group>"; };
+		D7FB756C2F91E8575EBC8913 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		E197BA37B4F8F84D3ECC58FE /* MessagesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesViewModel.swift; sourceTree = "<group>"; };
+		E2B8EA4BB03A950D2F99CB15 /* HBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBTheme.swift; sourceTree = "<group>"; };
+		E65DD49D31550C4E01393FBB /* HeavensBoutique.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HeavensBoutique.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8F0D4DF1629745B3F825942 /* CartModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartModels.swift; sourceTree = "<group>"; };
+		E9581342C1C6444D4B1E77CF /* NotificationCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCenterView.swift; sourceTree = "<group>"; };
+		EA245E015398258B1D2A013F /* NotificationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsViewModel.swift; sourceTree = "<group>"; };
+		FC78CFCE9D2548D2AEDCA24B /* SessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionViewModel.swift; sourceTree = "<group>"; };
+		FCC689C9CCDABFCF43D7D940 /* ProductCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCardView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		583503DEC7BDD85306277DAC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34355FFE411D4594A04AEED2 /* StripePaymentSheet in Frameworks */,
+				EB814134E251CDCF62EC716E /* StripePayments in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		07A7BB2CF27D7052D0943C58 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				6ED7449AA4978CAD8A917121 /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		1CB95D867CE808E9A4A91A0F /* Checkout */ = {
+			isa = PBXGroup;
+			children = (
+				00B52C2276C121AA9AFCAF0D /* CheckoutView.swift */,
+			);
+			path = Checkout;
+			sourceTree = "<group>";
+		};
+		1F8D060982AE3325F30E16CC /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				D3BFBFC6AD5D335E365FF4CC /* LoginView.swift */,
+				377C27B155E970AC33481398 /* RegisterView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		20BE6D02598FE4C0BA09B4FF /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				27ADFCFA211904EB89EB853A /* APIModels.swift */,
+				E8F0D4DF1629745B3F825942 /* CartModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		39AB68D1278CCC236A5232E0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B9B05EC0B3E9B79CE4DB763B /* APIClient.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3CB81E80C9E9533B093F081F /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				E9581342C1C6444D4B1E77CF /* NotificationCenterView.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		455062546C5CC8A3B7DAF0CC /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2FB6E56D7ED0817C6C05A6A5 /* AppModel.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		640E96892A8DE42BA0C1F06E /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A84F0213178CDCB0393B9F93 /* Config.swift */,
+				5E869DA0B21045C204490F78 /* KeychainStore.swift */,
+				B609F93A0AD7AF8C65BD9124 /* PaymentPresenter.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		718479A1F93916B8EB552332 /* Shop */ = {
+			isa = PBXGroup;
+			children = (
+				FCC689C9CCDABFCF43D7D940 /* ProductCardView.swift */,
+				9225DDC43C3A0A0E3B01245A /* ProductDetailView.swift */,
+				7317BFC3102A4F48CB18EF8B /* ShopView.swift */,
+			);
+			path = Shop;
+			sourceTree = "<group>";
+		};
+		81178154256A56E85A3939F7 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				7F977D07FCB219EF2DD0B73B /* CartStore.swift */,
+				00BE348F37EC22BF54AF24E9 /* HomeViewModel.swift */,
+				E197BA37B4F8F84D3ECC58FE /* MessagesViewModel.swift */,
+				EA245E015398258B1D2A013F /* NotificationsViewModel.swift */,
+				BC6836C4252819E4AB00BC99 /* OrdersViewModel.swift */,
+				FC78CFCE9D2548D2AEDCA24B /* SessionViewModel.swift */,
+				0B2F2AC0BDD39F3AE307AD37 /* ShopViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		8859AC5ED24D5B2B74118003 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				123748103D0CBA623D08E388 /* MainTabView.swift */,
+				B9A2B3B1DBD20A5444C77831 /* RootView.swift */,
+				90334962C258EAAF0716105E /* Admin */,
+				1F8D060982AE3325F30E16CC /* Auth */,
+				9DDCB5BE451B8DF7C8AAE4DA /* Cart */,
+				1CB95D867CE808E9A4A91A0F /* Checkout */,
+				C17CBC91EF8B67D222AE7AC5 /* Home */,
+				9FBB03E8B324A6880C129310 /* Messages */,
+				3CB81E80C9E9533B093F081F /* Notifications */,
+				07A7BB2CF27D7052D0943C58 /* Profile */,
+				718479A1F93916B8EB552332 /* Shop */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		90334962C258EAAF0716105E /* Admin */ = {
+			isa = PBXGroup;
+			children = (
+				461BFC3988E33A54D6875737 /* AdminHubView.swift */,
+			);
+			path = Admin;
+			sourceTree = "<group>";
+		};
+		9C483C70F15A1452D8590C0F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E65DD49D31550C4E01393FBB /* HeavensBoutique.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9DDCB5BE451B8DF7C8AAE4DA /* Cart */ = {
+			isa = PBXGroup;
+			children = (
+				4ADBD53BC8AC43EA42622B40 /* CartView.swift */,
+			);
+			path = Cart;
+			sourceTree = "<group>";
+		};
+		9FBB03E8B324A6880C129310 /* Messages */ = {
+			isa = PBXGroup;
+			children = (
+				72A1F0F45432C908463CDB1A /* ChatView.swift */,
+				D768E2CED99231AE00FFCB7B /* ConversationsListView.swift */,
+			);
+			path = Messages;
+			sourceTree = "<group>";
+		};
+		B851C97020C9B20EB6275087 /* HeavensBoutique */ = {
+			isa = PBXGroup;
+			children = (
+				814DDAD1C5A0CF913A818056 /* Assets.xcassets */,
+				C0CB89513D46F62C50BE3E59 /* HeavensBoutiqueApp.swift */,
+				362CF2010CB463A527FCB548 /* Info.plist */,
+				455062546C5CC8A3B7DAF0CC /* App */,
+				EC2BE7F1ACD2A43395BAFE06 /* Design */,
+				20BE6D02598FE4C0BA09B4FF /* Models */,
+				39AB68D1278CCC236A5232E0 /* Services */,
+				640E96892A8DE42BA0C1F06E /* Utilities */,
+				81178154256A56E85A3939F7 /* ViewModels */,
+				8859AC5ED24D5B2B74118003 /* Views */,
+			);
+			path = HeavensBoutique;
+			sourceTree = "<group>";
+		};
+		C17CBC91EF8B67D222AE7AC5 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				D7FB756C2F91E8575EBC8913 /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		EC2BE7F1ACD2A43395BAFE06 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				7A062756BD06050C71DD62D0 /* HBButtons.swift */,
+				E2B8EA4BB03A950D2F99CB15 /* HBTheme.swift */,
+				26C984E38435CBFD30E23ABF /* HBTypography.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		FAB64C40B6B96D5C1D2F7EB5 = {
+			isa = PBXGroup;
+			children = (
+				B851C97020C9B20EB6275087 /* HeavensBoutique */,
+				9C483C70F15A1452D8590C0F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8E0D90F53D270434C3762250 /* HeavensBoutique */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D6B4CFEF346A5360B2495729 /* Build configuration list for PBXNativeTarget "HeavensBoutique" */;
+			buildPhases = (
+				781569A5D8FB1C57B4DC3ED8 /* Sources */,
+				29F7E9C6C502A1574B96A7B9 /* Resources */,
+				583503DEC7BDD85306277DAC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HeavensBoutique;
+			packageProductDependencies = (
+				4537FE35FE58CE000B69AC44 /* StripePaymentSheet */,
+				EEE3A79DDB703613E21BCD2C /* StripePayments */,
+			);
+			productName = HeavensBoutique;
+			productReference = E65DD49D31550C4E01393FBB /* HeavensBoutique.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0298FFB7E73AAC2B25AE6FF0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = FC928DE8262C9AA4FB1C39A7 /* Build configuration list for PBXProject "HeavensBoutique" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = FAB64C40B6B96D5C1D2F7EB5;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				445425788A30006D4DF3CC12 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8E0D90F53D270434C3762250 /* HeavensBoutique */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		29F7E9C6C502A1574B96A7B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A616109F1BACDBD626D61045 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		781569A5D8FB1C57B4DC3ED8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				413EE72BD74AD17602655C43 /* APIClient.swift in Sources */,
+				8B1F03F72F869C1EEBC9ABCA /* APIModels.swift in Sources */,
+				F93976800DED3941A038FFE7 /* AdminHubView.swift in Sources */,
+				846277C0C4F322ACED48306D /* AppModel.swift in Sources */,
+				B966B2B5F73E269DC4C83930 /* CartModels.swift in Sources */,
+				24F91CE004304C60A822AF2B /* CartStore.swift in Sources */,
+				64FE923A82CC8EDBBB614293 /* CartView.swift in Sources */,
+				66C374008B5CFAC08D48C844 /* ChatView.swift in Sources */,
+				F87A3933B447BD6CE87FFB40 /* CheckoutView.swift in Sources */,
+				1D2024DCA39D9C46ABB53793 /* Config.swift in Sources */,
+				24C1858281A32BAEF09D6CCF /* ConversationsListView.swift in Sources */,
+				F353ECBA526EE6FB91612765 /* HBButtons.swift in Sources */,
+				6AFFD46F812D502B1702FD46 /* HBTheme.swift in Sources */,
+				FD6F3B59F52DDF7E4AB4C141 /* HBTypography.swift in Sources */,
+				DA88785DBECCED8743B284EF /* HeavensBoutiqueApp.swift in Sources */,
+				1BED776C9ED25F99451206B0 /* HomeView.swift in Sources */,
+				027D933EA69EB4A7FACE2DCA /* HomeViewModel.swift in Sources */,
+				39C7F1FAEAE20E2D41461A53 /* KeychainStore.swift in Sources */,
+				7D78532921790D9981662607 /* LoginView.swift in Sources */,
+				FE41EF9D9A73A2D69762FA59 /* MainTabView.swift in Sources */,
+				8D45728110571FF745EBD709 /* MessagesViewModel.swift in Sources */,
+				00CE0FF3736C72A14EED184A /* NotificationCenterView.swift in Sources */,
+				22ED7C47CF4B771C61FCD617 /* NotificationsViewModel.swift in Sources */,
+				FBFD5AA2B6A234F49F96DE2B /* OrdersViewModel.swift in Sources */,
+				28B80CBEA8B27FBCF8606966 /* PaymentPresenter.swift in Sources */,
+				9D45596D214ED1229EAFDBD1 /* ProductCardView.swift in Sources */,
+				998B12C32396423346766FD1 /* ProductDetailView.swift in Sources */,
+				83F2A8E7164F9374B1837EE4 /* ProfileView.swift in Sources */,
+				CFD43104A79BE0A4749B291A /* RegisterView.swift in Sources */,
+				607D863708B6395AA26BB243 /* RootView.swift in Sources */,
+				B54F202B20EB2E45EB9B02BC /* SessionViewModel.swift in Sources */,
+				04A6BA76D52B01F87E57DDA7 /* ShopView.swift in Sources */,
+				685DB75E2E73D3F3C91C30E5 /* ShopViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		08AC5AE57119C16FA72A0B75 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		54A8167A1694F41BFBE47417 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = HeavensBoutique/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.heavensboutique.app;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C188429B265E47E3903BBA66 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F0DCF0B38F66E6F51FB4FA32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = HeavensBoutique/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.heavensboutique.app;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D6B4CFEF346A5360B2495729 /* Build configuration list for PBXNativeTarget "HeavensBoutique" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				54A8167A1694F41BFBE47417 /* Debug */,
+				F0DCF0B38F66E6F51FB4FA32 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FC928DE8262C9AA4FB1C39A7 /* Build configuration list for PBXProject "HeavensBoutique" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C188429B265E47E3903BBA66 /* Debug */,
+				08AC5AE57119C16FA72A0B75 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		445425788A30006D4DF3CC12 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 24.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4537FE35FE58CE000B69AC44 /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 445425788A30006D4DF3CC12 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripePaymentSheet;
+		};
+		EEE3A79DDB703613E21BCD2C /* StripePayments */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 445425788A30006D4DF3CC12 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripePayments;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 0298FFB7E73AAC2B25AE6FF0 /* Project object */;
+}
