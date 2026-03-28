@@ -109,17 +109,12 @@ jobs:
           PROJ="$(echo -n "${VERCEL_PROJECT_SLUG_VAR:-$REPO_SLUG_LOWER}" | tr -d '[:space:]')"
           if [ -z "$PROJ" ]; then PROJ='heavens-boutique'; fi
 
-          # Vercel CLI errors with: "You cannot set your Personal Account as the scope" when using
-          # --scope <your-username> on a hobby/personal account. Omit --scope unless VERCEL_SCOPE is
-          # set (team slug from vercel.com/<team>/<project>).
-          SCOPE_ARGS=()
-          _scope_trim="$(echo -n "${VERCEL_SCOPE_VAR:-}" | tr -d '[:space:]')"
-          if [ -n "$_scope_trim" ]; then
-            SCOPE_ARGS=(--scope "$_scope_trim")
-            echo "Using explicit Vercel scope (team): ${_scope_trim}"
-          else
-            echo "Using token default account (no --scope; required for personal/hobby Vercel)"
-          fi
+          # Vercel CLI 50+ in --non-interactive mode requires --scope (or --team); it does not infer
+          # a default. This repo's production project lives under team ronell-bradleys-projects.
+          # Override with repository variable VERCEL_SCOPE if you use a different team.
+          _scope_trim="$(echo -n "${VERCEL_SCOPE_VAR:-ronell-bradleys-projects}" | tr -d '[:space:]')"
+          SCOPE_ARGS=(--scope "$_scope_trim")
+          echo "Using Vercel scope (team): ${_scope_trim}"
 
           echo "Deploy target: project=$PROJ (repo_slug=$REPO_SLUG_LOWER)"
 

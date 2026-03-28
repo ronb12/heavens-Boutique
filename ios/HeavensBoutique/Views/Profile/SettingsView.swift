@@ -23,7 +23,7 @@ struct SettingsView: View {
             }
 
             if session.isAdmin && appModel.customerViewPreview {
-                Section("Customer view") {
+                Section {
                     Button {
                         appModel.exitCustomerViewPreview()
                         HBFeedback.light()
@@ -32,6 +32,8 @@ struct SettingsView: View {
                             .foregroundStyle(HBColors.charcoal)
                     }
                     .listRowBackground(HBColors.surface)
+                } header: {
+                    Text("Customer view")
                 } footer: {
                     Text("You’re previewing the app as a shopper. Admin controls are hidden until you exit.")
                         .font(HBFont.caption())
@@ -112,13 +114,15 @@ struct SettingsView: View {
                 }
             }
 
-            Section("About the app") {
+            Section {
                 Text(SettingsView.aboutAppDescription)
                     .font(HBFont.body())
                     .foregroundStyle(HBColors.charcoal)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .listRowBackground(HBColors.surface)
+            } header: {
+                Text("About the app")
             } footer: {
                 Text("Curated luxury with soft pink moments — shop, save, and stay in touch with Heaven’s Boutique.")
                     .font(HBFont.caption())
