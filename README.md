@@ -108,10 +108,10 @@ Under **GitHub → Settings → Secrets and variables → Actions**:
 | Name | Tab | Value |
 |------|-----|--------|
 | `VERCEL_TOKEN` | **Secrets** (required) | [Create a token](https://vercel.com/account/tokens) |
-| `VERCEL_SCOPE` | **Variables** (often optional) | First segment of the Vercel dashboard URL: `vercel.com/<scope>/<project>`. For a **personal** account this is usually your Vercel username; for a **team**, the **team slug** (not `team_…`). If unset, the workflow uses **`GITHUB_REPOSITORY_OWNER`** (e.g. `ronb12` for `ronb12/heavens-Boutique`). |
+| `VERCEL_SCOPE` | **Variables** | **Leave unset** for a **personal / hobby** Vercel account (the CLI rejects `--scope` with your username). Set only for a **team**: use the **team slug** from `vercel.com/<team-slug>/<project>` (not `team_…`). |
 | `VERCEL_PROJECT_SLUG` | **Variables** (optional) | Vercel project slug (URL segment). If unset, the workflow lowercases the repo name from **`GITHUB_REPOSITORY`** (e.g. `heavens-boutique` for `ronb12/heavens-Boutique`). |
 
-**Default path:** `vercel link --yes --scope … --project …` then **`vercel deploy --prod`** so CI gets a valid `.vercel/project.json`. Using **`vercel deploy --project` alone** is unreliable in non-interactive runs.
+**Default path:** `vercel link --yes` (with `--scope` only if **`VERCEL_SCOPE`** is set) **`--project …`**, then **`vercel deploy --prod`**, so CI gets a valid `.vercel/project.json`.
 
 **Optional:** If secrets **`VERCEL_ORG_ID`** and **`VERCEL_PROJECT_ID`** are **both** set (from Vercel → Project → Settings → General), the workflow skips `link` and deploys using those IDs only. If that fails, remove one or both secrets to fall back to the default slug + `link` path.
 
@@ -125,7 +125,9 @@ Under **GitHub → Settings → Secrets and variables → Actions**:
 
 **Deploy error “no credentials” / “pass --token”:** The `VERCEL_TOKEN` repository secret is missing, empty, or the workflow ran in a context where secrets are unavailable (e.g. pull request from a fork). Create a token at the link above and add **`VERCEL_TOKEN`** under **Actions** secrets for this repo (not only **Dependabot** or **Codespaces** unless you deploy from there).
 
-**Deploy error “Project not found” / wrong scope:** Set **`VERCEL_SCOPE`** to the first segment of `vercel.com/<scope>/<project>`. For an **org-owned** GitHub repo, `GITHUB_REPOSITORY_OWNER` is the **org**, which may not match your Vercel username—set **`VERCEL_SCOPE`** explicitly.
+**Deploy error “You cannot set your Personal Account as the scope”:** Clear **`VERCEL_SCOPE`** (personal accounts must not pass `--scope`). **Team** projects: set **`VERCEL_SCOPE`** to the team slug only.
+
+**Deploy error “Project not found”:** Confirm **`VERCEL_PROJECT_SLUG`** matches the Vercel project name. For **team** projects, set **`VERCEL_SCOPE`** to the team slug.
 
 **iOS: “HTTP 404” on Register / Login:** The app calls `https://<project>.vercel.app/api/auth/register`. A 404 means Vercel is not serving `/api/*` (deploy failed, wrong **Root Directory**, or routes missing). Confirm in a browser or Terminal: `curl -sS -o /dev/null -w "%{http_code}" -X POST https://heavens-boutique.vercel.app/api/auth/register -H "Content-Type: application/json" -d '{"email":"a@b.co","password":"password1234"}'` — expect **201** or **409**, not **404**. Fix the deploy first; **`API_BASE_URL`** in the app should stay `https://…vercel.app/api` (the app also auto-appends `/api` if you omit it).
 
@@ -133,7 +135,7 @@ Under **GitHub → Settings → Secrets and variables → Actions**:
 
 | Variable | Purpose |
 |----------|---------|
-| `VERCEL_SCOPE` | Vercel dashboard URL scope (see table above). |
+| `VERCEL_SCOPE` | Team slug only when the project lives under a Vercel **team**; omit for **personal** accounts. |
 | `VERCEL_PROJECT_SLUG` | Vercel project name slug (default `heavens-boutique`). |
 | `NEON_PROJECT_ID` | Neon project ID (defaults to `withered-fog-14874911` in the workflow if unset) |
 | `VERCEL_SMOKE_BASE` | Override production URL for the deploy smoke test (default `https://heavens-boutique.vercel.app`) |
