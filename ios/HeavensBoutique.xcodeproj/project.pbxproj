@@ -44,6 +44,8 @@
 		FBFD5AA2B6A234F49F96DE2B /* OrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6836C4252819E4AB00BC99 /* OrdersViewModel.swift */; };
 		FD6F3B59F52DDF7E4AB4C141 /* HBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C984E38435CBFD30E23ABF /* HBTypography.swift */; };
 		FE41EF9D9A73A2D69762FA59 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123748103D0CBA623D08E388 /* MainTabView.swift */; };
+		A1BCDE12F0345678ABCD9013 /* AuthChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1BCDE12F0345678ABCD9012 /* AuthChrome.swift */; };
+		B2CDEF23E0456789BCDE0124 /* WelcomeAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2CDEF23E0456789BCDE0123 /* WelcomeAuthView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +86,8 @@
 		EA245E015398258B1D2A013F /* NotificationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsViewModel.swift; sourceTree = "<group>"; };
 		FC78CFCE9D2548D2AEDCA24B /* SessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionViewModel.swift; sourceTree = "<group>"; };
 		FCC689C9CCDABFCF43D7D940 /* ProductCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCardView.swift; sourceTree = "<group>"; };
+		A1BCDE12F0345678ABCD9012 /* AuthChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthChrome.swift; sourceTree = "<group>"; };
+		B2CDEF23E0456789BCDE0123 /* WelcomeAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeAuthView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,8 +122,10 @@
 		1F8D060982AE3325F30E16CC /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				A1BCDE12F0345678ABCD9012 /* AuthChrome.swift */,
 				D3BFBFC6AD5D335E365FF4CC /* LoginView.swift */,
 				377C27B155E970AC33481398 /* RegisterView.swift */,
+				B2CDEF23E0456789BCDE0123 /* WelcomeAuthView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -366,6 +372,7 @@
 			files = (
 				413EE72BD74AD17602655C43 /* APIClient.swift in Sources */,
 				8B1F03F72F869C1EEBC9ABCA /* APIModels.swift in Sources */,
+				A1BCDE12F0345678ABCD9013 /* AuthChrome.swift in Sources */,
 				F93976800DED3941A038FFE7 /* AdminHubView.swift in Sources */,
 				846277C0C4F322ACED48306D /* AppModel.swift in Sources */,
 				B966B2B5F73E269DC4C83930 /* CartModels.swift in Sources */,
@@ -394,6 +401,7 @@
 				83F2A8E7164F9374B1837EE4 /* ProfileView.swift in Sources */,
 				CFD43104A79BE0A4749B291A /* RegisterView.swift in Sources */,
 				607D863708B6395AA26BB243 /* RootView.swift in Sources */,
+				B2CDEF23E0456789BCDE0124 /* WelcomeAuthView.swift in Sources */,
 				B54F202B20EB2E45EB9B02BC /* SessionViewModel.swift in Sources */,
 				04A6BA76D52B01F87E57DDA7 /* ShopView.swift in Sources */,
 				685DB75E2E73D3F3C91C30E5 /* ShopViewModel.swift in Sources */,

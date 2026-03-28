@@ -26,6 +26,7 @@ struct HBPrimaryButton: View {
             )
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: HBColors.gold.opacity(0.35), radius: 10, x: 0, y: 5)
         }
         .disabled(isLoading)
     }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RegisterView: View {
     @Binding var mode: AuthMode
+    var onBackToWelcome: () -> Void
     @EnvironmentObject private var session: SessionViewModel
     @EnvironmentObject private var api: APIClient
 
@@ -13,69 +14,98 @@ struct RegisterView: View {
 
     var body: some View {
         ZStack {
-            HBColors.cream.ignoresSafeArea()
+            AuthChromeBackground()
+
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Join Heaven's")
-                        .font(HBFont.title(32))
-                        .foregroundStyle(HBColors.charcoal)
-
-                    Text("Create an account for orders, loyalty, and personal styling.")
-                        .font(HBFont.body())
-                        .foregroundStyle(HBColors.mutedGray)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Name")
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.mutedGray)
-                        TextField("Your name", text: $fullName)
-                            .textContentType(.name)
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                VStack(spacing: 0) {
+                    VStack(spacing: 16) {
+                        HBBrandMonogram(size: 56)
+                        VStack(spacing: 6) {
+                            Text("Join Heaven's")
+                                .font(HBFont.title(30))
+                                .foregroundStyle(HBColors.charcoal)
+                            Text("Orders, loyalty notes, and styling—tailored to you.")
+                                .font(HBFont.body())
+                                .foregroundStyle(HBColors.mutedGray)
+                                .multilineTextAlignment(.center)
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 8)
+                    .padding(.bottom, 28)
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Email")
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.mutedGray)
-                        TextField("you@email.com", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    }
+                    HBAuthFormCard {
+                        VStack(alignment: .leading, spacing: 20) {
+                            HBAuthTextField(
+                                title: "Name",
+                                placeholder: "Your name",
+                                icon: "person.fill",
+                                text: $fullName,
+                                isSecure: false,
+                                keyboard: .default,
+                                textContent: .name,
+                                autocapitalization: .words
+                            )
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Password (8+ characters)")
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.mutedGray)
-                        SecureField("Password", text: $password)
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    }
+                            HBAuthTextField(
+                                title: "Email",
+                                placeholder: "you@email.com",
+                                icon: "envelope.fill",
+                                text: $email,
+                                isSecure: false,
+                                keyboard: .emailAddress,
+                                textContent: .emailAddress,
+                                autocapitalization: .never
+                            )
 
-                    if let error {
-                        Text(error)
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.rosePink)
-                    }
+                            HBAuthTextField(
+                                title: "Password",
+                                placeholder: "8+ characters",
+                                icon: "lock.fill",
+                                text: $password,
+                                isSecure: true,
+                                keyboard: .default,
+                                textContent: .newPassword,
+                                autocapitalization: .never
+                            )
 
-                    HBPrimaryButton(title: "Register", isLoading: isLoading) {
-                        Task { await register() }
-                    }
+                            if let error {
+                                Text(error)
+                                    .font(HBFont.caption())
+                                    .foregroundStyle(HBColors.rosePink)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
 
-                    HBSecondaryButton(title: "Already have an account?") {
-                        mode = .login
+                            HBPrimaryButton(title: "Create account", isLoading: isLoading) {
+                                Task { await register() }
+                            }
+
+                            HBSecondaryButton(title: "Already have an account?") {
+                                mode = .login
+                            }
+                        }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
                 }
-                .padding(28)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: onBackToWelcome) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Welcome")
+                            .font(HBFont.body().weight(.medium))
+                    }
+                    .foregroundStyle(HBColors.gold)
+                }
+            }
+        }
     }
 
     private func register() async {

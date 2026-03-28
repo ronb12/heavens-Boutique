@@ -3,17 +3,258 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Heaven’s Boutique API</title>
-    <style>
-      body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #2b2b2b; background: #fff8f2; }
-      code { background: #f7d6e0; padding: 0.15rem 0.4rem; border-radius: 6px; }
-      a { color: #d4af37; font-weight: 600; }
-    </style>
+    <title>Heaven’s Boutique — Curated fashion &amp; elegance</title>
+    <meta
+      name="description"
+      content="Heaven’s Boutique brings curated women’s fashion with a soft pink and gold aesthetic. Shop on iOS—luxury feel, thoughtful curation, and seamless checkout."
+    />
+    <meta property="og:title" content="Heaven’s Boutique" />
+    <meta
+      property="og:description"
+      content="Curated fashion with a luxury boutique experience. Download the app to shop."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/marketing.css" />
   </head>
   <body>
-    <h1>Heaven’s Boutique</h1>
-    <p>This deployment is the <strong>REST API</strong> for the iOS app. There is no web storefront here.</p>
-    <p>Example: <a href="/api/products"><code>GET /api/products</code></a></p>
-    <p>Health: <a href="/api"><code>GET /api</code></a></p>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header site-header--animate">
+      <div class="header-inner">
+        <a class="logo" href="#">Heaven’s Boutique</a>
+        <button
+          type="button"
+          class="nav-toggle"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="primary-nav"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav id="primary-nav" class="nav-desktop" aria-label="Primary">
+          <a href="#story">Our story</a>
+          <a href="#values">Why us</a>
+          <a href="#app">Get the app</a>
+          <a href="#contact">Contact</a>
+          <a class="btn btn-primary" href="#app">Shop the app</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="hero-aurora" aria-hidden="true"></div>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="hero-eyebrow">Curated · Feminine · Timeless</p>
+            <h1 id="hero-heading">Where elegance meets everyday confidence</h1>
+            <p class="hero-lead">
+              Discover pieces chosen with care—soft palettes, refined details, and the warmth of a true
+              boutique, in your pocket.
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#app">Download on iOS</a>
+              <a class="btn btn-ghost" href="#story">Learn more</a>
+            </div>
+          </div>
+          <div class="hero-visual hero-visual--animate" role="presentation">
+            <div class="hero-visual__float">
+              <span class="hero-sparkle hero-sparkle--1" aria-hidden="true">✦</span>
+              <span class="hero-sparkle hero-sparkle--2" aria-hidden="true">✦</span>
+              <span class="hero-sparkle hero-sparkle--3" aria-hidden="true">✦</span>
+              <p class="tagline">Pink &amp; gold. Always.</p>
+              <p>Your favorite looks, cart, and secure checkout—designed for how you actually shop.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="story" class="section reveal" aria-labelledby="story-heading">
+        <div class="section-inner">
+          <div class="section-head">
+            <h2 id="story-heading">Our story</h2>
+            <p>
+              Heaven’s Boutique started with a simple idea: shopping should feel special—not rushed, not
+              noisy, and never generic.
+            </p>
+          </div>
+          <div class="story-grid">
+            <div class="story-card">
+              <h3>Curation first</h3>
+              <p>
+                Every collection is built around quality, fit, and mood. We focus on pieces that layer
+                beautifully and carry you from brunch to evening without a wardrobe change.
+              </p>
+            </div>
+            <div class="story-card">
+              <h3>Built for you</h3>
+              <p>
+                The iOS app mirrors the calm of our aesthetic—clear navigation, saved favorites, and
+                checkout that respects your time. Admin tools keep inventory and orders in sync so what you
+                see is what we stand behind.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="values" class="section section-soft reveal" aria-labelledby="values-heading">
+        <div class="section-inner">
+          <div class="section-head">
+            <h2 id="values-heading">Why Heaven’s</h2>
+            <p>Three promises we bake into every touchpoint—from browse to unboxing.</p>
+          </div>
+          <div class="pillars">
+            <article class="pillar">
+              <div class="pillar-icon" aria-hidden="true">✦</div>
+              <h3>Luxury feel</h3>
+              <p>Typography, color, and motion inspired by high-end retail—without the intimidation.</p>
+            </article>
+            <article class="pillar">
+              <div class="pillar-icon" aria-hidden="true">♥</div>
+              <h3>Thoughtful service</h3>
+              <p>Questions and order updates stay human-sized. We’re building relationships, not one-off
+                transactions.</p>
+            </article>
+            <article class="pillar">
+              <div class="pillar-icon" aria-hidden="true">◇</div>
+              <h3>Secure checkout</h3>
+              <p>Modern payments and order tracking so you can shop with confidence on the go.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="app" class="section reveal" aria-labelledby="app-heading">
+        <div class="section-inner">
+          <div class="app-cta">
+            <h2 id="app-heading">Shop on iOS</h2>
+            <p>
+              The full boutique experience lives in our app—new arrivals, your cart, and checkout in one
+              beautiful flow.
+            </p>
+            <div class="app-badges">
+              <span class="app-badge-placeholder" title="Replace with App Store link when live">
+                App Store — link coming soon
+              </span>
+            </div>
+            <p style="margin: 0; font-size: 0.9rem; color: var(--muted, #8a8a8a)">
+              Ask us for the TestFlight or private link if you’re an early supporter.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section reveal" aria-labelledby="contact-heading">
+        <div class="section-inner">
+          <div class="section-head">
+            <h2 id="contact-heading">Stay in touch</h2>
+            <p>Follow along for drops, styling notes, and behind-the-scenes from the boutique.</p>
+          </div>
+          <div class="contact-grid">
+            <div class="contact-card">
+              <h3>Social</h3>
+              <p>
+                <!-- Replace href with your real profiles -->
+                <a href="#" aria-label="Instagram (add your URL)">Instagram</a>
+                ·
+                <a href="#" aria-label="TikTok (add your URL)">TikTok</a>
+              </p>
+            </div>
+            <div class="contact-card">
+              <h3>Email</h3>
+              <p>
+                <a href="mailto:hello@heavensboutique.com">hello@heavensboutique.com</a>
+                <br />
+                <span style="font-size: 0.85rem">Update this address to your real inbox.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer reveal">
+      <div class="footer-inner">
+        <div>
+          <p class="footer-brand">Heaven’s Boutique</p>
+          <p class="footer-meta">© <span id="year"></span> Heaven’s Boutique. All rights reserved.</p>
+        </div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="#story">Story</a>
+          <a href="#app">App</a>
+          <a href="#contact">Contact</a>
+          <a href="/api">API status</a>
+          <a href="/api/products">Products feed</a>
+        </nav>
+      </div>
+      <p class="dev-note">
+        Developers: REST API for the iOS app at <a href="/api"><code>/api</code></a> ·
+        <a href="/api/products"><code>GET /api/products</code></a>
+      </p>
+    </footer>
+
+    <script>
+      (function () {
+        var y = document.getElementById("year");
+        if (y) y.textContent = new Date().getFullYear();
+
+        var toggle = document.querySelector(".nav-toggle");
+        var nav = document.getElementById("primary-nav");
+        if (!toggle || !nav) return;
+
+        toggle.addEventListener("click", function () {
+          var open = nav.classList.toggle("is-open");
+          toggle.setAttribute("aria-expanded", open ? "true" : "false");
+          toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+        });
+
+        nav.querySelectorAll("a").forEach(function (link) {
+          link.addEventListener("click", function () {
+            nav.classList.remove("is-open");
+            toggle.setAttribute("aria-expanded", "false");
+            toggle.setAttribute("aria-label", "Open menu");
+          });
+        });
+
+        var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!reduceMotion) {
+          var reveals = document.querySelectorAll(".reveal");
+          if (reveals.length && "IntersectionObserver" in window) {
+            var observer = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (entry) {
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add("reveal--visible");
+                    observer.unobserve(entry.target);
+                  }
+                });
+              },
+              { root: null, rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
+            );
+            reveals.forEach(function (el) {
+              observer.observe(el);
+            });
+          } else {
+            reveals.forEach(function (el) {
+              el.classList.add("reveal--visible");
+            });
+          }
+        } else {
+          document.querySelectorAll(".reveal").forEach(function (el) {
+            el.classList.add("reveal--visible");
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

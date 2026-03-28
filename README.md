@@ -36,7 +36,7 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
    | `CORS_ORIGIN` | Optional; default `*` |
    | `CRON_SECRET` | Optional; `Authorization: Bearer …` for cron |
 
-4. Deploy. Production API base URL: **`https://heavens-boutique.vercel.app/api`** (already wired for this repo’s Vercel project).
+4. Deploy. The site root **`/`** is the **marketing** page (hero, story, app CTA, contact). The **REST API** lives at **`https://heavens-boutique.vercel.app/api`** (already wired for this repo’s Vercel project).
 
 **If the browser or app shows `404 NOT_FOUND` for `/` or `/api/...`:** In Vercel → Project → Settings → General, set **Root Directory** to the **repository root** (leave the field empty), redeploy, and confirm `GET /api/products` returns JSON. A common cause is **Root Directory = `backend`** while the deployment expects `api/` at the project root, or a prior root bundle that was excluded from upload by `.gitignore` (fixed in this repo for CI).
 

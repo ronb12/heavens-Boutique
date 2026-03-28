@@ -83,7 +83,7 @@ jobs:
           cp -R backend/api api
           cp -R backend/lib lib
           mkdir -p public
-          cp backend/public/index.html public/
+          cp -R backend/public/. public/
 
       # Never commit .vercel/ — and do not echo-write project.json: current CLIs validate project
       # settings from the API; a minimal JSON triggers "Project Settings are invalid".

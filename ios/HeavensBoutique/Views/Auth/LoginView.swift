@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @Binding var mode: AuthMode
+    var onBackToWelcome: () -> Void
     @EnvironmentObject private var session: SessionViewModel
     @EnvironmentObject private var api: APIClient
 
@@ -12,59 +13,88 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            HBColors.cream.ignoresSafeArea()
+            AuthChromeBackground()
+
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Welcome back")
-                        .font(HBFont.title(32))
-                        .foregroundStyle(HBColors.charcoal)
-
-                    Text("Sign in to continue your boutique journey.")
-                        .font(HBFont.body())
-                        .foregroundStyle(HBColors.mutedGray)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Email")
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.mutedGray)
-                        TextField("you@email.com", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                VStack(spacing: 0) {
+                    VStack(spacing: 16) {
+                        HBBrandMonogram(size: 56)
+                        VStack(spacing: 6) {
+                            Text("Welcome back")
+                                .font(HBFont.title(30))
+                                .foregroundStyle(HBColors.charcoal)
+                            Text("Sign in to continue your boutique journey.")
+                                .font(HBFont.body())
+                                .foregroundStyle(HBColors.mutedGray)
+                                .multilineTextAlignment(.center)
+                        }
                     }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Password")
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.mutedGray)
-                        SecureField("Password", text: $password)
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    }
-
-                    if let error {
-                        Text(error)
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.rosePink)
-                    }
-
-                    HBPrimaryButton(title: "Sign in", isLoading: isLoading) {
-                        Task { await login() }
-                    }
+                    .frame(maxWidth: .infinity)
                     .padding(.top, 8)
+                    .padding(.bottom, 28)
 
-                    HBSecondaryButton(title: "Create an account") {
-                        mode = .register
+                    HBAuthFormCard {
+                        VStack(alignment: .leading, spacing: 20) {
+                            HBAuthTextField(
+                                title: "Email",
+                                placeholder: "you@email.com",
+                                icon: "envelope.fill",
+                                text: $email,
+                                isSecure: false,
+                                keyboard: .emailAddress,
+                                textContent: .emailAddress,
+                                autocapitalization: .never
+                            )
+
+                            HBAuthTextField(
+                                title: "Password",
+                                placeholder: "Your password",
+                                icon: "lock.fill",
+                                text: $password,
+                                isSecure: true,
+                                keyboard: .default,
+                                textContent: .password,
+                                autocapitalization: .never
+                            )
+
+                            if let error {
+                                Text(error)
+                                    .font(HBFont.caption())
+                                    .foregroundStyle(HBColors.rosePink)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+
+                            HBPrimaryButton(title: "Sign in", isLoading: isLoading) {
+                                Task { await login() }
+                            }
+                            .padding(.top, 4)
+
+                            HBSecondaryButton(title: "Create an account") {
+                                mode = .register
+                            }
+                        }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
                 }
-                .padding(28)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: onBackToWelcome) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Welcome")
+                            .font(HBFont.body().weight(.medium))
+                    }
+                    .foregroundStyle(HBColors.gold)
+                }
+            }
+        }
     }
 
     private func login() async {
