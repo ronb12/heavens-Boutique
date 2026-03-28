@@ -28,7 +28,27 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
    | `CORS_ORIGIN` | Optional; default `*` |
    | `CRON_SECRET` | Optional; `Authorization: Bearer …` for cron |
 
-4. Deploy. Your API base URL will be `https://<project>.vercel.app/api`.
+4. Deploy. Production API base URL: **`https://heavens-boutique.vercel.app/api`** (already wired for this repo’s Vercel project).
+
+### Neon CLI — re-apply schema
+
+From the repo root (after `neonctl auth`):
+
+```bash
+export NEON_PROJECT_ID=withered-fog-14874911   # default in script; optional override
+bash scripts/neon-apply-schema.sh
+```
+
+Or from `backend/`: `npm run db:apply`
+
+### Vercel CLI — deploy API
+
+From `backend/` (after `vercel link`):
+
+```bash
+npm run deploy
+# or: npx vercel deploy --prod --yes
+```
 
 ### 3. Stripe
 

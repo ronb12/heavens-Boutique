@@ -31,7 +31,7 @@
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>API_BASE_URL</key>
-	<string>https://YOUR_VERCEL_PROJECT.vercel.app/api</string>
+	<string>https://heavens-boutique.vercel.app/api</string>
 	<key>STRIPE_PUBLISHABLE_KEY</key>
 	<string>pk_test_REPLACE_ME</string>
 </dict>
