@@ -108,12 +108,12 @@ Under **GitHub → Settings → Secrets and variables → Actions**:
 | Name | Tab | Value |
 |------|-----|--------|
 | `VERCEL_TOKEN` | **Secrets** (required) | [Create a token](https://vercel.com/account/tokens) |
-| `VERCEL_ORG_ID` | **Secrets**, **Variables**, or *(omit)* | Optional for **this** Vercel project: the deploy workflow already defaults to `team_RyIheF5P8ysoBiLR1yU2UMQR`. Override if you use another team. |
-| `VERCEL_PROJECT_ID` | **Secrets**, **Variables**, or *(omit)* | Optional for **this** project: workflow default `prj_rDcgpKuogIGsRDbqtzSAQqUivKfF`. Override for a fork or new Vercel project. |
+| `VERCEL_SCOPE` | **Variables** (often optional) | First segment of the Vercel dashboard URL: `vercel.com/<scope>/<project>`. For a **personal** account this is usually your Vercel username; for a **team**, the **team slug** (not `team_…`). If unset, the workflow uses **`GITHUB_REPOSITORY_OWNER`** (e.g. `ronb12` for `ronb12/heavens-Boutique`). |
+| `VERCEL_PROJECT_SLUG` | **Variables** (optional) | Second URL segment / project name. If unset, uses the **GitHub repo name** lowercased (e.g. `heavens-boutique`), else **`heavens-boutique`**. |
 
-Precedence: **Secret** → **Variable** → **defaults in the deploy step** (bash). You only need **`VERCEL_TOKEN`** as a secret for this repo’s Vercel project.
+Deploy uses **`vercel deploy --scope … --project …`** so the CLI resolves the project by **slug**, not `prj_…` / `team_…` ids (those caused *“Project not found”* when they didn’t match your token or a recreated project).
 
-If Actions still says *“VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set (from local .vercel…)”*, you’re on an **old** workflow file on `main` — **pull/push** the latest `.github/workflows/deploy.yml` from this repository.
+If Actions still says *“VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set”*, pull the latest `main` — that message is from an old workflow.
 
 ### Repository secrets (optional / other)
 
@@ -131,8 +131,8 @@ If Actions still says *“VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set (from 
 
 | Variable | Purpose |
 |----------|---------|
-| `VERCEL_ORG_ID` | Same as secret; used if the secret is unset (see table above). |
-| `VERCEL_PROJECT_ID` | Same as secret; used if the secret is unset. |
+| `VERCEL_SCOPE` | Vercel dashboard URL scope (see table above). |
+| `VERCEL_PROJECT_SLUG` | Vercel project name slug (default `heavens-boutique`). |
 | `NEON_PROJECT_ID` | Neon project ID (defaults to `withered-fog-14874911` in the workflow if unset) |
 | `VERCEL_SMOKE_BASE` | Override production URL for the deploy smoke test (default `https://heavens-boutique.vercel.app`) |
 

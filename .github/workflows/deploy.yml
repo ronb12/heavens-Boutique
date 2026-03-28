@@ -91,28 +91,28 @@ jobs:
         env:
           VERCEL_TELEMETRY_DISABLED: "1"
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          # Split secret vs var — do not use ${{ secrets.x || vars.x || 'default' }}; GitHub can drop the literal fallback.
-          VERCEL_ORG_SECRET: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_ORG_VAR: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJ_SECRET: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_PROJ_VAR: ${{ vars.VERCEL_PROJECT_ID }}
+          # Slug deploy avoids "Project not found" when prj_/team_ IDs don’t match the token (personal account, moved project, stale IDs).
+          VERCEL_SCOPE_VAR: ${{ vars.VERCEL_SCOPE }}
+          VERCEL_PROJECT_SLUG_VAR: ${{ vars.VERCEL_PROJECT_SLUG }}
         run: |
           set -euo pipefail
           if [ -z "${VERCEL_TOKEN:-}" ]; then
             echo "::error::VERCEL_TOKEN is empty or not set. Add repository secret VERCEL_TOKEN (Vercel → Account Settings → Tokens)."
             exit 1
           fi
-          # Bash fallback chain: secret → variable → defaults for this repo’s Vercel project
-          DEFAULT_ORG='team_RyIheF5P8ysoBiLR1yU2UMQR'
-          DEFAULT_PROJ='prj_rDcgpKuogIGsRDbqtzSAQqUivKfF'
-          VERCEL_ORG_ID="${VERCEL_ORG_SECRET:-${VERCEL_ORG_VAR:-$DEFAULT_ORG}}"
-          VERCEL_PROJECT_ID="${VERCEL_PROJ_SECRET:-${VERCEL_PROJ_VAR:-$DEFAULT_PROJ}}"
-          export VERCEL_ORG_ID="$(echo -n "$VERCEL_ORG_ID" | tr -d '[:space:]')"
-          export VERCEL_PROJECT_ID="$(echo -n "$VERCEL_PROJECT_ID" | tr -d '[:space:]')"
           rm -rf .vercel
-          # Do not use --team/--scope with team_… IDs: newer CLI treats --scope as a slug and errors "scope does not exist".
-          # Official CI pattern: VERCEL_ORG_ID + VERCEL_PROJECT_ID in the environment (see Vercel CLI global options).
-          npx --yes vercel@50.37.3 deploy --prod --yes --token "$VERCEL_TOKEN"
+          # vercel.com/<scope>/<project> — scope is team slug or your Vercel username (personal). Default scope = repo owner.
+          SCOPE="$(echo -n "${VERCEL_SCOPE_VAR:-$GITHUB_REPOSITORY_OWNER}" | tr -d '[:space:]')"
+          PROJ="$(echo -n "${VERCEL_PROJECT_SLUG_VAR:-$GITHUB_REPOSITORY_NAME}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+          if [ -z "$PROJ" ]; then PROJ='heavens-boutique'; fi
+          if [ -z "$SCOPE" ]; then
+            echo "::error::Set Actions variable VERCEL_SCOPE to the first path segment of your Vercel dashboard URL (e.g. vercel.com/acme-corp/heavens-boutique → acme-corp)."
+            exit 1
+          fi
+          npx --yes vercel@50.37.3 deploy --prod --yes \
+            --token "$VERCEL_TOKEN" \
+            --scope "$SCOPE" \
+            --project "$PROJ"
 
       - name: Smoke test API (production)
         env:
