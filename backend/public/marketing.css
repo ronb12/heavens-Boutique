@@ -727,20 +727,6 @@ a:hover {
   text-decoration: none;
 }
 
-.dev-note {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 248, 242, 0.15);
-  font-size: 0.8rem;
-  color: rgba(255, 248, 242, 0.5);
-  width: 100%;
-  text-align: center;
-}
-
-.dev-note a {
-  color: rgba(241, 229, 172, 0.85);
-}
-
 /* Scroll reveal */
 .reveal {
   opacity: 0;
@@ -780,19 +766,16 @@ a:hover {
   transition-delay: 0.22s;
 }
 
-.site-footer.reveal .footer-inner,
-.site-footer.reveal > .dev-note {
+.site-footer.reveal .footer-inner {
   transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.08s, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
 }
 
-.site-footer.reveal:not(.reveal--visible) .footer-inner,
-.site-footer.reveal:not(.reveal--visible) > .dev-note {
+.site-footer.reveal:not(.reveal--visible) .footer-inner {
   opacity: 0;
   transform: translateY(16px);
 }
 
-.site-footer.reveal.reveal--visible .footer-inner,
-.site-footer.reveal.reveal--visible > .dev-note {
+.site-footer.reveal.reveal--visible .footer-inner {
   opacity: 1;
   transform: translateY(0);
 }
@@ -817,8 +800,7 @@ a:hover {
 
   .reveal,
   .reveal .section-inner > *,
-  .site-footer.reveal .footer-inner,
-  .site-footer.reveal > .dev-note {
+  .site-footer.reveal .footer-inner {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
