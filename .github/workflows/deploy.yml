@@ -25,9 +25,6 @@ jobs:
       contents: read
     env:
       NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
-      # Optional: if both are set, deploy uses these (no vercel link). Must match Project → Settings in Vercel.
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       # GitHub does not define GITHUB_REPOSITORY_NAME; scripts use set -u and must not reference it unbound.
       GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
 
@@ -98,6 +95,9 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_SCOPE_VAR: ${{ vars.VERCEL_SCOPE }}
           VERCEL_PROJECT_SLUG_VAR: ${{ vars.VERCEL_PROJECT_SLUG }}
+          # Only on this step — do NOT use job-level env: partial ORG/PROJECT breaks `vercel deploy` after link.
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
           if [ -z "${VERCEL_TOKEN:-}" ]; then
@@ -131,6 +131,8 @@ jobs:
             echo "::notice::Using VERCEL_ORG_ID + VERCEL_PROJECT_ID from secrets (slug link skipped)."
             npx --yes "$VERCEL_PKG" deploy --prod --yes --token "$VERCEL_TOKEN"
           else
+            # CLI reads these env vars during deploy; a lone VERCEL_ORG_ID triggers "forgot VERCEL_PROJECT_ID".
+            unset VERCEL_ORG_ID VERCEL_PROJECT_ID
             # Non-interactive deploy with --project alone is brittle; link first writes .vercel/project.json.
             npx --yes "$VERCEL_PKG" link --yes \
               --token "$VERCEL_TOKEN" \

@@ -113,7 +113,7 @@ Under **GitHub → Settings → Secrets and variables → Actions**:
 
 **Default path:** `vercel link --yes` (with `--scope` only if **`VERCEL_SCOPE`** is set) **`--project …`**, then **`vercel deploy --prod`**, so CI gets a valid `.vercel/project.json`.
 
-**Optional:** If secrets **`VERCEL_ORG_ID`** and **`VERCEL_PROJECT_ID`** are **both** set (from Vercel → Project → Settings → General), the workflow skips `link` and deploys using those IDs only. If that fails, remove one or both secrets to fall back to the default slug + `link` path.
+**Optional:** If secrets **`VERCEL_ORG_ID`** and **`VERCEL_PROJECT_ID`** are **both** set (from Vercel → Project → Settings → General), the workflow skips `link` and deploys using those IDs only. **Do not set only one** — a lone `VERCEL_ORG_ID` makes `vercel deploy` fail after `link`. Remove both to use the default `link` path.
 
 ### Repository secrets (optional / other)
 
