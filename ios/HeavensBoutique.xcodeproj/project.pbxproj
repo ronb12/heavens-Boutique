@@ -17,6 +17,7 @@
 		24F91CE004304C60A822AF2B /* CartStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F977D07FCB219EF2DD0B73B /* CartStore.swift */; };
 		28B80CBEA8B27FBCF8606966 /* PaymentPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B609F93A0AD7AF8C65BD9124 /* PaymentPresenter.swift */; };
 		34355FFE411D4594A04AEED2 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = 4537FE35FE58CE000B69AC44 /* StripePaymentSheet */; };
+		356F5212971BDA4C1BFCBEC7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E93CFFC760ECB67A0CFB9823 /* PrivacyInfo.xcprivacy */; };
 		39C7F1FAEAE20E2D41461A53 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E869DA0B21045C204490F78 /* KeychainStore.swift */; };
 		413EE72BD74AD17602655C43 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B05EC0B3E9B79CE4DB763B /* APIClient.swift */; };
 		607D863708B6395AA26BB243 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A2B3B1DBD20A5444C77831 /* RootView.swift */; };
@@ -78,6 +79,7 @@
 		E2B8EA4BB03A950D2F99CB15 /* HBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBTheme.swift; sourceTree = "<group>"; };
 		E65DD49D31550C4E01393FBB /* HeavensBoutique.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HeavensBoutique.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8F0D4DF1629745B3F825942 /* CartModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartModels.swift; sourceTree = "<group>"; };
+		E93CFFC760ECB67A0CFB9823 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E9581342C1C6444D4B1E77CF /* NotificationCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCenterView.swift; sourceTree = "<group>"; };
 		EA245E015398258B1D2A013F /* NotificationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsViewModel.swift; sourceTree = "<group>"; };
 		FC78CFCE9D2548D2AEDCA24B /* SessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionViewModel.swift; sourceTree = "<group>"; };
@@ -246,6 +248,7 @@
 				814DDAD1C5A0CF913A818056 /* Assets.xcassets */,
 				C0CB89513D46F62C50BE3E59 /* HeavensBoutiqueApp.swift */,
 				362CF2010CB463A527FCB548 /* Info.plist */,
+				E93CFFC760ECB67A0CFB9823 /* PrivacyInfo.xcprivacy */,
 				455062546C5CC8A3B7DAF0CC /* App */,
 				EC2BE7F1ACD2A43395BAFE06 /* Design */,
 				20BE6D02598FE4C0BA09B4FF /* Models */,
@@ -344,6 +347,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A616109F1BACDBD626D61045 /* Assets.xcassets in Resources */,
+				356F5212971BDA4C1BFCBEC7 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

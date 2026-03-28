@@ -34,12 +34,9 @@ targets:
       properties:
         CFBundleDisplayName: Heaven's Boutique
         UILaunchScreen: {}
-        UIBackgroundModes:
-          - remote-notification
-        NSPhotoLibraryUsageDescription: Attach photos when messaging the boutique.
-        NSCameraUsageDescription: Take photos to send in chat.
         API_BASE_URL: https://heavens-boutique.vercel.app/api
         STRIPE_PUBLISHABLE_KEY: pk_test_REPLACE_ME
+        ITSAppUsesNonExemptEncryption: false
     dependencies:
       - package: StripePaymentSheet
         product: StripePaymentSheet

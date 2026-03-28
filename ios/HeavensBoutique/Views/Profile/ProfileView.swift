@@ -3,9 +3,13 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject private var session: SessionViewModel
     @EnvironmentObject private var api: APIClient
+    @EnvironmentObject private var cart: CartStore
     @StateObject private var ordersVM = OrdersViewModel()
     @State private var wishlist: [ProductDTO] = []
     @State private var showWishlist = false
+    @State private var showDeleteConfirm = false
+    @State private var deleteError: String?
+    @State private var showDeleteError = false
 
     var body: some View {
         NavigationStack {
@@ -77,6 +81,17 @@ struct ProfileView: View {
                     }
                     .listRowBackground(HBColors.cream)
                 }
+
+                Section {
+                    Button("Delete account", role: .destructive) {
+                        showDeleteConfirm = true
+                    }
+                    .listRowBackground(HBColors.cream)
+                } footer: {
+                    Text("Permanently deletes your account, saved addresses, wishlist, messages, notifications, and cart. Associated order rows are removed from your account; retain receipts if you need them.")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                }
             }
             .scrollContentBackground(.hidden)
             .background(HBColors.cream.ignoresSafeArea())
@@ -86,6 +101,37 @@ struct ProfileView: View {
                 await loadWishlist()
                 await session.refreshProfile()
             }
+            .confirmationDialog(
+                "Delete your account?",
+                isPresented: $showDeleteConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Delete account", role: .destructive) {
+                    Task { await deleteAccount() }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This cannot be undone.")
+            }
+            .alert("Could not delete account", isPresented: $showDeleteError) {
+                Button("OK") {
+                    deleteError = nil
+                }
+            } message: {
+                Text(deleteError ?? "Unknown error")
+            }
+        }
+    }
+
+    private func deleteAccount() async {
+        deleteError = nil
+        do {
+            try await api.requestVoid("/users/me", method: "DELETE")
+            cart.clear()
+            session.logout()
+        } catch {
+            deleteError = error.localizedDescription
+            showDeleteError = true
         }
     }
 

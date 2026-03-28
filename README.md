@@ -109,3 +109,19 @@ Add under **GitHub → Settings → Secrets and variables → Actions → Secret
 | `NEON_PROJECT_ID` | Neon project ID (defaults to `withered-fog-14874911` in the workflow if unset) |
 
 **Note:** Re-running the full `schema.sql` against a database that already has those tables will **fail** (duplicate `CREATE TABLE`). Use incremental SQL or reset a dev branch for full replays. Routine app deploys still update Vercel even when the Neon step is skipped.
+
+## App Store readiness (technical)
+
+The iOS target includes items Apple commonly checks in review, but **final approval depends on App Store Connect metadata, legal pages, and manual review.**
+
+| Area | Status in this repo |
+|------|---------------------|
+| **Account deletion (5.1.1(v))** | In-app **Delete account** on Profile; `DELETE /api/users/me` removes the user and cascaded data. |
+| **Export compliance** | `ITSAppUsesNonExemptEncryption` = **NO** (HTTPS / standard TLS only). |
+| **Privacy manifest** | `PrivacyInfo.xcprivacy` declares **UserDefaults** (`CA92.1`) for local cart persistence. Stripe SPM bundles its own manifests. |
+| **App icon** | Single **1024×1024** asset (placeholder pink tile). Replace with branded art before release. |
+| **Permissions strings** | Camera / photo library keys **removed** until chat photo picking is implemented (avoids “unused permission” rejections). |
+| **Push** | `remote-notification` background mode **removed** until APNs + entitlements are configured. |
+| **Payments** | Physical goods via **Stripe** is allowed; use a **live** `STRIPE_PUBLISHABLE_KEY` for production builds. State in App Store review notes that purchases are for physical products, not digital IAP. |
+| **Signing** | Set your **Development Team** in Xcode for device/archive builds. |
+| **You still must provide in App Store Connect** | Privacy policy URL, support URL, age rating, screenshots, description, and accurate **Privacy Nutrition Labels** (cross-check with Stripe + your API). |

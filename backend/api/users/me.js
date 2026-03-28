@@ -61,6 +61,12 @@ export default async function handler(req, res) {
       return json(res, 200, { ok: true });
     }
 
+    if (req.method === 'DELETE') {
+      await sql`UPDATE conversations SET staff_id = NULL WHERE staff_id = ${auth.userId}`;
+      await sql`DELETE FROM users WHERE id = ${auth.userId}`;
+      return json(res, 200, { ok: true, deleted: true });
+    }
+
     return json(res, 405, { error: 'Method not allowed' });
   } catch (e) {
     console.error(e);
