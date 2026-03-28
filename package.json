@@ -5,9 +5,8 @@
   "type": "module",
   "scripts": {
     "lint": "node --check lib/*.js 2>/dev/null || true",
-    "deploy": "npx vercel deploy --prod --yes",
-    "db:apply": "bash ../scripts/neon-apply-schema.sh",
-    "seed:admin": "node scripts/seed-admin.mjs"
+    "deploy": "vercel deploy --prod --yes",
+    "db:apply": "bash ../scripts/neon-apply-schema.sh"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
@@ -15,5 +14,8 @@
     "jsonwebtoken": "^9.0.2",
     "stripe": "^17.4.0",
     "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "vercel": "^50.37.3"
   }
 }

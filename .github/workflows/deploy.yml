@@ -59,6 +59,10 @@ jobs:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
         run: |
           set -euo pipefail
+          if [ -z "${NEON_API_KEY:-}" ]; then
+            echo "::warning::NEON_API_KEY is not set; skipping Neon schema apply."
+            exit 0
+          fi
           PROJECT_ID="${NEON_PROJECT_ID:-withered-fog-14874911}"
           echo "Applying schema to Neon project $PROJECT_ID (branch: production)"
           CONN=$(npx neonctl@latest connection-string production \
@@ -68,7 +72,9 @@ jobs:
           psql "$CONN" -v ON_ERROR_STOP=1 -f database/schema.sql
           echo "Neon schema step finished."
 
-      - name: Prepare Vercel bundle (monorepo → api at repo root)
+      # Match Vercel "Root Directory = ." (repo root). If the dashboard is set to `backend`
+      # only, either switch Root Directory to "." here or deploy manually from backend/.
+      - name: Prepare Vercel bundle at repo root
         run: |
           set -euo pipefail
           cp backend/package.json backend/package-lock.json .
@@ -90,4 +96,20 @@ jobs:
       - name: Deploy to Vercel (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: npx vercel deploy --prod --token "$VERCEL_TOKEN" --yes
+
+      - name: Smoke test API (production)
+        env:
+          SMOKE_BASE: ${{ vars.VERCEL_SMOKE_BASE }}
+        run: |
+          set -euo pipefail
+          base="${SMOKE_BASE:-https://heavens-boutique.vercel.app}"
+          code=$(curl -sS -o /tmp/hb-api-smoke.json -w "%{http_code}" "${base}/api/products")
+          if [ "$code" != "200" ]; then
+            echo "Expected GET ${base}/api/products → 200, got HTTP $code"
+            cat /tmp/hb-api-smoke.json || true
+            exit 1
+          fi
+          echo "GET ${base}/api/products OK (200)"

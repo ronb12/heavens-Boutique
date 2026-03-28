@@ -191,5 +191,6 @@ CREATE TABLE notifications (
 
 CREATE INDEX idx_notifications_user ON notifications(user_id, created_at DESC);
 
--- Create first admin: register a user, then:
--- UPDATE users SET role = 'admin' WHERE email = 'your@email.com';
+-- First admin: set ADMIN_EMAILS in Vercel / .env, or run:
+--   cd backend && DATABASE_URL=... npm run seed:admin
+-- (defaults: ronellbradley@gmail.com — change password after first login.)

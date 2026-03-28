@@ -27,10 +27,7 @@ DerivedData/
 # Vercel
 .vercel
 
-# Ephemeral copies when running `vercel` from repo root (see root vercel.json)
-/api/
-/lib/
-/public/
-/package.json
-/package-lock.json
+# Ephemeral Vercel bundle at repo root (see root vercel.json + deploy workflow).
+# Do not commit these paths if you generate them locally — they are untracked noise.
+# (They are not gitignored so `vercel deploy` from CI can upload the prepared `api/` tree.)
 /node_modules/

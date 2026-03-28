@@ -8,15 +8,21 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
 
 1. Create a Neon project and copy the **connection string**.
 2. In the Neon SQL editor (or `psql`), run `database/schema.sql`.
-3. Promote your owner account: register in the app, then run  
-   `UPDATE users SET role = 'admin' WHERE email = 'your@email.com';`
+3. **Admin account:** Set Vercel (and local `.env`) **`ADMIN_EMAILS`** to `ronellbradley@gmail.com` so that email gets **admin** on register. To create or reset the owner in Postgres (password `password1234`, bcrypt 10 rounds — **change this password after first login**):
+
+   ```bash
+   cd backend && cp .env.example .env   # add DATABASE_URL, JWT_SECRET, etc.
+   npm ci && npm run seed:admin
+   ```
+
+   Override defaults: `ADMIN_EMAIL=you@x.com ADMIN_PASSWORD='yourpass' npm run seed:admin`
 
 ### 2. API (Vercel)
 
 1. In [Vercel](https://vercel.com) → New Project → import this GitHub repo.
-2. **Root Directory** (pick one — both work):
-   - **`backend`** — deploys the API folder only (uses `backend/vercel.json`).
-   - **`.` (repo root)** — leave default / empty; the root **`vercel.json`** copies `backend/api` and `backend/lib` into the build output so `/api/*` routes exist (fixes `404 NOT_FOUND` when the whole repo was deployed without `backend` as root).
+2. **Root Directory** (pick one — keep it consistent with how you deploy):
+   - **`.` (repo root)** — recommended for **GitHub Actions** in this repo: the workflow prepares `api/`, `lib/`, and `public/` at the repo root and root **`vercel.json`** runs the same copy on Vercel’s builders. Set this in Vercel → Project → Settings → General → **Root Directory** = empty or `.`.
+   - **`backend`** — fine for **manual** `vercel deploy` from `backend/` only. If you use this, do not rely on the root bundle; the live app is `backend/api`.
 3. Add **Environment Variables** (see `backend/.env.example`):
 
    | Variable | Purpose |
@@ -26,11 +32,13 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
    | `STRIPE_SECRET_KEY` | Stripe secret key |
    | `STRIPE_WEBHOOK_SECRET` | From Stripe webhook |
    | `CLOUDINARY_CLOUD_NAME` | Product image URLs |
-   | `ADMIN_EMAILS` | Comma-separated emails → `admin` on register |
+   | `ADMIN_EMAILS` | e.g. `ronellbradley@gmail.com` — comma-separated; those emails get `admin` on register |
    | `CORS_ORIGIN` | Optional; default `*` |
    | `CRON_SECRET` | Optional; `Authorization: Bearer …` for cron |
 
 4. Deploy. Production API base URL: **`https://heavens-boutique.vercel.app/api`** (already wired for this repo’s Vercel project).
+
+**If the browser or app shows `404 NOT_FOUND` for `/` or `/api/...`:** In Vercel → Project → Settings → General, set **Root Directory** to the **repository root** (leave the field empty), redeploy, and confirm `GET /api/products` returns JSON. A common cause is **Root Directory = `backend`** while the deployment expects `api/` at the project root, or a prior root bundle that was excluded from upload by `.gitignore` (fixed in this repo for CI).
 
 ### Neon CLI — re-apply schema
 
@@ -90,7 +98,7 @@ Workflow: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 
 | Trigger | What happens |
 |--------|----------------|
-| **Push to `main`** | Always **deploys `backend/` to Vercel production**. If `database/**` or `scripts/neon-apply-schema.sh` changed, runs **`database/schema.sql` on Neon** first. |
+| **Push to `main`** | Prepares the **repo-root** Vercel bundle (`api/`, `lib/`, `public/`) and **deploys to Vercel production**. Set the Vercel project **Root Directory** to **repository root** (`.`). If `database/**` or `scripts/neon-apply-schema.sh` changed, runs **`database/schema.sql` on Neon** first. After deploy, **smoke-tests** `GET /api/products` (override base URL with repo variable `VERCEL_SMOKE_BASE` if needed). |
 | **Workflow dispatch** | Same Vercel deploy; set **Apply database** = `yes` to force a Neon schema run. |
 
 ### Repository secrets (required)
