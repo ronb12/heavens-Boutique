@@ -8,7 +8,7 @@
   --charcoal: #2b2b2b;
   --muted: #8a8a8a;
   --white: #ffffff;
-  /* Warm light for text on dark surfaces (footer, buttons); not remapped in dark mode. */
+  /* Warm light for text on dark surfaces (footer, buttons). */
   --cream-light: #fff8f2;
   --page-bg: var(--cream);
   --page-text: var(--charcoal);
@@ -21,22 +21,6 @@
   --font-body: "DM Sans", system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cream: #12100e;
-    --soft-pink: #bc96a3;
-    --rose: #c68b9a;
-    --gold: #e0c25a;
-    --gold-light: #c4b896;
-    --muted: #8c8680;
-    --white: #252220;
-    --page-text: #eae3dc;
-    --header-bg: rgba(18, 16, 14, 0.92);
-    --header-border: rgba(212, 155, 168, 0.28);
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-  }
-}
-
 *,
 *::before,
 *::after {
@@ -45,6 +29,7 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
