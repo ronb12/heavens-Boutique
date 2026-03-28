@@ -1,0 +1,23 @@
+{
+  "name": "Heaven's Boutique",
+  "short_name": "Heaven's",
+  "description": "Curated fashion — shop on iOS.",
+  "icons": [
+    {
+      "src": "/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#fff8f2",
+  "theme_color": "#d4af37"
+}

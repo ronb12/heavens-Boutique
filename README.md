@@ -7,8 +7,8 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
 ### 1. Database (Neon)
 
 1. Create a Neon project and copy the **connection string**.
-2. In the Neon SQL editor (or `psql`), run `database/schema.sql`.
-3. **Admin account:** Set Vercel (and local `.env`) **`ADMIN_EMAILS`** to `ronellbradley@gmail.com` so that email gets **admin** on register. To create or reset the owner in Postgres (password `password1234`, bcrypt 10 rounds — **change this password after first login**):
+2. In the Neon SQL editor (or `psql`), run `database/schema.sql`. If you already have a live database from an older schema, apply incremental migrations under `database/migrations/` in order (e.g. **`002_orders_guest_checkout.sql`** for guest checkout — nullable `orders.user_id` and `guest_email`).
+3. **Admin account:** Set Vercel (and local `.env`) **`ADMIN_EMAILS`** to your admin email (comma-separated for several). That email gets **admin** on **register**, and if you already registered as a customer, the next **login** promotes you to **admin** automatically. To create or reset the owner in Postgres, run **`npm run seed:admin`** (defaults: **`heavenbowie0913@gmail.com`** / **`password1234`** — bcrypt 10 rounds; **change this password after first login**):
 
    ```bash
    cd backend && cp .env.example .env   # add DATABASE_URL, JWT_SECRET, etc.
@@ -16,6 +16,8 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
    ```
 
    Override defaults: `ADMIN_EMAIL=you@x.com ADMIN_PASSWORD='yourpass' npm run seed:admin`
+
+   **Demo data (shop, orders, cart, wishlist, promos, conversations, notifications):** after `seed:admin`, run `npm run seed:sample`. This **does not delete any customer accounts**; it upserts the sample user by email and only replaces rows tied to fixed demo IDs (plus safe catalog deletes when no real orders reference those SKUs). Sample login: **`customer@sample.heavensboutique.app`** / **`SamplePass123`** (override with `SAMPLE_CUSTOMER_EMAIL` / `SAMPLE_CUSTOMER_PASSWORD`).
 
 ### 2. API (Vercel)
 
@@ -32,7 +34,7 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
    | `STRIPE_SECRET_KEY` | Stripe secret key |
    | `STRIPE_WEBHOOK_SECRET` | From Stripe webhook |
    | `CLOUDINARY_CLOUD_NAME` | Product image URLs |
-   | `ADMIN_EMAILS` | e.g. `ronellbradley@gmail.com` — comma-separated; those emails get `admin` on register |
+   | `ADMIN_EMAILS` | e.g. `you@domain.com` — comma-separated; those emails get `admin` on register **or** on next login if they were `customer` |
    | `CORS_ORIGIN` | Optional; default `*` |
    | `CRON_SECRET` | Optional; `Authorization: Bearer …` for cron |
 
@@ -70,9 +72,12 @@ npm run deploy
 
 ### 4. iOS app
 
-1. Open `ios/HeavensBoutique.xcodeproj` (or run `cd ios && xcodegen generate` after editing `project.yml`).
+1. Open `ios/HeavensBoutique.xcodeproj` (or run `cd ios && xcodegen generate` after editing `project.yml` or adding Swift files).
 2. Set **API_BASE_URL** and **STRIPE_PUBLISHABLE_KEY** in `ios/HeavensBoutique/Info.plist` (or override via Xcode target **Build Settings** / `project.yml` `info.properties`) to match your Vercel URL and Stripe publishable key.
 3. Add a real **App Icon** in `Assets.xcassets` before App Store submission.
+4. **Stripe / Apple Pay:** Exercise checkout on a **physical device** with a test card and (when configured) Apple Pay; simulators do not fully match wallet behavior.
+5. **UI tests:** Scheme **HeavensBoutique** includes **HeavensBoutiqueUITests** (smoke launch / welcome). Run **Product → Test** in Xcode.
+6. **App Store Connect — Privacy Nutrition Labels:** Align answers with what the app and API actually collect (account email/name, order and payment data via Stripe, optional FCM device token, in-app messages/notifications). Cross-check `backend/public/privacy.html` and third-party SDKs (e.g. **Stripe**). Backend data lives on **Neon**; the app talks to your **Vercel** API — there is **no Firebase** in this stack.
 
 ### 5. Optional: FCM / Apple Pay
 
@@ -153,7 +158,7 @@ The iOS target includes items Apple commonly checks in review, but **final appro
 | **Privacy manifest** | `PrivacyInfo.xcprivacy` declares **UserDefaults** (`CA92.1`) for local cart persistence. Stripe SPM bundles its own manifests. |
 | **App icon** | Single **1024×1024** asset (placeholder pink tile). Replace with branded art before release. |
 | **Permissions strings** | Camera / photo library keys **removed** until chat photo picking is implemented (avoids “unused permission” rejections). |
-| **Push** | `remote-notification` background mode **removed** until APNs + entitlements are configured. |
+| **Push** | `UIBackgroundModes` includes **`remote-notification`** for FCM; you still need APNs key, push capability, and user permission for production pushes. |
 | **Payments** | Physical goods via **Stripe** is allowed; use a **live** `STRIPE_PUBLISHABLE_KEY` for production builds. State in App Store review notes that purchases are for physical products, not digital IAP. |
 | **Signing** | Set your **Development Team** in Xcode for device/archive builds. |
 | **You still must provide in App Store Connect** | Privacy policy URL, support URL, age rating, screenshots, description, and accurate **Privacy Nutrition Labels** (cross-check with Stripe + your API). |

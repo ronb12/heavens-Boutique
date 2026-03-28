@@ -5,6 +5,7 @@ final class MessagesViewModel: ObservableObject {
     @Published var conversations: [ConversationDTO] = []
     @Published var messages: [MessageDTO] = []
     @Published var isLoading = false
+    @Published var isLoadingMessages = false
     @Published var error: String?
     @Published var activeConversationId: String?
 
@@ -28,6 +29,7 @@ final class MessagesViewModel: ObservableObject {
     }
 
     func openConversation(_ id: String, api: APIClient) async {
+        error = nil
         activeConversationId = id
         await loadMessages(api: api)
         startPolling(api: api)
@@ -35,6 +37,8 @@ final class MessagesViewModel: ObservableObject {
 
     func loadMessages(api: APIClient) async {
         guard let id = activeConversationId else { return }
+        isLoadingMessages = true
+        defer { isLoadingMessages = false }
         do {
             let r: MessagesResponse = try await api.request("/conversations/\(id)/messages", method: "GET")
             messages = r.messages

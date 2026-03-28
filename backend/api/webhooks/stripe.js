@@ -29,9 +29,19 @@ export default async function handler(req, res) {
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
     const sql = getDb();
-    const userId = pi.metadata?.userId;
-    if (!userId) {
+    const userId = pi.metadata?.userId || null;
+    const isGuest = pi.metadata?.guestCheckout === 'true';
+    const guestEmail =
+      (pi.metadata?.guestEmail && String(pi.metadata.guestEmail).trim()) ||
+      (pi.receipt_email && String(pi.receipt_email).trim()) ||
+      '';
+
+    if (!userId && !isGuest) {
       return json(res, 200, { received: true });
+    }
+    if (!userId && (!guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail))) {
+      console.error('Guest checkout succeeded but email missing', pi.id);
+      return json(res, 200, { received: true, skip: 'guest no email' });
     }
 
     const existing = await sql`
@@ -55,17 +65,29 @@ export default async function handler(req, res) {
     const promoId = rawPromo && /^[0-9a-f-]{36}$/i.test(String(rawPromo)) ? String(rawPromo) : null;
 
     try {
-      const orders = await sql`
-        INSERT INTO orders (
-          user_id, status, subtotal_cents, discount_cents, total_cents,
-          stripe_payment_intent_id, promo_code_id
-        )
-        VALUES (
-          ${userId}, 'paid', ${subtotal}, ${discount}, ${total},
-          ${pi.id}, ${promoId}
-        )
-        RETURNING id
-      `;
+      const orders = userId
+        ? await sql`
+            INSERT INTO orders (
+              user_id, guest_email, status, subtotal_cents, discount_cents, total_cents,
+              stripe_payment_intent_id, promo_code_id
+            )
+            VALUES (
+              ${userId}, null, 'paid', ${subtotal}, ${discount}, ${total},
+              ${pi.id}, ${promoId}
+            )
+            RETURNING id
+          `
+        : await sql`
+            INSERT INTO orders (
+              user_id, guest_email, status, subtotal_cents, discount_cents, total_cents,
+              stripe_payment_intent_id, promo_code_id
+            )
+            VALUES (
+              null, ${guestEmail}, 'paid', ${subtotal}, ${discount}, ${total},
+              ${pi.id}, ${promoId}
+            )
+            RETURNING id
+          `;
       const orderId = orders[0].id;
 
       for (const line of parsedItems) {
@@ -83,38 +105,39 @@ export default async function handler(req, res) {
         await sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE id = ${promoId}`;
       }
 
-      const pts = Math.floor(total / 100);
-      if (pts > 0) {
+      if (userId) {
+        const pts = Math.floor(total / 100);
+        if (pts > 0) {
+          await sql`
+            UPDATE users SET loyalty_points = loyalty_points + ${pts}, updated_at = now()
+            WHERE id = ${userId}
+          `;
+          await sql`
+            INSERT INTO loyalty_ledger (user_id, delta, reason, order_id)
+            VALUES (${userId}, ${pts}, 'purchase', ${orderId})
+          `;
+        }
+
         await sql`
-          UPDATE users SET loyalty_points = loyalty_points + ${pts}, updated_at = now()
-          WHERE id = ${userId}
+          INSERT INTO notifications (user_id, type, title, body, data)
+          VALUES (
+            ${userId}, 'order', 'Order confirmed',
+            'Thank you — we are preparing your Heaven Boutique order.',
+            ${JSON.stringify({ orderId, status: 'paid' })}::jsonb
+          )
         `;
-        await sql`
-          INSERT INTO loyalty_ledger (user_id, delta, reason, order_id)
-          VALUES (${userId}, ${pts}, 'purchase', ${orderId})
-        `;
+
+        const users = await sql`SELECT fcm_token FROM users WHERE id = ${userId} LIMIT 1`;
+        const token = users[0]?.fcm_token;
+        if (token) {
+          await sendPushToToken({
+            token,
+            title: 'Order confirmed',
+            body: 'Your payment was successful. We will ship soon.',
+            data: { type: 'order', orderId },
+          });
+        }
       }
-
-      await sql`
-        INSERT INTO notifications (user_id, type, title, body, data)
-        VALUES (
-          ${userId}, 'order', 'Order confirmed',
-          'Thank you — we are preparing your Heaven Boutique order.',
-          ${JSON.stringify({ orderId, status: 'paid' })}::jsonb
-        )
-      `;
-
-      const users = await sql`SELECT fcm_token FROM users WHERE id = ${userId} LIMIT 1`;
-      const token = users[0]?.fcm_token;
-      if (token) {
-        await sendPushToToken({
-          token,
-          title: 'Order confirmed',
-          body: 'Your payment was successful. We will ship soon.',
-          data: { type: 'order', orderId },
-        });
-      }
-
     } catch (e) {
       console.error('Order fulfillment error', e);
     }

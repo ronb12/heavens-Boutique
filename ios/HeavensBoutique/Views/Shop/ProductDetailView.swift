@@ -5,6 +5,8 @@ struct ProductDetailView: View {
 
     @EnvironmentObject private var cart: CartStore
     @EnvironmentObject private var api: APIClient
+    @EnvironmentObject private var session: SessionViewModel
+    @EnvironmentObject private var appModel: AppModel
     @State private var selectedVariant: ProductVariantDTO?
     @State private var wishlisted = false
     @State private var showCheckout = false
@@ -16,6 +18,7 @@ struct ProductDetailView: View {
                 Text(product.name)
                     .font(HBFont.title(24))
                     .foregroundStyle(HBColors.charcoal)
+                    .accessibilityAddTraits(.isHeader)
                 Text(product.description ?? "")
                     .font(HBFont.body())
                     .foregroundStyle(HBColors.mutedGray)
@@ -26,6 +29,8 @@ struct ProductDetailView: View {
                     HBPrimaryButton(title: "Add to bag", isLoading: false) {
                         addToCart()
                     }
+                    .accessibilityHint("Adds selected size to your shopping bag")
+
                     Button {
                         Task { await toggleWishlist() }
                     } label: {
@@ -36,6 +41,7 @@ struct ProductDetailView: View {
                             .background(HBColors.softPink.opacity(0.5))
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
+                    .accessibilityLabel(wishlisted ? "Remove from wishlist" : "Add to wishlist")
                 }
 
                 if !product.variants.filter({ $0.stock > 0 }).isEmpty {
@@ -43,12 +49,16 @@ struct ProductDetailView: View {
                         addToCart()
                         showCheckout = true
                     }
+                    .accessibilityHint("Adds to bag then opens checkout")
                 }
             }
             .padding(20)
         }
         .hbScreenBackground()
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await ProductImagePrefetcher.shared.prefetch(urlStrings: product.images)
+        }
         .onAppear {
             selectedVariant = product.variants.first(where: { $0.stock > 0 }) ?? product.variants.first
         }
@@ -82,6 +92,7 @@ struct ProductDetailView: View {
         .tabViewStyle(.page(indexDisplayMode: .always))
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .accessibilityLabel("Product photos")
     }
 
     private var sizeSection: some View {
@@ -93,17 +104,20 @@ struct ProductDetailView: View {
                 ForEach(product.variants) { v in
                     Button {
                         selectedVariant = v
+                        HBFeedback.light()
                     } label: {
                         Text(v.size)
                             .font(HBFont.caption().weight(.medium))
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .background(selectedVariant?.id == v.id ? HBColors.gold : Color.white)
+                            .background(selectedVariant?.id == v.id ? HBColors.gold : HBColors.chipIdleBackground)
                             .foregroundStyle(selectedVariant?.id == v.id ? Color.white : HBColors.charcoal)
                             .clipShape(Capsule())
                             .opacity(v.stock <= 0 ? 0.4 : 1)
                     }
                     .disabled(v.stock <= 0)
+                    .accessibilityLabel("Size \(v.size)")
+                    .accessibilityAddTraits(selectedVariant?.id == v.id ? .isSelected : [])
                 }
             }
             if let v = selectedVariant {
@@ -117,9 +131,14 @@ struct ProductDetailView: View {
     private func addToCart() {
         guard let v = selectedVariant, v.stock > 0 else { return }
         cart.add(product: product, variant: v, quantity: 1)
+        HBFeedback.success()
     }
 
     private func toggleWishlist() async {
+        guard session.isLoggedIn else {
+            appModel.presentAuth(.register)
+            return
+        }
         do {
             if wishlisted {
                 try await api.requestVoid("/wishlist?productId=\(product.id)", method: "DELETE")
@@ -127,10 +146,17 @@ struct ProductDetailView: View {
                 try await api.requestVoid("/wishlist?productId=\(product.id)", method: "POST")
             }
             wishlisted.toggle()
-        } catch { }
+            HBFeedback.light()
+        } catch {
+            HBFeedback.warning()
+        }
     }
 
     private func loadWishlistState() async {
+        guard session.isLoggedIn else {
+            wishlisted = false
+            return
+        }
         do {
             let r: ProductsResponse = try await api.request("/wishlist", method: "GET")
             wishlisted = r.products.contains { $0.id == product.id }

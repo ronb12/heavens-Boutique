@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// First screen for guests — brand moment before sign-in / register.
+/// First screen for guests — shop first, or sign-in / register.
 struct WelcomeAuthView: View {
+    var onBrowseGuest: () -> Void
     var onSignIn: () -> Void
     var onCreateAccount: () -> Void
 
@@ -26,16 +27,14 @@ struct WelcomeAuthView: View {
                         .opacity(showLogo ? 1 : 0)
 
                     VStack(spacing: 10) {
-                        Text("Heaven's")
-                            .font(.system(size: 15, weight: .medium, design: .default))
-                            .tracking(5)
-                            .foregroundStyle(HBColors.mutedGray)
-                            .textCase(.uppercase)
-
-                        Text("Boutique")
-                            .font(HBFont.title(42))
-                            .foregroundStyle(HBColors.charcoal)
-                            .multilineTextAlignment(.center)
+                        HBWordmarkWithRoses(roseSize: 32, spacing: 10, centerInAvailableWidth: true) {
+                            Text("Heaven's Boutique")
+                                .font(HBFont.wordmark(40))
+                                .foregroundStyle(HBColors.charcoal)
+                                .multilineTextAlignment(.center)
+                                .minimumScaleFactor(0.75)
+                                .lineLimit(2)
+                        }
 
                         Text("Curated luxury.\nSoft pink moments.")
                             .font(HBFont.body())
@@ -53,8 +52,8 @@ struct WelcomeAuthView: View {
                 Spacer()
 
                 VStack(spacing: 14) {
-                    Button(action: onSignIn) {
-                        Text("Sign in")
+                    Button(action: onBrowseGuest) {
+                        Text("Browse the boutique")
                             .font(.system(size: 17, weight: .semibold, design: .default))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 17)
@@ -70,13 +69,30 @@ struct WelcomeAuthView: View {
                             .shadow(color: HBColors.gold.opacity(0.4), radius: 14, x: 0, y: 8)
                     }
                     .buttonStyle(HBPressScaleButtonStyle())
+                    .accessibilityIdentifier("welcome_browse_guest")
+
+                    Button(action: onSignIn) {
+                        Text("Sign in")
+                            .font(.system(size: 17, weight: .semibold, design: .default))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 17)
+                            .background(HBColors.chipIdleBackground)
+                            .foregroundStyle(HBColors.charcoal)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(HBColors.gold.opacity(0.45), lineWidth: 1.5)
+                            )
+                    }
+                    .buttonStyle(HBPressScaleButtonStyle())
+                    .accessibilityIdentifier("welcome_sign_in")
 
                     Button(action: onCreateAccount) {
                         Text("Create an account")
                             .font(.system(size: 17, weight: .semibold, design: .default))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 17)
-                            .background(Color.white)
+                            .background(HBColors.chipIdleBackground)
                             .foregroundStyle(HBColors.charcoal)
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .overlay(
@@ -92,6 +108,13 @@ struct WelcomeAuthView: View {
                             )
                     }
                     .buttonStyle(HBPressScaleButtonStyle())
+                    .accessibilityIdentifier("welcome_create_account")
+
+                    Text("Shop first — you can sign in or check out as a guest when you’re ready.")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray.opacity(0.95))
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 12)

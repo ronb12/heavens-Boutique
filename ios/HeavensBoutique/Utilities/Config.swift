@@ -13,8 +13,54 @@ enum Config {
         return s
     }
 
+    /// Site origin from API base (e.g. `https://project.vercel.app`).
+    private static var websiteOrigin: String? {
+        let api = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !api.isEmpty, api.lowercased().hasSuffix("/api") else { return nil }
+        var origin = String(api.dropLast(4))
+        while origin.last == "/" { origin.removeLast() }
+        return origin.isEmpty ? nil : origin
+    }
+
+    /// Marketing / legal pages (e.g. `https://project.vercel.app/terms.html`).
+    static var termsOfServiceURL: URL? {
+        guard let o = websiteOrigin else { return nil }
+        return URL(string: o + "/terms.html")
+    }
+
+    static var privacyPolicyURL: URL? {
+        guard let o = websiteOrigin else { return nil }
+        return URL(string: o + "/privacy.html")
+    }
+
+    /// Replace with `https://apps.apple.com/app/idYOUR_ID` when the app is listed.
+    static var appStoreListingURL: URL? {
+        URL(string: "https://apps.apple.com/us/search?term=Heavens%20Boutique")
+    }
+
     static var stripePublishableKey: String {
         (Bundle.main.object(forInfoDictionaryKey: "STRIPE_PUBLISHABLE_KEY") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
+
+    static var appMarketingVersion: String {
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "—"
+    }
+
+    static var appBuildNumber: String {
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "—"
+    }
+
+    static let supportEmail = "heavenbowie0913@gmail.com"
+
+    static var supportEmailURL: URL? {
+        URL(string: "mailto:\(supportEmail)?subject=Heaven%27s%20Boutique%20support")
+    }
+
+    /// E.164-style digits for `tel:` (US).
+    static var supportPhoneURL: URL? {
+        URL(string: "tel:+17062618323")
+    }
+
+    static let supportPhoneDisplay = "706-261-8323"
 }

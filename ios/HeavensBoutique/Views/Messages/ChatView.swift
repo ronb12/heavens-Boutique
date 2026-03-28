@@ -10,9 +10,26 @@ struct ChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if let err = vm.error, !err.isEmpty, vm.messages.isEmpty, !vm.isLoadingMessages {
+                Text(err)
+                    .font(HBFont.caption())
+                    .foregroundStyle(HBColors.rosePink)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(HBColors.softPink.opacity(0.35))
+            }
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
+                        if vm.messages.isEmpty && !vm.isLoadingMessages {
+                            ContentUnavailableView {
+                                Label("Start the conversation", systemImage: "text.bubble")
+                            } description: {
+                                Text("Ask about fit, styling, or your order — we’re here to help.")
+                            }
+                            .padding(.top, 40)
+                        }
                         ForEach(vm.messages) { m in
                             bubble(m)
                                 .id(m.id)
@@ -29,17 +46,23 @@ struct ChatView: View {
                 }
             }
 
+            if vm.isLoadingMessages && vm.messages.isEmpty {
+                ProgressView()
+                    .padding()
+            }
+
             HStack(spacing: 12) {
                 TextField("Message", text: $draft, axis: .vertical)
                     .lineLimit(1...4)
                     .padding(12)
-                    .background(Color.white)
+                    .background(HBColors.chipIdleBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 Button {
                     let t = draft.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !t.isEmpty else { return }
                     draft = ""
+                    HBFeedback.light()
                     Task {
                         await vm.send(text: t, api: api)
                     }
@@ -48,6 +71,7 @@ struct ChatView: View {
                         .font(.title)
                         .foregroundStyle(HBColors.gold)
                 }
+                .accessibilityLabel("Send message")
             }
             .padding()
             .background(HBColors.cream)
@@ -74,7 +98,7 @@ struct ChatView: View {
                         .font(HBFont.body())
                         .foregroundStyle(mine ? Color.white : HBColors.charcoal)
                         .padding(12)
-                        .background(mine ? HBColors.gold : Color.white)
+                        .background(mine ? HBColors.gold : HBColors.chipIdleBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                 }

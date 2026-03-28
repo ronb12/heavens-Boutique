@@ -107,6 +107,13 @@ struct NotificationsResponse: Decodable {
     let notifications: [NotificationDTO]
 }
 
+struct NotificationDataPayload: Decodable, Hashable {
+    let orderId: String?
+    let status: String?
+    let type: String?
+    let conversationId: String?
+}
+
 struct NotificationDTO: Decodable, Identifiable {
     let id: String
     let type: String
@@ -114,6 +121,23 @@ struct NotificationDTO: Decodable, Identifiable {
     let body: String?
     let readAt: String?
     let createdAt: String?
+    /// Best-effort decode so one malformed `data` JSON object does not drop the whole notifications list.
+    let data: NotificationDataPayload?
+
+    enum CodingKeys: String, CodingKey {
+        case id, type, title, body, readAt, createdAt, data
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        type = try c.decode(String.self, forKey: .type)
+        title = try c.decode(String.self, forKey: .title)
+        body = try c.decodeIfPresent(String.self, forKey: .body)
+        readAt = try c.decodeIfPresent(String.self, forKey: .readAt)
+        createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
+        data = try? c.decodeIfPresent(NotificationDataPayload.self, forKey: .data)
+    }
 }
 
 struct APIErrorBody: Decodable {

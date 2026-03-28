@@ -1,17 +1,40 @@
 /* Heaven’s Boutique — marketing (matches iOS HBTheme) */
 :root {
   --cream: #fff8f2;
-  --soft-pink: #f7d6e0;
-  --rose: #e8a9b5;
+  --soft-pink: #ebc6d4;
+  --rose: #dc9ba8;
   --gold: #d4af37;
   --gold-light: #f1e5ac;
   --charcoal: #2b2b2b;
   --muted: #8a8a8a;
   --white: #ffffff;
+  /* Warm light for text on dark surfaces (footer, buttons); not remapped in dark mode. */
+  --cream-light: #fff8f2;
+  --page-bg: var(--cream);
+  --page-text: var(--charcoal);
+  --header-bg: rgba(255, 248, 242, 0.92);
+  --header-border: rgba(232, 169, 181, 0.35);
   --shadow: 0 8px 32px rgba(43, 43, 43, 0.08);
   --radius: 16px;
   --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-script: "Great Vibes", "Snell Roundhand", cursive;
   --font-body: "DM Sans", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cream: #12100e;
+    --soft-pink: #bc96a3;
+    --rose: #c68b9a;
+    --gold: #e0c25a;
+    --gold-light: #c4b896;
+    --muted: #8c8680;
+    --white: #252220;
+    --page-text: #eae3dc;
+    --header-bg: rgba(18, 16, 14, 0.92);
+    --header-border: rgba(212, 155, 168, 0.28);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  }
 }
 
 *,
@@ -29,8 +52,8 @@ body {
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--charcoal);
-  background: var(--cream);
+  color: var(--page-text);
+  background: var(--page-bg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -57,7 +80,7 @@ a:hover {
   z-index: 100;
   padding: 0.75rem 1rem;
   background: var(--charcoal);
-  color: var(--cream);
+  color: var(--cream-light);
 }
 
 .skip-link:focus {
@@ -69,9 +92,9 @@ a:hover {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255, 248, 242, 0.92);
+  background: var(--header-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(232, 169, 181, 0.35);
+  border-bottom: 1px solid var(--header-border);
 }
 
 .site-header--animate {
@@ -100,17 +123,49 @@ a:hover {
 }
 
 .logo {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--charcoal);
+  font-family: var(--font-script);
+  font-size: 1.85rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--page-text);
   text-decoration: none;
 }
 
 .logo:hover {
   text-decoration: none;
   color: var(--rose);
+}
+
+.logo--with-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.logo-mark {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 22%;
+  box-shadow: 0 2px 12px rgba(43, 43, 43, 0.1);
+}
+
+.logo-text {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+
+.hero-app-mark {
+  display: block;
+  width: min(112px, 28vw);
+  height: auto;
+  margin: 0 auto 1rem;
+  border-radius: 22%;
+  box-shadow: 0 8px 28px rgba(212, 175, 55, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .nav-desktop {
@@ -120,7 +175,7 @@ a:hover {
 }
 
 .nav-desktop a {
-  color: var(--charcoal);
+  color: var(--page-text);
   font-weight: 500;
   font-size: 0.95rem;
   text-decoration: none;
@@ -153,7 +208,7 @@ a:hover {
 
 .btn-primary {
   background: linear-gradient(135deg, var(--gold) 0%, #c9a227 100%);
-  color: var(--charcoal);
+  color: var(--page-text);
   box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
 }
 
@@ -165,7 +220,7 @@ a:hover {
 
 .btn-ghost {
   background: var(--white);
-  color: var(--charcoal);
+  color: var(--page-text);
   border: 1px solid rgba(232, 169, 181, 0.6);
 }
 
@@ -192,7 +247,7 @@ a:hover {
   display: block;
   width: 20px;
   height: 2px;
-  background: var(--charcoal);
+  background: var(--page-text);
   transition: transform 0.2s ease;
 }
 
@@ -223,7 +278,7 @@ a:hover {
     align-items: stretch;
     padding: 1rem 1.25rem 1.5rem;
     background: var(--cream);
-    border-bottom: 1px solid rgba(232, 169, 181, 0.35);
+    border-bottom: 1px solid var(--header-border);
     gap: 0.5rem;
   }
 
@@ -324,7 +379,7 @@ a:hover {
   font-weight: 600;
   line-height: 1.12;
   margin: 0 0 1rem;
-  color: var(--charcoal);
+  color: var(--page-text);
 }
 
 .hero-lead {
@@ -442,7 +497,7 @@ a:hover {
 .hero-visual .tagline {
   font-family: var(--font-display);
   font-size: clamp(1.5rem, 3vw, 2rem);
-  color: var(--charcoal);
+  color: var(--page-text);
   margin: 0 0 0.5rem;
 }
 
@@ -472,7 +527,7 @@ a:hover {
   font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 600;
   margin: 0 0 0.75rem;
-  color: var(--charcoal);
+  color: var(--page-text);
 }
 
 .section-head p {
@@ -618,17 +673,40 @@ a:hover {
   margin-bottom: 1rem;
 }
 
-.app-badge-placeholder {
+.app-store-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.1rem;
+  padding: 0.75rem 1.35rem;
   background: var(--charcoal);
-  color: var(--cream);
-  border-radius: 8px;
-  font-size: 0.85rem;
+  color: var(--cream-light);
+  border-radius: 10px;
+  font-size: 0.9rem;
   font-weight: 600;
+  text-decoration: none;
   animation: badge-shimmer 4s ease-in-out infinite;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-store-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(43, 43, 43, 0.2);
+  text-decoration: none;
+  color: var(--cream-light);
+}
+
+.app-support-note,
+.contact-card .contact-detail {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.app-support-note a,
+.contact-detail a {
+  font-weight: 600;
 }
 
 @keyframes badge-shimmer {
@@ -670,9 +748,80 @@ a:hover {
   font-size: 0.95rem;
 }
 
+/* Legal (terms.html) */
+.legal-page {
+  padding: clamp(2rem, 5vw, 3.5rem) 1.25rem clamp(3rem, 8vw, 5rem);
+}
+
+.legal-inner {
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.legal-page h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 600;
+  color: var(--page-text);
+  margin: 0 0 0.5rem;
+  line-height: 1.15;
+}
+
+.legal-updated {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0 0 2rem;
+}
+
+.legal-prose {
+  color: var(--page-text);
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.legal-prose h2 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+  color: var(--page-text);
+}
+
+.legal-prose h2:first-of-type {
+  margin-top: 0;
+}
+
+.legal-prose p {
+  margin: 0 0 1rem;
+}
+
+.legal-prose ul {
+  margin: 0 0 1rem 1.25rem;
+  padding: 0;
+}
+
+.legal-prose li {
+  margin-bottom: 0.5rem;
+}
+
+.legal-prose a {
+  word-break: break-word;
+}
+
+.legal-disclaimer {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.25rem;
+  background: var(--white);
+  border: 1px solid rgba(232, 169, 181, 0.45);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .site-footer {
   background: var(--charcoal);
-  color: var(--cream);
+  color: var(--cream-light);
   padding: 2.5rem 1.25rem;
 }
 
@@ -696,17 +845,21 @@ a:hover {
 }
 
 .footer-brand {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-family: var(--font-script);
+  font-size: 1.65rem;
+  font-weight: 400;
   margin: 0 0 0.35rem;
-  color: var(--cream);
+  color: var(--cream-light);
 }
 
 .footer-meta {
   margin: 0;
   font-size: 0.85rem;
   color: rgba(255, 248, 242, 0.65);
+}
+
+.footer-attribution {
+  margin-top: 0.65rem;
 }
 
 .footer-links {
@@ -788,7 +941,7 @@ a:hover {
   .hero-visual__float,
   .hero-sparkle,
   .pillar-icon,
-  .app-badge-placeholder {
+  .app-store-btn {
     animation: none !important;
   }
 

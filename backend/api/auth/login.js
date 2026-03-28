@@ -25,7 +25,23 @@ export default async function handler(req, res) {
       return json(res, 401, { error: 'Invalid credentials' });
     }
 
-    const token = signToken({ sub: user.id, role: user.role });
+    // Promote to admin if this email is listed in ADMIN_EMAILS (fixes accounts that
+    // registered before env was set — register.js only assigns admin on first signup).
+    const adminEmails = (process.env.ADMIN_EMAILS || '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    let role = user.role;
+    if (adminEmails.includes(email) && role !== 'admin') {
+      const promoted = await sql`
+        UPDATE users SET role = 'admin', updated_at = now()
+        WHERE id = ${user.id}
+        RETURNING role
+      `;
+      role = promoted[0]?.role ?? 'admin';
+    }
+
+    const token = signToken({ sub: user.id, role });
 
     return json(res, 200, {
       token,
@@ -33,7 +49,7 @@ export default async function handler(req, res) {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
-        role: user.role,
+        role,
         loyaltyPoints: user.loyalty_points,
       },
     });

@@ -157,7 +157,7 @@ struct HBAuthFormCard<Content: View>: View {
             .padding(22)
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(.white)
+                    .fill(HBColors.chipIdleBackground)
                     .shadow(color: .black.opacity(0.07), radius: 20, x: 0, y: 10)
             )
             .overlay(

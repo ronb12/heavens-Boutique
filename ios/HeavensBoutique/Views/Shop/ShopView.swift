@@ -26,6 +26,7 @@ struct ShopView: View {
                         Image(systemName: "bag")
                             .foregroundStyle(HBColors.gold)
                     }
+                    .accessibilityLabel("Shopping bag")
                 }
             }
             .navigationDestination(for: ProductDTO.self) { p in
@@ -73,20 +74,41 @@ struct ShopView: View {
                 .font(HBFont.caption().weight(.medium))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(selected ? HBColors.gold : Color.white)
+                .background(selected ? HBColors.gold : HBColors.chipIdleBackground)
                 .foregroundStyle(selected ? Color.white : HBColors.charcoal)
                 .clipShape(Capsule())
                 .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     @ViewBuilder
     private var content: some View {
-        if vm.isLoading {
-            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).padding(.top, 40)
+        if vm.isLoading && vm.products.isEmpty {
+            ProgressView("Loading pieces…")
+                .tint(HBColors.gold)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.top, 40)
         } else if let err = vm.error {
-            Text(err).foregroundStyle(HBColors.mutedGray).padding()
+            HBEmptyState(
+                systemImage: "wifi.exclamationmark",
+                title: "We couldn’t refresh",
+                message: err,
+                retryTitle: "Try again",
+                retry: { Task { await vm.load(api: api) } }
+            )
+            .padding(.top, 24)
+        } else if vm.products.isEmpty {
+            HBEmptyState(
+                systemImage: "tshirt",
+                title: "Nothing here yet",
+                message: "Try another category or pull down to refresh — new arrivals land often.",
+                retryTitle: "Refresh",
+                retry: { Task { await vm.load(api: api) } }
+            )
+            .padding(.top, 24)
         } else {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {

@@ -117,7 +117,8 @@ CREATE INDEX idx_carts_updated ON carts(updated_at);
 -- ─── Orders ─────────────────────────────────────────────────────────
 CREATE TABLE orders (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id         UUID REFERENCES users(id) ON DELETE CASCADE,
+  guest_email     TEXT,
   status          TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled')),
   subtotal_cents  INTEGER NOT NULL,
@@ -132,7 +133,8 @@ CREATE TABLE orders (
   tracking_number TEXT,
   promo_code_id   UUID REFERENCES promo_codes(id),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (user_id IS NOT NULL OR (guest_email IS NOT NULL AND length(trim(guest_email)) > 0))
 );
 
 CREATE INDEX idx_orders_user ON orders(user_id);
@@ -193,4 +195,7 @@ CREATE INDEX idx_notifications_user ON notifications(user_id, created_at DESC);
 
 -- First admin: set ADMIN_EMAILS in Vercel / .env, or run:
 --   cd backend && DATABASE_URL=... npm run seed:admin
--- (defaults: ronellbradley@gmail.com — change password after first login.)
+-- (default seed:admin: heavenbowie0913@gmail.com / password1234 — change after first login.)
+--
+-- Full demo catalog + orders + messages + notifications (does not delete users):
+--   cd backend && DATABASE_URL=... npm run seed:sample

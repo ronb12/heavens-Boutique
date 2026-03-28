@@ -2,7 +2,8 @@ import SwiftUI
 
 struct LoginView: View {
     @Binding var mode: AuthMode
-    var onBackToWelcome: () -> Void
+    var backTitle: String = "Welcome"
+    var onBack: () -> Void
     @EnvironmentObject private var session: SessionViewModel
     @EnvironmentObject private var api: APIClient
 
@@ -84,11 +85,11 @@ struct LoginView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: onBackToWelcome) {
+                Button(action: onBack) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Welcome")
+                        Text(backTitle)
                             .font(HBFont.body().weight(.medium))
                     }
                     .foregroundStyle(HBColors.gold)

@@ -13,20 +13,38 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     header
                     featuredBanner
-                    if vm.isLoading {
-                        ProgressView().frame(maxWidth: .infinity).padding()
-                    } else if let err = vm.error {
-                        Text(err).foregroundStyle(HBColors.mutedGray).padding()
-                    }
-                    sectionTitle("Featured")
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
-                        ForEach(vm.featured) { p in
-                            NavigationLink {
-                                ProductDetailView(product: p)
-                            } label: {
-                                ProductCardView(product: p)
+                    if vm.isLoading && vm.featured.isEmpty {
+                        ProgressView("Loading picks…")
+                            .tint(HBColors.gold)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    } else if let err = vm.error, vm.featured.isEmpty {
+                        HBEmptyState(
+                            systemImage: "sparkles",
+                            title: "Featured items paused",
+                            message: err,
+                            retryTitle: "Try again",
+                            retry: { Task { await vm.load(api: api) } }
+                        )
+                    } else if vm.featured.isEmpty {
+                        HBEmptyState(
+                            systemImage: "sparkles",
+                            title: "Featured coming soon",
+                            message: "Pull down to refresh — we’re curating new arrivals.",
+                            retryTitle: "Refresh",
+                            retry: { Task { await vm.load(api: api) } }
+                        )
+                    } else {
+                        sectionTitle("Featured")
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
+                            ForEach(vm.featured) { p in
+                                NavigationLink {
+                                    ProductDetailView(product: p)
+                                } label: {
+                                    ProductCardView(product: p)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -41,6 +59,7 @@ struct HomeView: View {
                         Image(systemName: "bag")
                             .foregroundStyle(HBColors.gold)
                     }
+                    .accessibilityLabel("Shopping bag")
                 }
             }
             .task { await vm.load(api: api) }
@@ -80,7 +99,7 @@ struct HomeView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.white,
+                            HBColors.heroGradientTop,
                             HBColors.softPink.opacity(0.35),
                             HBColors.cream
                         ],
@@ -103,14 +122,17 @@ struct HomeView: View {
 
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Heaven's Boutique")
-                        .font(HBFont.title(28))
-                        .foregroundStyle(HBColors.charcoal)
-                        .onLongPressGesture(minimumDuration: 1.2) {
-                            if session.isAdmin {
-                                showAdmin = true
+                    HBWordmarkWithRoses(roseSize: 24, spacing: 8) {
+                        Text("Heaven's Boutique")
+                            .font(HBFont.wordmark(30))
+                            .foregroundStyle(HBColors.charcoal)
+                            .minimumScaleFactor(0.8)
+                            .onLongPressGesture(minimumDuration: 1.2) {
+                                if session.isAdmin {
+                                    showAdmin = true
+                                }
                             }
-                        }
+                    }
 
                     Text("Curated luxury, soft pink moments.")
                         .font(HBFont.body())
@@ -150,7 +172,7 @@ struct HomeView: View {
                 .padding(14)
                 .background(
                     Circle()
-                        .fill(Color.white.opacity(0.92))
+                        .fill(HBColors.glassDiscFill)
                         .shadow(color: HBColors.gold.opacity(0.2), radius: 12, x: 0, y: 4)
                 )
             }
@@ -174,7 +196,7 @@ struct HomeView: View {
 
             Image(systemName: "tshirt.fill")
                 .font(.system(size: 120, weight: .ultraLight))
-                .foregroundStyle(Color.white.opacity(0.2))
+                .foregroundStyle(HBColors.bannerWatermark)
                 .rotationEffect(.degrees(-12))
                 .offset(x: 120, y: -20)
 
@@ -220,7 +242,7 @@ struct HomeView: View {
         .shadow(color: .black.opacity(0.08), radius: 18, x: 0, y: 10)
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.5), lineWidth: 1)
+                .strokeBorder(HBColors.gradientCardStroke, lineWidth: 1)
         )
     }
 }

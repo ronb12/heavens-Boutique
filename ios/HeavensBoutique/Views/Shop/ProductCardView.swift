@@ -7,7 +7,12 @@ struct ProductCardView: View {
         let cents = product.salePriceCents ?? product.priceCents
         let f = NumberFormatter()
         f.numberStyle = .currency
-        f.currencyCode = "USD"
+        f.locale = Locale.current
+        if let code = Locale.current.currency?.identifier {
+            f.currencyCode = code
+        } else {
+            f.currencyCode = "USD"
+        }
         return f.string(from: NSNumber(value: Double(cents) / 100)) ?? "$\(Double(cents) / 100)"
     }
 
@@ -32,6 +37,7 @@ struct ProductCardView: View {
                         .foregroundStyle(HBColors.charcoal)
                         .clipShape(Capsule())
                         .padding(10)
+                        .accessibilityHidden(true)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -47,7 +53,7 @@ struct ProductCardView: View {
                     .font(.system(size: 16, weight: .semibold, design: .default))
                     .foregroundStyle(HBColors.charcoal)
                 if product.salePriceCents != nil {
-                    Text(NumberFormatter.localizedString(from: NSNumber(value: Double(product.priceCents) / 100), number: .currency))
+                    Text(strikethroughPrice)
                         .strikethrough()
                         .font(HBFont.caption())
                         .foregroundStyle(HBColors.mutedGray)
@@ -61,10 +67,18 @@ struct ProductCardView: View {
                         .background(HBColors.gold.opacity(0.2))
                         .foregroundStyle(HBColors.charcoal)
                         .clipShape(Capsule())
+                        .accessibilityLabel("Low stock, \(totalStock) remaining")
                 }
             }
         }
         .hbCardStyle()
+        .task {
+            await ProductImagePrefetcher.shared.prefetch(urlStrings: product.images)
+        }
+    }
+
+    private var strikethroughPrice: String {
+        NumberFormatter.localizedString(from: NSNumber(value: Double(product.priceCents) / 100), number: .currency)
     }
 
     @ViewBuilder
@@ -74,8 +88,10 @@ struct ProductCardView: View {
                 switch phase {
                 case .success(let img):
                     img.resizable().scaledToFill()
-                default:
+                case .failure:
                     HBColors.softPink.opacity(0.4)
+                default:
+                    HBColors.softPink.opacity(0.35)
                 }
             }
         } else {

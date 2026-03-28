@@ -113,18 +113,18 @@ struct AdminHubView: View {
 
                 TextField("Customer user UUID", text: $notifyUserId)
                     .padding()
-                    .background(Color.white)
+                    .background(HBColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 TextField("Title", text: $notifyTitle)
                     .padding()
-                    .background(Color.white)
+                    .background(HBColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 TextField("Body", text: $notifyBody, axis: .vertical)
                     .lineLimit(3...6)
                     .padding()
-                    .background(Color.white)
+                    .background(HBColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 HBPrimaryButton(title: "Send notification", isLoading: isLoading) {

@@ -4,15 +4,10 @@ enum AuthMode {
     case login, register
 }
 
-enum GuestStep {
-    case welcome
-    case auth
-}
-
 struct RootView: View {
+    @EnvironmentObject private var appModel: AppModel
     @EnvironmentObject private var session: SessionViewModel
-    @State private var mode: AuthMode = .login
-    @State private var guestStep: GuestStep = .welcome
+    @State private var guestBrowsing = false
 
     var body: some View {
         Group {
@@ -28,46 +23,53 @@ struct RootView: View {
                 }
             } else if session.isLoggedIn {
                 MainTabView()
-            } else if guestStep == .welcome {
+            } else if guestBrowsing {
+                MainTabView()
+            } else {
                 WelcomeAuthView(
+                    onBrowseGuest: {
+                        guestBrowsing = true
+                    },
                     onSignIn: {
-                        mode = .login
-                        withAnimation(.easeInOut(duration: 0.28)) { guestStep = .auth }
+                        appModel.presentAuth(.login)
                     },
                     onCreateAccount: {
-                        mode = .register
-                        withAnimation(.easeInOut(duration: 0.28)) { guestStep = .auth }
+                        appModel.presentAuth(.register)
                     }
                 )
-                .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .leading).combined(with: .opacity)))
-            } else {
-                NavigationStack {
-                    Group {
-                        if mode == .login {
-                            LoginView(mode: $mode, onBackToWelcome: backToWelcome)
-                        } else {
-                            RegisterView(mode: $mode, onBackToWelcome: backToWelcome)
-                        }
-                    }
-                }
-                .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
-        .animation(.easeInOut(duration: 0.28), value: guestStep)
+        .animation(.easeInOut(duration: 0.28), value: guestBrowsing)
+        .animation(.easeInOut(duration: 0.28), value: session.isLoggedIn)
+        .sheet(isPresented: $appModel.showAuthSheet) {
+            NavigationStack {
+                Group {
+                    if appModel.authSheetMode == .login {
+                        LoginView(
+                            mode: $appModel.authSheetMode,
+                            backTitle: "Close",
+                            onBack: { appModel.showAuthSheet = false }
+                        )
+                    } else {
+                        RegisterView(
+                            mode: $appModel.authSheetMode,
+                            backTitle: "Close",
+                            onBack: { appModel.showAuthSheet = false }
+                        )
+                    }
+                }
+            }
+        }
         .onChange(of: session.isLoggedIn) { _, loggedIn in
-            if !loggedIn {
-                guestStep = .welcome
-                mode = .login
+            if loggedIn {
+                appModel.showAuthSheet = false
+            } else {
+                guestBrowsing = false
+                appModel.showAuthSheet = false
             }
         }
         .task {
             await session.restore()
-        }
-    }
-
-    private func backToWelcome() {
-        withAnimation(.easeInOut(duration: 0.28)) {
-            guestStep = .welcome
         }
     }
 }

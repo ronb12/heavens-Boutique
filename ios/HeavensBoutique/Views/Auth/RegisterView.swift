@@ -2,7 +2,8 @@ import SwiftUI
 
 struct RegisterView: View {
     @Binding var mode: AuthMode
-    var onBackToWelcome: () -> Void
+    var backTitle: String = "Welcome"
+    var onBack: () -> Void
     @EnvironmentObject private var session: SessionViewModel
     @EnvironmentObject private var api: APIClient
 
@@ -21,9 +22,12 @@ struct RegisterView: View {
                     VStack(spacing: 16) {
                         HBBrandMonogram(size: 56)
                         VStack(spacing: 6) {
-                            Text("Join Heaven's")
+                            (Text("Join ")
                                 .font(HBFont.title(30))
+                                + Text("Heaven's")
+                                .font(HBFont.wordmark(34)))
                                 .foregroundStyle(HBColors.charcoal)
+                                .multilineTextAlignment(.center)
                             Text("Orders, loyalty notes, and styling—tailored to you.")
                                 .font(HBFont.body())
                                 .foregroundStyle(HBColors.mutedGray)
@@ -95,11 +99,11 @@ struct RegisterView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: onBackToWelcome) {
+                Button(action: onBack) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Welcome")
+                        Text(backTitle)
                             .font(HBFont.body().weight(.medium))
                     }
                     .foregroundStyle(HBColors.gold)

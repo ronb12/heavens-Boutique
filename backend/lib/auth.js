@@ -39,6 +39,15 @@ export function requireUser(req) {
   return { userId: decoded.sub, role: decoded.role || 'customer' };
 }
 
+/** Valid Bearer JWT → user; missing/invalid token → userId null (no error). */
+export function optionalUser(req) {
+  const token = getBearer(req);
+  if (!token) return { userId: null, role: null };
+  const decoded = verifyToken(token);
+  if (!decoded?.sub) return { userId: null, role: null };
+  return { userId: decoded.sub, role: decoded.role || 'customer' };
+}
+
 export function requireAdmin(req) {
   const r = requireUser(req);
   if (r.error) return r;

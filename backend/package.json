@@ -7,7 +7,8 @@
     "lint": "node --check lib/*.js 2>/dev/null || true",
     "deploy": "npx vercel deploy --prod --yes",
     "db:apply": "bash ../scripts/neon-apply-schema.sh",
-    "seed:admin": "node scripts/seed-admin.mjs"
+    "seed:admin": "node scripts/seed-admin.mjs",
+    "seed:sample": "node scripts/seed-sample.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

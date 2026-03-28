@@ -14,7 +14,6 @@ packages:
   StripePaymentSheet:
     url: https://github.com/stripe/stripe-ios-spm
     from: 24.0.0
-
 targets:
   HeavensBoutique:
     type: application
@@ -46,14 +45,34 @@ targets:
         API_BASE_URL: https://heavens-boutique.vercel.app/api
         STRIPE_PUBLISHABLE_KEY: pk_test_REPLACE_ME
         ITSAppUsesNonExemptEncryption: false
+        UIBackgroundModes:
+          - remote-notification
     dependencies:
       - package: StripePaymentSheet
         product: StripePaymentSheet
       - package: StripePaymentSheet
         product: StripePayments
 
+  HeavensBoutiqueUITests:
+    type: ui-tests
+    platform: iOS
+    sources:
+      - path: HeavensBoutiqueUITests
+    dependencies:
+      - target: HeavensBoutique
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        DEVELOPMENT_TEAM: 4SQJ3AH62S
+        PRODUCT_BUNDLE_IDENTIFIER: com.heavensboutique.app.uitests
+        PRODUCT_NAME: HeavensBoutiqueUITests
+        SWIFT_STRICT_CONCURRENCY: minimal
+
 schemes:
   HeavensBoutique:
     build:
       targets:
         HeavensBoutique: all
+    test:
+      targets:
+        - HeavensBoutiqueUITests

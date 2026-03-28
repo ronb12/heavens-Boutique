@@ -8,7 +8,7 @@
 import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 
-const email = (process.env.ADMIN_EMAIL || 'ronellbradley@gmail.com').trim().toLowerCase();
+const email = (process.env.ADMIN_EMAIL || 'heavenbowie0913@gmail.com').trim().toLowerCase();
 const password = process.env.ADMIN_PASSWORD || 'password1234';
 
 if (!process.env.DATABASE_URL) {
@@ -26,7 +26,7 @@ const passwordHash = await bcrypt.hash(password, 10);
 
 await sql`
   INSERT INTO users (email, password_hash, full_name, role)
-  VALUES (${email}, ${passwordHash}, ${'Ronell Bradley'}, ${'admin'})
+  VALUES (${email}, ${passwordHash}, ${"Heaven's Boutique"}, ${'admin'})
   ON CONFLICT (email) DO UPDATE SET
     password_hash = EXCLUDED.password_hash,
     role = 'admin',

@@ -26,4 +26,13 @@ final class NotificationsViewModel: ObservableObject {
             self.error = error.localizedDescription
         }
     }
+
+    func markRead(id: String, api: APIClient) async {
+        do {
+            try await api.requestVoid("/notifications", method: "PATCH", jsonBody: ["ids": [id]])
+            await load(api: api)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
 }
