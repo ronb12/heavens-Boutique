@@ -1,6 +1,40 @@
 # Heaven’s Boutique
 
-SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/heavens-Boutique](https://github.com/ronb12/heavens-Boutique).
+> Curated women’s fashion in your pocket—**SwiftUI** on iOS, a **Node** API on **Vercel**, and **Neon Postgres**. Boutique polish: soft pink and gold UI, secure **Stripe** checkout, and admin tools for catalog and orders.
+
+**[heavens-boutique.vercel.app](https://heavens-boutique.vercel.app)** (marketing + API) · **[Source](https://github.com/ronb12/heavens-Boutique)**
+
+## About
+
+**Heaven’s Boutique** is an end-to-end retail stack for a small fashion brand: shoppers use the **iOS app** to browse featured collections, manage cart and wishlist, and complete checkout; operators use **in-app admin** flows for catalog and order management. A **serverless REST API** powers the app; the same Vercel project serves the **public marketing site** (story, values, App Store CTA, contact, legal pages).
+
+| Layer | What runs here |
+|--------|----------------|
+| **iOS** | SwiftUI app (`ios/`) — shop, cart, checkout (Stripe), profile, messages, notifications |
+| **API** | Node ESM serverless handlers (`backend/api/`) — auth, products, orders, webhooks, cron |
+| **Web** | Static marketing + legal (`backend/public/`) deployed beside the API |
+| **Data** | PostgreSQL on Neon — schema and migrations under `database/` |
+| **Delivery** | GitHub Actions on `main` → Vercel production ([`deploy.yml`](.github/workflows/deploy.yml)) |
+
+### Product highlights
+
+- **Shopping** — Featured products, categories, product detail, variants, cart, and wishlist  
+- **Payments** — Stripe PaymentSheet; webhook-driven order flow; manual refund workflow documented below  
+- **Accounts** — Register / login (JWT), guest checkout, account deletion for App Store compliance  
+- **Admin** — Catalog and order management (access via long-press on the boutique name on Home)  
+- **Engagement** — In-app notifications and conversations (API-backed)  
+- **Brand** — Marketing homepage matches the app’s luxury boutique aesthetic (light-first design)
+
+### Repository layout
+
+| Path | Purpose |
+|------|---------|
+| `ios/` | Xcode / XcodeGen project for the HeavensBoutique app |
+| `backend/` | API handlers, shared `lib/`, npm deps, local `vercel dev` |
+| `database/` | `schema.sql`, ordered `migrations/` |
+| `.github/workflows/` | Deploy to Vercel (+ optional Neon apply) |
+
+---
 
 ## Wire-up checklist
 
