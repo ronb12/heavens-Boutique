@@ -42,9 +42,14 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
 
 **If the browser or app shows `404 NOT_FOUND` for `/` or `/api/...`:** In Vercel → Project → Settings → General, set **Root Directory** to the **repository root** (leave the field empty), redeploy, and confirm `GET /api/products` returns JSON. A common cause is **Root Directory = `backend`** while the deployment expects `api/` at the project root, or a prior root bundle that was excluded from upload by `.gitignore` (fixed in this repo for CI).
 
-### Neon CLI — re-apply schema
+### Neon CLI — schema and migrations
 
-From the repo root (after `neonctl auth`):
+`scripts/neon-apply-schema.sh` (used by CI when `database/**` changes):
+
+- If **`public.users` is missing** (empty DB), it runs **`database/schema.sql`** then every **`database/migrations/*.sql`** in order.
+- If the DB **already exists**, it **skips** the full schema file and only runs **migrations** (avoids `relation "users" already exists` on deploy).
+
+From the repo root (after `neonctl auth` or with `NEON_API_KEY`):
 
 ```bash
 export NEON_PROJECT_ID=withered-fog-14874911   # default in script; optional override
@@ -52,6 +57,8 @@ bash scripts/neon-apply-schema.sh
 ```
 
 Or from `backend/`: `npm run db:apply`
+
+For new tables or columns on a live database, add a file under **`database/migrations/`** rather than editing `schema.sql` only.
 
 ### Vercel CLI — deploy API
 

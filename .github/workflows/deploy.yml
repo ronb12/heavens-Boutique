@@ -65,14 +65,10 @@ jobs:
             echo "::warning::NEON_API_KEY is not set; skipping Neon schema apply."
             exit 0
           fi
-          PROJECT_ID="${NEON_PROJECT_ID:-withered-fog-14874911}"
-          echo "Applying schema to Neon project $PROJECT_ID (branch: production)"
-          CONN=$(npx neonctl@latest connection-string production \
-            --project-id "$PROJECT_ID" \
-            --pooled \
-            --no-color)
-          psql "$CONN" -v ON_ERROR_STOP=1 -f database/schema.sql
-          echo "Neon schema step finished."
+          export NEON_PROJECT_ID="${NEON_PROJECT_ID:-withered-fog-14874911}"
+          export NEON_BRANCH="${NEON_BRANCH:-production}"
+          echo "Neon DDL (schema only if empty DB; else migrations only): project=$NEON_PROJECT_ID branch=$NEON_BRANCH"
+          bash scripts/neon-apply-schema.sh
 
       # Match Vercel "Root Directory = ." (repo root). If the dashboard is set to `backend`
       # only, either switch Root Directory to "." here or deploy manually from backend/.
