@@ -38,6 +38,8 @@ targets:
           - remote-notification
         NSPhotoLibraryUsageDescription: Attach photos when messaging the boutique.
         NSCameraUsageDescription: Take photos to send in chat.
+        API_BASE_URL: https://YOUR_VERCEL_PROJECT.vercel.app/api
+        STRIPE_PUBLISHABLE_KEY: pk_test_REPLACE_ME
     dependencies:
       - package: StripePaymentSheet
         product: StripePaymentSheet
