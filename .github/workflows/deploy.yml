@@ -25,6 +25,11 @@ jobs:
       contents: read
     env:
       NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+      # Optional: if both are set, deploy uses these (no vercel link). Must match Project → Settings in Vercel.
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # GitHub does not define GITHUB_REPOSITORY_NAME; scripts use set -u and must not reference it unbound.
+      GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
 
     steps:
       - name: Checkout
@@ -91,7 +96,6 @@ jobs:
         env:
           VERCEL_TELEMETRY_DISABLED: "1"
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          # Slug deploy avoids "Project not found" when prj_/team_ IDs don’t match the token (personal account, moved project, stale IDs).
           VERCEL_SCOPE_VAR: ${{ vars.VERCEL_SCOPE }}
           VERCEL_PROJECT_SLUG_VAR: ${{ vars.VERCEL_PROJECT_SLUG }}
         run: |
@@ -101,18 +105,37 @@ jobs:
             exit 1
           fi
           rm -rf .vercel
-          # vercel.com/<scope>/<project> — scope is team slug or your Vercel username (personal). Default scope = repo owner.
+          # Pin major for reproducibility; npm resolves to latest 50.x.
+          VERCEL_PKG="vercel@50"
+
+          # Repo slug: job env sets GITHUB_REPOSITORY_NAME (GitHub only provides GITHUB_REPOSITORY / _OWNER).
+          REPO_SLUG_LOWER="$(echo -n "${GITHUB_REPOSITORY_NAME}" | tr '[:upper:]' '[:lower:]')"
+
+          # vercel.com/<scope>/<project> — scope = team slug or Vercel username (personal).
           SCOPE="$(echo -n "${VERCEL_SCOPE_VAR:-$GITHUB_REPOSITORY_OWNER}" | tr -d '[:space:]')"
-          PROJ="$(echo -n "${VERCEL_PROJECT_SLUG_VAR:-$GITHUB_REPOSITORY_NAME}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+          PROJ="$(echo -n "${VERCEL_PROJECT_SLUG_VAR:-$REPO_SLUG_LOWER}" | tr -d '[:space:]')"
           if [ -z "$PROJ" ]; then PROJ='heavens-boutique'; fi
+
           if [ -z "$SCOPE" ]; then
-            echo "::error::Set Actions variable VERCEL_SCOPE to the first path segment of your Vercel dashboard URL (e.g. vercel.com/acme-corp/heavens-boutique → acme-corp)."
+            echo "::error::Set repository variable VERCEL_SCOPE to the first segment of your Vercel URL (e.g. vercel.com/acme-corp/heavens-boutique → acme-corp), or rely on GITHUB_REPOSITORY_OWNER."
             exit 1
           fi
-          npx --yes vercel@50.37.3 deploy --prod --yes \
-            --token "$VERCEL_TOKEN" \
-            --scope "$SCOPE" \
-            --project "$PROJ"
+
+          echo "Deploy target: scope=$SCOPE project=$PROJ (repo_slug=$REPO_SLUG_LOWER)"
+
+          if [ -n "${VERCEL_ORG_ID:-}" ] && [ -n "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "::notice::Using VERCEL_ORG_ID + VERCEL_PROJECT_ID from secrets (slug link skipped)."
+            npx --yes "$VERCEL_PKG" deploy --prod --yes --token "$VERCEL_TOKEN"
+          else
+            # Non-interactive deploy with --project alone is brittle; link first writes .vercel/project.json.
+            npx --yes "$VERCEL_PKG" link --yes \
+              --token "$VERCEL_TOKEN" \
+              --scope "$SCOPE" \
+              --project "$PROJ"
+            npx --yes "$VERCEL_PKG" deploy --prod --yes \
+              --token "$VERCEL_TOKEN" \
+              --scope "$SCOPE"
+          fi
 
       - name: Smoke test API (production)
         env:

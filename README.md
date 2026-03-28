@@ -109,21 +109,23 @@ Under **GitHub → Settings → Secrets and variables → Actions**:
 |------|-----|--------|
 | `VERCEL_TOKEN` | **Secrets** (required) | [Create a token](https://vercel.com/account/tokens) |
 | `VERCEL_SCOPE` | **Variables** (often optional) | First segment of the Vercel dashboard URL: `vercel.com/<scope>/<project>`. For a **personal** account this is usually your Vercel username; for a **team**, the **team slug** (not `team_…`). If unset, the workflow uses **`GITHUB_REPOSITORY_OWNER`** (e.g. `ronb12` for `ronb12/heavens-Boutique`). |
-| `VERCEL_PROJECT_SLUG` | **Variables** (optional) | Second URL segment / project name. If unset, uses the **GitHub repo name** lowercased (e.g. `heavens-boutique`), else **`heavens-boutique`**. |
+| `VERCEL_PROJECT_SLUG` | **Variables** (optional) | Vercel project slug (URL segment). If unset, the workflow lowercases the repo name from **`GITHUB_REPOSITORY`** (e.g. `heavens-boutique` for `ronb12/heavens-Boutique`). |
 
-Deploy uses **`vercel deploy --scope … --project …`** so the CLI resolves the project by **slug**, not `prj_…` / `team_…` ids (those caused *“Project not found”* when they didn’t match your token or a recreated project).
+**Default path:** `vercel link --yes --scope … --project …` then **`vercel deploy --prod`** so CI gets a valid `.vercel/project.json`. Using **`vercel deploy --project` alone** is unreliable in non-interactive runs.
 
-If Actions still says *“VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set”*, pull the latest `main` — that message is from an old workflow.
+**Optional:** If secrets **`VERCEL_ORG_ID`** and **`VERCEL_PROJECT_ID`** are **both** set (from Vercel → Project → Settings → General), the workflow skips `link` and deploys using those IDs only. If that fails, remove one or both secrets to fall back to the default slug + `link` path.
 
 ### Repository secrets (optional / other)
 
 | Secret | Where to get it |
 |--------|------------------|
 | `NEON_API_KEY` | [Neon Console → Account → API keys](https://console.neon.tech/app/settings/api-keys) |
+| `VERCEL_ORG_ID` | Optional; use with `VERCEL_PROJECT_ID` for ID-based deploy (org/team id, often `team_…`). |
+| `VERCEL_PROJECT_ID` | Optional; project id `prj_…` on the same Vercel settings page. |
 
 **Deploy error “no credentials” / “pass --token”:** The `VERCEL_TOKEN` repository secret is missing, empty, or the workflow ran in a context where secrets are unavailable (e.g. pull request from a fork). Create a token at the link above and add **`VERCEL_TOKEN`** under **Actions** secrets for this repo (not only **Dependabot** or **Codespaces** unless you deploy from there).
 
-**Deploy error “Project Settings are invalid” / remove `.vercel`:** The workflow no longer writes `.vercel/project.json` by hand (the CLI rejects incomplete files). Ensure **`VERCEL_ORG_ID`** is the **team id** (`team_…` from Vercel → Team Settings → General) and **`VERCEL_PROJECT_ID`** is **`prj_…`** from **Project → Settings → General**. Re-copy both from a local `vercel link` if the project moved teams or was recreated.
+**Deploy error “Project not found” / wrong scope:** Set **`VERCEL_SCOPE`** to the first segment of `vercel.com/<scope>/<project>`. For an **org-owned** GitHub repo, `GITHUB_REPOSITORY_OWNER` is the **org**, which may not match your Vercel username—set **`VERCEL_SCOPE`** explicitly.
 
 **iOS: “HTTP 404” on Register / Login:** The app calls `https://<project>.vercel.app/api/auth/register`. A 404 means Vercel is not serving `/api/*` (deploy failed, wrong **Root Directory**, or routes missing). Confirm in a browser or Terminal: `curl -sS -o /dev/null -w "%{http_code}" -X POST https://heavens-boutique.vercel.app/api/auth/register -H "Content-Type: application/json" -d '{"email":"a@b.co","password":"password1234"}'` — expect **201** or **409**, not **404**. Fix the deploy first; **`API_BASE_URL`** in the app should stay `https://…vercel.app/api` (the app also auto-appends `/api` if you omit it).
 
