@@ -26,3 +26,11 @@ DerivedData/
 
 # Vercel
 .vercel
+
+# Ephemeral copies when running `vercel` from repo root (see root vercel.json)
+/api/
+/lib/
+/public/
+/package.json
+/package-lock.json
+/node_modules/

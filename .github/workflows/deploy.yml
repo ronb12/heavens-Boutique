@@ -68,12 +68,18 @@ jobs:
           psql "$CONN" -v ON_ERROR_STOP=1 -f database/schema.sql
           echo "Neon schema step finished."
 
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm ci
+      - name: Prepare Vercel bundle (monorepo → api at repo root)
+        run: |
+          set -euo pipefail
+          cp backend/package.json backend/package-lock.json .
+          npm ci
+          rm -rf api lib public
+          cp -R backend/api api
+          cp -R backend/lib lib
+          mkdir -p public
+          cp backend/public/index.html public/
 
       - name: Link Vercel project (CI)
-        working-directory: backend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -82,7 +88,6 @@ jobs:
           printf '%s\n' "{\"orgId\":\"${VERCEL_ORG_ID}\",\"projectId\":\"${VERCEL_PROJECT_ID}\"}" > .vercel/project.json
 
       - name: Deploy to Vercel (production)
-        working-directory: backend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: npx vercel deploy --prod --token "$VERCEL_TOKEN" --yes

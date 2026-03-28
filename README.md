@@ -14,7 +14,9 @@ SwiftUI iOS app + Vercel (Node) API + Neon Postgres. Repo: [github.com/ronb12/he
 ### 2. API (Vercel)
 
 1. In [Vercel](https://vercel.com) → New Project → import this GitHub repo.
-2. Set **Root Directory** to `backend` (required).
+2. **Root Directory** (pick one — both work):
+   - **`backend`** — deploys the API folder only (uses `backend/vercel.json`).
+   - **`.` (repo root)** — leave default / empty; the root **`vercel.json`** copies `backend/api` and `backend/lib` into the build output so `/api/*` routes exist (fixes `404 NOT_FOUND` when the whole repo was deployed without `backend` as root).
 3. Add **Environment Variables** (see `backend/.env.example`):
 
    | Variable | Purpose |
