@@ -1,0 +1,88 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      apply_database:
+        description: "Apply database/schema.sql to Neon (even if no DB files changed)"
+        required: false
+        type: choice
+        default: "no"
+        options:
+          - "no"
+          - "yes"
+
+concurrency:
+  group: deploy-heavens-boutique-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect database / script changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            database:
+              - 'database/**'
+              - 'scripts/neon-apply-schema.sh'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Apply schema to Neon
+        if: |
+          (github.event_name == 'push' && steps.changes.outputs.database == 'true') ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.apply_database == 'yes')
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+        run: |
+          set -euo pipefail
+          PROJECT_ID="${NEON_PROJECT_ID:-withered-fog-14874911}"
+          echo "Applying schema to Neon project $PROJECT_ID (branch: production)"
+          CONN=$(npx neonctl@latest connection-string production \
+            --project-id "$PROJECT_ID" \
+            --pooled \
+            --no-color)
+          psql "$CONN" -v ON_ERROR_STOP=1 -f database/schema.sql
+          echo "Neon schema step finished."
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Link Vercel project (CI)
+        working-directory: backend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          mkdir -p .vercel
+          printf '%s\n' "{\"orgId\":\"${VERCEL_ORG_ID}\",\"projectId\":\"${VERCEL_PROJECT_ID}\"}" > .vercel/project.json
+
+      - name: Deploy to Vercel (production)
+        working-directory: backend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel deploy --prod --token "$VERCEL_TOKEN" --yes

@@ -81,3 +81,31 @@ npx vercel dev
 ## CI
 
 GitHub Actions runs on `main`: installs backend deps and `node --check` on `api/**/*.js` and `lib/*.js`.
+
+## Deploy (GitHub Actions → Vercel + Neon)
+
+Workflow: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+
+| Trigger | What happens |
+|--------|----------------|
+| **Push to `main`** | Always **deploys `backend/` to Vercel production**. If `database/**` or `scripts/neon-apply-schema.sh` changed, runs **`database/schema.sql` on Neon** first. |
+| **Workflow dispatch** | Same Vercel deploy; set **Apply database** = `yes` to force a Neon schema run. |
+
+### Repository secrets (required)
+
+Add under **GitHub → Settings → Secrets and variables → Actions → Secrets**:
+
+| Secret | Where to get it |
+|--------|------------------|
+| `VERCEL_TOKEN` | [Vercel → Account Settings → Tokens](https://vercel.com/account/tokens) |
+| `VERCEL_ORG_ID` | From `backend/.vercel/project.json` after `vercel link` (`orgId`). For **heavens-boutique**: `team_RyIheF5P8ysoBiLR1yU2UMQR` |
+| `VERCEL_PROJECT_ID` | From `backend/.vercel/project.json` (`projectId`). For **heavens-boutique**: `prj_rDcgpKuogIGsRDbqtzSAQqUivKfF` |
+| `NEON_API_KEY` | [Neon Console → Account → API keys](https://console.neon.tech/app/settings/api-keys) |
+
+### Repository variable (optional)
+
+| Variable | Purpose |
+|----------|---------|
+| `NEON_PROJECT_ID` | Neon project ID (defaults to `withered-fog-14874911` in the workflow if unset) |
+
+**Note:** Re-running the full `schema.sql` against a database that already has those tables will **fail** (duplicate `CREATE TABLE`). Use incremental SQL or reset a dev branch for full replays. Routine app deploys still update Vercel even when the Neon step is skipped.
