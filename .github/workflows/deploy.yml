@@ -90,20 +90,25 @@ jobs:
       - name: Deploy to Vercel (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # Split secret vs var — do not use ${{ secrets.x || vars.x || 'default' }}; GitHub can drop the literal fallback.
+          VERCEL_ORG_SECRET: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_ORG_VAR: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJ_SECRET: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_PROJ_VAR: ${{ vars.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
           if [ -z "${VERCEL_TOKEN:-}" ]; then
             echo "::error::VERCEL_TOKEN is empty or not set. Add repository secret VERCEL_TOKEN (Vercel → Account Settings → Tokens)."
             exit 1
           fi
-          if [ -z "${VERCEL_ORG_ID:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
-            echo "::error::VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set (from local .vercel/project.json after vercel link)."
-            exit 1
-          fi
+          # Bash fallback chain: secret → variable → defaults for this repo’s Vercel project
+          DEFAULT_ORG='team_RyIheF5P8ysoBiLR1yU2UMQR'
+          DEFAULT_PROJ='prj_rDcgpKuogIGsRDbqtzSAQqUivKfF'
+          VERCEL_ORG_ID="${VERCEL_ORG_SECRET:-${VERCEL_ORG_VAR:-$DEFAULT_ORG}}"
+          VERCEL_PROJECT_ID="${VERCEL_PROJ_SECRET:-${VERCEL_PROJ_VAR:-$DEFAULT_PROJ}}"
+          VERCEL_ORG_ID="$(echo -n "$VERCEL_ORG_ID" | tr -d '[:space:]')"
+          VERCEL_PROJECT_ID="$(echo -n "$VERCEL_PROJECT_ID" | tr -d '[:space:]')"
           rm -rf .vercel
-          # --team = team id (team_…); --project = project id (prj_…) or project name. Env vars alone are not always enough in CI.
           npx --yes vercel@50.37.3 deploy --prod --yes \
             --token "$VERCEL_TOKEN" \
             --team "$VERCEL_ORG_ID" \

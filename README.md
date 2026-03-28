@@ -101,15 +101,24 @@ Workflow: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 | **Push to `main`** | Prepares the **repo-root** Vercel bundle (`api/`, `lib/`, `public/`) and **deploys to Vercel production**. Set the Vercel project **Root Directory** to **repository root** (`.`). If `database/**` or `scripts/neon-apply-schema.sh` changed, runs **`database/schema.sql` on Neon** first. After deploy, **smoke-tests** `GET /api/products` (override base URL with repo variable `VERCEL_SMOKE_BASE` if needed). |
 | **Workflow dispatch** | Same Vercel deploy; set **Apply database** = `yes` to force a Neon schema run. |
 
-### Repository secrets (required)
+### GitHub Actions → Vercel (required)
 
-Add under **GitHub → Settings → Secrets and variables → Actions → Secrets**:
+Under **GitHub → Settings → Secrets and variables → Actions**:
+
+| Name | Tab | Value |
+|------|-----|--------|
+| `VERCEL_TOKEN` | **Secrets** (required) | [Create a token](https://vercel.com/account/tokens) |
+| `VERCEL_ORG_ID` | **Secrets**, **Variables**, or *(omit)* | Optional for **this** Vercel project: the deploy workflow already defaults to `team_RyIheF5P8ysoBiLR1yU2UMQR`. Override if you use another team. |
+| `VERCEL_PROJECT_ID` | **Secrets**, **Variables**, or *(omit)* | Optional for **this** project: workflow default `prj_rDcgpKuogIGsRDbqtzSAQqUivKfF`. Override for a fork or new Vercel project. |
+
+Precedence: **Secret** → **Variable** → **defaults in the deploy step** (bash). You only need **`VERCEL_TOKEN`** as a secret for this repo’s Vercel project.
+
+If Actions still says *“VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set (from local .vercel…)”*, you’re on an **old** workflow file on `main` — **pull/push** the latest `.github/workflows/deploy.yml` from this repository.
+
+### Repository secrets (optional / other)
 
 | Secret | Where to get it |
 |--------|------------------|
-| `VERCEL_TOKEN` | [Vercel → Account Settings → Tokens](https://vercel.com/account/tokens) |
-| `VERCEL_ORG_ID` | From `backend/.vercel/project.json` after `vercel link` (`orgId`). For **heavens-boutique**: `team_RyIheF5P8ysoBiLR1yU2UMQR` |
-| `VERCEL_PROJECT_ID` | From `backend/.vercel/project.json` (`projectId`). For **heavens-boutique**: `prj_rDcgpKuogIGsRDbqtzSAQqUivKfF` |
 | `NEON_API_KEY` | [Neon Console → Account → API keys](https://console.neon.tech/app/settings/api-keys) |
 
 **Deploy error “no credentials” / “pass --token”:** The `VERCEL_TOKEN` repository secret is missing, empty, or the workflow ran in a context where secrets are unavailable (e.g. pull request from a fork). Create a token at the link above and add **`VERCEL_TOKEN`** under **Actions** secrets for this repo (not only **Dependabot** or **Codespaces** unless you deploy from there).
@@ -118,11 +127,14 @@ Add under **GitHub → Settings → Secrets and variables → Actions → Secret
 
 **iOS: “HTTP 404” on Register / Login:** The app calls `https://<project>.vercel.app/api/auth/register`. A 404 means Vercel is not serving `/api/*` (deploy failed, wrong **Root Directory**, or routes missing). Confirm in a browser or Terminal: `curl -sS -o /dev/null -w "%{http_code}" -X POST https://heavens-boutique.vercel.app/api/auth/register -H "Content-Type: application/json" -d '{"email":"a@b.co","password":"password1234"}'` — expect **201** or **409**, not **404**. Fix the deploy first; **`API_BASE_URL`** in the app should stay `https://…vercel.app/api` (the app also auto-appends `/api` if you omit it).
 
-### Repository variable (optional)
+### Repository variables (optional)
 
 | Variable | Purpose |
 |----------|---------|
+| `VERCEL_ORG_ID` | Same as secret; used if the secret is unset (see table above). |
+| `VERCEL_PROJECT_ID` | Same as secret; used if the secret is unset. |
 | `NEON_PROJECT_ID` | Neon project ID (defaults to `withered-fog-14874911` in the workflow if unset) |
+| `VERCEL_SMOKE_BASE` | Override production URL for the deploy smoke test (default `https://heavens-boutique.vercel.app`) |
 
 **Note:** Re-running the full `schema.sql` against a database that already has those tables will **fail** (duplicate `CREATE TABLE`). Use incremental SQL or reset a dev branch for full replays. Routine app deploys still update Vercel even when the Neon step is skipped.
 
