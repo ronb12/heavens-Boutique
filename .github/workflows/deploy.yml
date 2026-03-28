@@ -85,20 +85,29 @@ jobs:
           mkdir -p public
           cp backend/public/index.html public/
 
-      - name: Link Vercel project (CI)
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          mkdir -p .vercel
-          printf '%s\n' "{\"orgId\":\"${VERCEL_ORG_ID}\",\"projectId\":\"${VERCEL_PROJECT_ID}\"}" > .vercel/project.json
-
+      # Never commit .vercel/ — and do not echo-write project.json: current CLIs validate project
+      # settings from the API; a minimal JSON triggers "Project Settings are invalid".
       - name: Deploy to Vercel (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx vercel deploy --prod --token "$VERCEL_TOKEN" --yes
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "::error::VERCEL_TOKEN is empty or not set. Add repository secret VERCEL_TOKEN (Vercel → Account Settings → Tokens)."
+            exit 1
+          fi
+          if [ -z "${VERCEL_ORG_ID:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "::error::VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set (from local .vercel/project.json after vercel link)."
+            exit 1
+          fi
+          rm -rf .vercel
+          # --team = team id (team_…); --project = project id (prj_…) or project name. Env vars alone are not always enough in CI.
+          npx --yes vercel@50.37.3 deploy --prod --yes \
+            --token "$VERCEL_TOKEN" \
+            --team "$VERCEL_ORG_ID" \
+            --project "$VERCEL_PROJECT_ID"
 
       - name: Smoke test API (production)
         env:

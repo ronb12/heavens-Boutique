@@ -9,7 +9,11 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL: return "Invalid URL"
-        case let .status(code, msg): return msg ?? "HTTP \(code)"
+        case let .status(code, msg):
+            if code == 404 {
+                return msg ?? "HTTP 404 — the API URL may be wrong or the server has no /api routes deployed (check Vercel)."
+            }
+            return msg ?? "HTTP \(code)"
         case .decoding(let e): return e.localizedDescription
         case .network(let e): return e.localizedDescription
         }

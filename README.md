@@ -112,6 +112,12 @@ Add under **GitHub → Settings → Secrets and variables → Actions → Secret
 | `VERCEL_PROJECT_ID` | From `backend/.vercel/project.json` (`projectId`). For **heavens-boutique**: `prj_rDcgpKuogIGsRDbqtzSAQqUivKfF` |
 | `NEON_API_KEY` | [Neon Console → Account → API keys](https://console.neon.tech/app/settings/api-keys) |
 
+**Deploy error “no credentials” / “pass --token”:** The `VERCEL_TOKEN` repository secret is missing, empty, or the workflow ran in a context where secrets are unavailable (e.g. pull request from a fork). Create a token at the link above and add **`VERCEL_TOKEN`** under **Actions** secrets for this repo (not only **Dependabot** or **Codespaces** unless you deploy from there).
+
+**Deploy error “Project Settings are invalid” / remove `.vercel`:** The workflow no longer writes `.vercel/project.json` by hand (the CLI rejects incomplete files). Ensure **`VERCEL_ORG_ID`** is the **team id** (`team_…` from Vercel → Team Settings → General) and **`VERCEL_PROJECT_ID`** is **`prj_…`** from **Project → Settings → General**. Re-copy both from a local `vercel link` if the project moved teams or was recreated.
+
+**iOS: “HTTP 404” on Register / Login:** The app calls `https://<project>.vercel.app/api/auth/register`. A 404 means Vercel is not serving `/api/*` (deploy failed, wrong **Root Directory**, or routes missing). Confirm in a browser or Terminal: `curl -sS -o /dev/null -w "%{http_code}" -X POST https://heavens-boutique.vercel.app/api/auth/register -H "Content-Type: application/json" -d '{"email":"a@b.co","password":"password1234"}'` — expect **201** or **409**, not **404**. Fix the deploy first; **`API_BASE_URL`** in the app should stay `https://…vercel.app/api` (the app also auto-appends `/api` if you omit it).
+
 ### Repository variable (optional)
 
 | Variable | Purpose |

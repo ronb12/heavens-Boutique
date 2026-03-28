@@ -3,6 +3,11 @@
   "framework": null,
   "installCommand": "cp backend/package.json backend/package-lock.json . && npm ci",
   "buildCommand": "rm -rf api lib public && cp -R backend/api api && cp -R backend/lib lib && mkdir -p public && cp backend/public/index.html public/",
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/abandoned-cart",
