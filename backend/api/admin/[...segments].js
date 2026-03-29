@@ -15,20 +15,47 @@ function normalizeSegments(query) {
   return [String(raw)];
 }
 
-/** Vercel often omits catch-all keys on `req.query`; pathname is reliable. */
+function pathnameCandidates(req) {
+  const out = [];
+  const push = (v) => {
+    if (typeof v !== 'string' || !v.trim()) return;
+    const pathOnly = v.split('?')[0].trim();
+    if (pathOnly) out.push(pathOnly);
+  };
+  push(req.url);
+  push(req.headers?.['x-vercel-original-url']);
+  push(req.headers?.['x-invoke-path']);
+  push(req.headers?.['x-forwarded-uri']);
+  return out;
+}
+
+/** Catch-all sometimes receives `req.url` relative to the route (e.g. `/upload`), not `/api/admin/upload`. */
 function segmentsFromUrl(req) {
-  try {
-    const host = req.headers?.host || 'localhost';
-    const u = new URL(req.url || '/', `http://${host}`);
-    const pathname = decodeURIComponent(u.pathname);
-    const prefix = '/api/admin/';
-    if (!pathname.startsWith(prefix)) return [];
-    const rest = pathname.slice(prefix.length).replace(/\/+$/, '');
-    if (!rest) return [];
-    return rest.split('/').filter(Boolean);
-  } catch {
-    return [];
+  for (let raw of pathnameCandidates(req)) {
+    try {
+      let pathname = raw.startsWith('http') ? new URL(raw).pathname : raw;
+      pathname = decodeURIComponent(pathname);
+      if (!pathname.startsWith('/')) pathname = `/${pathname}`;
+
+      const prefix = '/api/admin/';
+      if (pathname.startsWith(prefix)) {
+        const rest = pathname.slice(prefix.length).replace(/\/+$/, '');
+        if (rest) return rest.split('/').filter(Boolean);
+        continue;
+      }
+
+      // Relative to api/admin/[...segments] mount
+      const known = new Set(['upload', 'reports', 'orders', 'customers', 'promos']);
+      const tail = pathname.replace(/^\/+/, '');
+      if (tail) {
+        const parts = tail.split('/').filter(Boolean);
+        if (parts[0] && known.has(parts[0])) return parts;
+      }
+    } catch {
+      /* try next */
+    }
   }
+  return [];
 }
 
 export default async function handler(req, res) {
