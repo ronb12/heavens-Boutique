@@ -105,10 +105,15 @@ export default async function handler(req, res) {
       }
     }
 
-    const shipJson =
-      body.shippingAddress != null && typeof body.shippingAddress === 'object'
-        ? JSON.stringify(body.shippingAddress)
-        : '{}';
+    const addr = {};
+    if (body.shippingAddress != null && typeof body.shippingAddress === 'object' && !Array.isArray(body.shippingAddress)) {
+      Object.assign(addr, body.shippingAddress);
+    }
+    const guestName = body.guestName != null ? String(body.guestName).trim() : '';
+    const guestPhone = body.guestPhone != null ? String(body.guestPhone).trim() : '';
+    if (guestName) addr.name = guestName;
+    if (guestPhone) addr.phone = guestPhone;
+    const shipJson = Object.keys(addr).length > 0 ? JSON.stringify(addr) : '{}';
 
     const orderId = randomUUID();
     const stripeId =

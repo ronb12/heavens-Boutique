@@ -36,10 +36,8 @@ final class PushNotificationCoordinator {
         }
 
         UIApplication.shared.registerForRemoteNotifications()
-
-        if let token = try? await Messaging.messaging().token() {
-            await uploadTokenIfNeeded(token)
-        }
+        // FCM token: wait for MessagingDelegate.didReceiveRegistrationToken (after APNs token is set).
+        // Eager Messaging.messaging().token() here causes Firebase I-FCM002022.
     }
 
     /// Call before clearing the JWT so the server can null out `fcm_token`.

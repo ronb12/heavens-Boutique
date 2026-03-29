@@ -416,7 +416,24 @@ struct AdminProductEditorView: View {
         }
     }
 
-    private static func jpegDataForUpload(from image: UIImage, maxDimension: CGFloat = 2048, quality: CGFloat = 0.85) -> Data? {
+    /// Keeps JPEG under ~2.2 MB so base64 JSON stays under Vercel’s ~4.5 MB request limit (and server read cap).
+    private static func jpegDataForUpload(from image: UIImage) -> Data? {
+        var maxDimension: CGFloat = 2048
+        var quality: CGFloat = 0.82
+        for _ in 0 ..< 10 {
+            guard let data = jpegDataScaled(from: image, maxDimension: maxDimension, quality: quality) else { return nil }
+            if data.count <= 2_200_000 { return data }
+            if quality > 0.42 {
+                quality -= 0.08
+            } else {
+                quality = 0.78
+                maxDimension = max(720, maxDimension * 0.72)
+            }
+        }
+        return jpegDataScaled(from: image, maxDimension: 720, quality: 0.5)
+    }
+
+    private static func jpegDataScaled(from image: UIImage, maxDimension: CGFloat, quality: CGFloat) -> Data? {
         let w = image.size.width
         let h = image.size.height
         let maxSide = max(w, h)

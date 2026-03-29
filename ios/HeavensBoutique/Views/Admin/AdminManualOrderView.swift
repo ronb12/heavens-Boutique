@@ -32,6 +32,8 @@ struct AdminManualOrderView: View {
     @State private var linkRegistered = true
     @State private var userId = ""
     @State private var guestEmail = ""
+    @State private var customerName = ""
+    @State private var customerPhone = ""
     @State private var shipLine1 = ""
     @State private var shipLine2 = ""
     @State private var shipCity = ""
@@ -63,10 +65,17 @@ struct AdminManualOrderView: View {
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
                 }
+                TextField("Customer name", text: $customerName)
+                    .textContentType(.name)
+                TextField("Phone", text: $customerPhone)
+                    .keyboardType(.phonePad)
+                    .textContentType(.telephoneNumber)
             } header: {
                 Text("Who is this order for?")
             } footer: {
-                Text("Shipping address is optional for in-store or pickup; fill it when you need a ship-to on the order.")
+                Text(linkRegistered
+                    ? "Name and phone are optional for registered customers but recommended for pickup slips and follow-up."
+                    : "Name and phone are required for guest orders. Shipping address below is optional for in-store or pickup.")
                     .font(HBFont.caption())
             }
 
@@ -303,6 +312,19 @@ struct AdminManualOrderView: View {
             }
         }
 
+        let nameTrim = customerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let phoneTrim = customerPhone.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !linkRegistered {
+            guard !nameTrim.isEmpty else {
+                errorMessage = "Enter the customer’s name."
+                return
+            }
+            guard !phoneTrim.isEmpty else {
+                errorMessage = "Enter the customer’s phone number."
+                return
+            }
+        }
+
         guard let discountCents = parseDollarsToCents(discountDollars),
               let taxCents = parseDollarsToCents(taxDollars),
               let shippingCents = parseDollarsToCents(shippingDollars) else {
@@ -333,6 +355,7 @@ struct AdminManualOrderView: View {
             body["guestEmail"] = guest
         }
 
+        var shippingPayload: [String: String] = [:]
         switch buildShippingAddressPayload() {
         case .invalid(let message):
             errorMessage = message
@@ -340,7 +363,12 @@ struct AdminManualOrderView: View {
         case .none:
             break
         case .some(let addr):
-            body["shippingAddress"] = addr
+            shippingPayload = addr
+        }
+        if !nameTrim.isEmpty { shippingPayload["name"] = nameTrim }
+        if !phoneTrim.isEmpty { shippingPayload["phone"] = phoneTrim }
+        if !shippingPayload.isEmpty {
+            body["shippingAddress"] = shippingPayload
         }
 
         isSaving = true

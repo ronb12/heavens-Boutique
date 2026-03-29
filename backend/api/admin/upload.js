@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
   try {
-    const body = await readJson(req);
+    const body = await readJson(req, { maxChars: 4_500_000 });
     const raw = String(body.imageBase64 || '').trim();
     if (!raw) return json(res, 400, { error: 'Missing imageBase64' });
 
@@ -59,6 +59,11 @@ export default async function handler(req, res) {
       storage: 'cloudinary',
     });
   } catch (e) {
+    if (e.message === 'Payload too large') {
+      return json(res, 413, {
+        error: 'Image payload too large. Use a smaller photo or let the app compress it; server limit is about 4.5 MB.',
+      });
+    }
     if (e.message?.includes('BLOB_READ_WRITE_TOKEN')) {
       return json(res, 503, {
         error:

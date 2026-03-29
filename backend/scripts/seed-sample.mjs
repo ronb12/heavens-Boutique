@@ -282,13 +282,44 @@ async function main() {
       shop_look_group = EXCLUDED.shop_look_group,
       updated_at = now()
   `;
+  // Full HTTPS URLs (not Cloudinary public IDs) so sample catalog shows images without CLOUDINARY_* env.
+  // Unsplash License: https://unsplash.com/license — sample / demo use only; replace for production catalog.
+  console.log('Product sample images (matched to each SKU)…');
   await sql`
-    UPDATE products
-    SET cloudinary_ids = ARRAY['demo/boutique-rose-dress', 'demo/boutique-coat']::text[]
-    WHERE id = ${I.pDress}
+    UPDATE products SET cloudinary_ids = ARRAY[
+      'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=80'
+    ]::text[] WHERE id = ${I.pDress}
   `;
   await sql`
-    UPDATE products SET cloudinary_ids = ARRAY['demo/boutique-coat']::text[] WHERE id = ${I.pCoat}
+    UPDATE products SET cloudinary_ids = ARRAY[
+      'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&w=1200&q=80'
+    ]::text[] WHERE id = ${I.pCoat}
+  `;
+  await sql`
+    UPDATE products SET cloudinary_ids = ARRAY[
+      'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=80'
+    ]::text[] WHERE id = ${I.pEarrings}
+  `;
+  await sql`
+    UPDATE products SET cloudinary_ids = ARRAY[
+      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=1200&q=80'
+    ]::text[] WHERE id = ${I.pCami}
+  `;
+  await sql`
+    UPDATE products SET cloudinary_ids = ARRAY[
+      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=1200&q=80'
+    ]::text[] WHERE id = ${I.pTrousers}
+  `;
+  await sql`
+    UPDATE products SET cloudinary_ids = ARRAY[
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1622445275463-afa2ab738c34?auto=format&fit=crop&w=1200&q=80'
+    ]::text[] WHERE id = ${I.pBlazer}
   `;
 
   await sql`

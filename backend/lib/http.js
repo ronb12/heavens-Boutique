@@ -7,12 +7,14 @@ export function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-export function readJson(req) {
+/** @param {{ maxChars?: number }} [opts] — default 2MB; image upload uses a higher cap (still bounded by Vercel ~4.5MB body). */
+export function readJson(req, opts = {}) {
+  const maxChars = opts.maxChars ?? 2_000_000;
   return new Promise((resolve, reject) => {
     let data = '';
     req.on('data', (chunk) => {
       data += chunk;
-      if (data.length > 2_000_000) {
+      if (data.length > maxChars) {
         reject(new Error('Payload too large'));
       }
     });
