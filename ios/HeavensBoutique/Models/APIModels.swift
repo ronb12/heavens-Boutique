@@ -203,6 +203,15 @@ struct AdminCustomersListResponse: Decodable {
     let customers: [AdminCustomerSummaryDTO]
 }
 
+/// Response from `POST /notifications` (admin marketing / promotion send).
+struct AdminNotifySendResponse: Decodable {
+    let ok: Bool
+    let sentCount: Int?
+    let audience: String?
+    let pushSent: Int?
+    let pushCapped: Bool?
+}
+
 struct AdminCreateCustomerResponse: Decodable {
     let customer: AdminCreatedCustomerDTO
 }

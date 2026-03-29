@@ -1,6 +1,7 @@
 import { getDb } from '../../lib/db.js';
 import { requireUser, requireAdmin } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
+import { sendPushToToken } from '../../lib/fcm.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -55,18 +56,96 @@ export default async function handler(req, res) {
       const admin = await requireAdmin(req);
       if (admin.error) return json(res, admin.status, { error: admin.error });
       const body = await readJson(req);
-      const userId = body.userId;
       const type = body.type || 'promotion';
       const title = String(body.title || '');
       const msg = body.body ? String(body.body) : null;
-      if (!userId || !title) {
-        return json(res, 400, { error: 'userId and title required' });
+      const dataJson = body.data ? JSON.stringify(body.data) : null;
+      const audience = String(body.audience || 'single').toLowerCase();
+
+      if (!title) {
+        return json(res, 400, { error: 'title required' });
       }
+
+      const pushData = {
+        type: type || 'promotion',
+        ...(body.data && typeof body.data === 'object' ? body.data : {}),
+      };
+      const pushBody = (msg && msg.trim()) || title;
+
+      if (audience === 'marketing_subscribers') {
+        const inserted = await sql`
+          INSERT INTO notifications (user_id, type, title, body, data)
+          SELECT u.id, ${type}, ${title}, ${msg}, ${dataJson}::jsonb
+          FROM users u
+          WHERE u.role = 'customer'
+            AND u.tags IS NOT NULL
+            AND 'marketing_emails' = ANY(u.tags)
+          RETURNING user_id
+        `;
+        const sentCount = inserted.length;
+
+        const maxPush = 40;
+        let pushSent = 0;
+        const pushTargets = inserted.slice(0, maxPush);
+        for (const insRow of pushTargets) {
+          const uid = insRow.user_id;
+          const r = await sql`
+            SELECT fcm_token FROM users
+            WHERE id = ${uid}
+              AND fcm_token IS NOT NULL
+              AND length(trim(fcm_token)) > 0
+            LIMIT 1
+          `;
+          const tok = r[0]?.fcm_token?.trim();
+          if (!tok) continue;
+          try {
+            const out = await sendPushToToken({
+              token: tok,
+              title,
+              body: pushBody,
+              data: pushData,
+            });
+            if (out.ok) pushSent += 1;
+          } catch (pushErr) {
+            console.error('admin promotion push (broadcast)', pushErr);
+          }
+        }
+
+        return json(res, 201, {
+          ok: true,
+          sentCount,
+          audience: 'marketing_subscribers',
+          pushSent,
+          pushCapped: inserted.length > maxPush,
+        });
+      }
+
+      const userId = body.userId;
+      if (!userId) {
+        return json(res, 400, { error: 'userId required for single-customer send' });
+      }
+
       await sql`
         INSERT INTO notifications (user_id, type, title, body, data)
-        VALUES (${userId}, ${type}, ${title}, ${msg}, ${body.data ? JSON.stringify(body.data) : null}::jsonb)
+        VALUES (${userId}, ${type}, ${title}, ${msg}, ${dataJson}::jsonb)
       `;
-      return json(res, 201, { ok: true });
+
+      const users = await sql`SELECT fcm_token FROM users WHERE id = ${userId} LIMIT 1`;
+      const token = users[0]?.fcm_token?.trim();
+      if (token) {
+        try {
+          await sendPushToToken({
+            token,
+            title,
+            body: pushBody,
+            data: pushData,
+          });
+        } catch (pushErr) {
+          console.error('admin promotion push (single)', pushErr);
+        }
+      }
+
+      return json(res, 201, { ok: true, sentCount: 1, audience: 'single' });
     }
 
     return json(res, 405, { error: 'Method not allowed' });

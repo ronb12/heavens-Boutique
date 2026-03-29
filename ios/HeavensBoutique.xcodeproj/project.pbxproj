@@ -18,6 +18,7 @@
 		1BED776C9ED25F99451206B0 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7FB756C2F91E8575EBC8913 /* HomeView.swift */; };
 		1D2024DCA39D9C46ABB53793 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84F0213178CDCB0393B9F93 /* Config.swift */; };
 		1DE9C6C151F0C9B03456BFF7 /* AdminAddCustomerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC475E51CA123399F38BF6F9 /* AdminAddCustomerView.swift */; };
+		B2A1C3D4E5F60718291A0B31 /* AdminNotifyComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */; };
 		22ED7C47CF4B771C61FCD617 /* NotificationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA245E015398258B1D2A013F /* NotificationsViewModel.swift */; };
 		24C1858281A32BAEF09D6CCF /* ConversationsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D768E2CED99231AE00FFCB7B /* ConversationsListView.swift */; };
 		24F91CE004304C60A822AF2B /* CartStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F977D07FCB219EF2DD0B73B /* CartStore.swift */; };
@@ -100,6 +101,7 @@
 		3DDEA3A2F8A937F06D1FA5AB /* AdminProductEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminProductEditorView.swift; sourceTree = "<group>"; };
 		406E4239974099F9A9F31E0F /* GoogleService-Info.plist.example */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "GoogleService-Info.plist.example"; sourceTree = "<group>"; };
 		461BFC3988E33A54D6875737 /* AdminHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminHubView.swift; sourceTree = "<group>"; };
+		C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminNotifyComposerView.swift; sourceTree = "<group>"; };
 		4ADBD53BC8AC43EA42622B40 /* CartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartView.swift; sourceTree = "<group>"; };
 		4BC3A410381D6D5182E8E50D /* HBFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBFeedback.swift; sourceTree = "<group>"; };
 		4C60C28C3DC73CD818A87F3E /* HBAppearancePreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBAppearancePreference.swift; sourceTree = "<group>"; };
@@ -299,6 +301,7 @@
 				3DACD16C869D6066093102EF /* AdminFinancialReportsView.swift */,
 				461BFC3988E33A54D6875737 /* AdminHubView.swift */,
 				7AA82C0971D3BD050B522A8E /* AdminManualOrderView.swift */,
+				C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */,
 				A2D7ACB55EEC5DB489A8F8CF /* AdminOrderDetailView.swift */,
 				3DDEA3A2F8A937F06D1FA5AB /* AdminProductEditorView.swift */,
 			);
@@ -503,6 +506,7 @@
 				7B29B3FF42380639F22354FB /* AdminFinancialReportsView.swift in Sources */,
 				F93976800DED3941A038FFE7 /* AdminHubView.swift in Sources */,
 				93297FD4DD143575D86DEDB4 /* AdminManualOrderView.swift in Sources */,
+				B2A1C3D4E5F60718291A0B31 /* AdminNotifyComposerView.swift in Sources */,
 				CC82B5F32A44CAE2ECCF6426 /* AdminOrderDetailView.swift in Sources */,
 				9226FB1E72C8177641A7640A /* AdminPickCustomerForChatView.swift in Sources */,
 				A4AFE5823809200D65D9D4CB /* AdminProductEditorView.swift in Sources */,
