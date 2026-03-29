@@ -328,6 +328,28 @@ struct AdminDailyRevenueRow: Decodable, Identifiable {
 
 struct APIErrorBody: Decodable {
     let error: String?
+    /// Extra server message (e.g. `admin/upload` exception text).
+    let details: String?
+    /// Correlate with Vercel logs: search `[admin/upload <id>]`.
+    let uploadDebugId: String?
+
+    /// Single string for alerts; includes reference id when the API sends it.
+    var composedUserMessage: String {
+        var parts: [String] = []
+        if let e = error?.trimmingCharacters(in: .whitespacesAndNewlines), !e.isEmpty {
+            parts.append(e)
+        }
+        if let d = details?.trimmingCharacters(in: .whitespacesAndNewlines), !d.isEmpty {
+            parts.append(d)
+        }
+        if let id = uploadDebugId?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty {
+            parts.append("Reference (search Vercel logs): \(id)")
+        }
+        if parts.isEmpty {
+            return "Request failed"
+        }
+        return parts.joined(separator: "\n\n")
+    }
 }
 
 struct EmptyResponse: Decodable {}

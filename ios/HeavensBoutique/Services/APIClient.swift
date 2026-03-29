@@ -57,8 +57,7 @@ final class APIClient: ObservableObject {
             let (respData, resp) = try await session.data(for: req)
             guard let http = resp as? HTTPURLResponse else { throw APIError.status(-1, nil) }
             if http.statusCode >= 400 {
-                let msg = (try? JSONDecoder().decode(APIErrorBody.self, from: respData))?.error
-                throw APIError.status(http.statusCode, msg)
+                throw APIError.status(http.statusCode, Self.apiFailureMessage(data: respData, statusCode: http.statusCode))
             }
             let decoder = JSONDecoder()
             do {
@@ -79,8 +78,26 @@ final class APIClient: ObservableObject {
         let (respData, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw APIError.status(-1, nil) }
         if http.statusCode >= 400 {
-            let msg = (try? JSONDecoder().decode(APIErrorBody.self, from: respData))?.error
-            throw APIError.status(http.statusCode, msg)
+            throw APIError.status(http.statusCode, Self.apiFailureMessage(data: respData, statusCode: http.statusCode))
         }
+    }
+
+    /// Prefer structured `{ error, details, uploadDebugId }`; fall back to a short raw body snippet for debugging.
+    private static func apiFailureMessage(data: Data, statusCode: Int) -> String {
+        if let body = try? JSONDecoder().decode(APIErrorBody.self, from: data) {
+            let composed = body.composedUserMessage
+            if composed != "Request failed" {
+                return composed
+            }
+            if body.details != nil || body.uploadDebugId != nil {
+                return composed
+            }
+        }
+        let snippet = String(data: data.prefix(800), encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let snippet, !snippet.isEmpty {
+            return "HTTP \(statusCode)\n\n\(snippet)"
+        }
+        return "HTTP \(statusCode)"
     }
 }

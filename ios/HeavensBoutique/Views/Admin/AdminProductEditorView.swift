@@ -2,11 +2,9 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// Create or edit catalog + inventory (sizes, SKU, stock). Uses admin `POST/PATCH/DELETE /products`.
+/// Create or edit catalog + inventory. Layout inspired by Shopify Admin (media → title → description → pricing → inventory → organization).
 struct AdminProductEditorView: View {
-    /// `nil` = new product
     let productId: String?
-    /// Called after a successful save or delete so lists can refresh.
     var onCatalogChanged: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
@@ -16,8 +14,10 @@ struct AdminProductEditorView: View {
     @State private var slug = ""
     @State private var description = ""
     @State private var category = ""
-    @State private var priceDollars = ""
-    @State private var salePriceDollars = ""
+    /// What the customer pays (maps to `priceCents` alone, or `salePriceCents` when compare-at is set).
+    @State private var sellingPriceDollars = ""
+    /// Optional higher “was” price (strike-through); maps to `priceCents` when sale is active.
+    @State private var compareAtPriceDollars = ""
     @State private var costDollars = ""
     @State private var isFeatured = false
     @State private var shopLookGroup = ""
@@ -33,182 +33,167 @@ struct AdminProductEditorView: View {
     @State private var isUploadingImages = false
     @State private var errorMessage: String?
     @State private var confirmDeleteProduct = false
+    @State private var showAdvanced = false
 
     private var isEditing: Bool { productId != nil }
 
     var body: some View {
-        Form {
-            Section {
-                TextField("Name", text: $name)
-                TextField("Slug (optional, auto from name if empty)", text: $slug)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                TextField("Category", text: $category)
-                TextField("Description", text: $description, axis: .vertical)
-                    .lineLimit(3...8)
-            } header: {
-                Text("Product")
-            }
-
-            Section {
-                TextField("Price (USD)", text: $priceDollars)
-                    .keyboardType(.decimalPad)
-                TextField("Sale price (optional)", text: $salePriceDollars)
-                    .keyboardType(.decimalPad)
-                Toggle("Featured on Home", isOn: $isFeatured)
-                TextField("Shop the Look group (optional)", text: $shopLookGroup)
-                    .textInputAutocapitalization(.never)
-            } header: {
-                Text("Pricing & visibility")
-            } footer: {
-                Text("Featured items appear in the Home carousel. Shop the Look groups power curated sets.")
-            }
-
-            Section {
-                TextField("Your cost per unit (USD)", text: $costDollars)
-                    .keyboardType(.decimalPad)
-                if let line = profitSummaryLine {
-                    Text(line.text)
-                        .font(HBFont.caption())
-                        .foregroundStyle(line.isLoss ? Color.red : HBColors.mutedGray)
-                }
-            } header: {
-                Text("Profit guard")
-            } footer: {
-                Text(
-                    "Enter your unit cost. Save is blocked when estimated net after card fees is below that cost. Fees default to ~2.9% + $0.30 on the lowest of list and sale (one charge per unit—same defaults as the server; override with PROFIT_GUARD_CARD_PERCENT / PROFIT_GUARD_CARD_FIXED_CENTS on Vercel). Tax and shipping are not included. Guest checkout isn’t modeled per SKU. Shoppers never see cost."
-                )
-            }
-
-            Section {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
                 if isUploadingImages {
-                    HStack {
+                    HStack(spacing: 10) {
                         ProgressView()
-                        Text("Uploading photos…")
-                            .font(HBFont.caption())
+                        Text("Uploading media…")
+                            .font(.subheadline)
                             .foregroundStyle(HBColors.mutedGray)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 4)
                 }
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(imageEntries) { entry in
-                            ZStack(alignment: .topTrailing) {
-                                let url: URL? = entry.previewURL ?? Config.cloudinaryDeliveryURL(publicId: entry.publicId)
-                                AsyncImage(url: url) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(HBColors.surface)
-                                            .overlay { ProgressView() }
-                                    case let .success(img):
-                                        img
-                                            .resizable()
-                                            .scaledToFill()
-                                    case .failure:
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(HBColors.surface)
-                                            .overlay {
-                                                Image(systemName: "photo")
-                                                    .foregroundStyle(HBColors.mutedGray)
-                                            }
-                                    @unknown default:
-                                        EmptyView()
-                                    }
-                                }
-                                .frame(width: 92, height: 92)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                shopifySection(title: "Media") {
+                    mediaBlock
+                }
 
-                                Button {
-                                    imageEntries.removeAll { $0.id == entry.id }
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .symbolRenderingMode(.palette)
-                                        .foregroundStyle(.white, Color.black.opacity(0.55))
-                                        .font(.title3)
+                shopifySection(title: "Title") {
+                    TextField("Short sleeve t-shirt", text: $name)
+                        .font(.body)
+                        .textInputAutocapitalization(.sentences)
+                }
+
+                shopifySection(title: "Description") {
+                    TextField("Describe this product for customers…", text: $description, axis: .vertical)
+                        .lineLimit(5...14)
+                        .font(.body)
+                }
+
+                shopifySection(title: "Pricing") {
+                    VStack(alignment: .leading, spacing: 14) {
+                        labeledField("Price", subtitle: "What customers pay") {
+                            TextField("0.00", text: $sellingPriceDollars)
+                                .keyboardType(.decimalPad)
+                                .font(.body.monospacedDigit())
+                        }
+                        labeledField("Compare-at price", subtitle: "Optional — shows as strikethrough when lower than this") {
+                            TextField("Optional", text: $compareAtPriceDollars)
+                                .keyboardType(.decimalPad)
+                                .font(.body.monospacedDigit())
+                        }
+
+                        DisclosureGroup {
+                            VStack(alignment: .leading, spacing: 12) {
+                                labeledField("Cost per item", subtitle: "Your cost; shoppers never see this") {
+                                    TextField("0.00", text: $costDollars)
+                                        .keyboardType(.decimalPad)
+                                        .font(.body.monospacedDigit())
                                 }
-                                .offset(x: 6, y: -6)
+                                if let line = profitSummaryLine {
+                                    Text(line.text)
+                                        .font(HBFont.caption())
+                                        .foregroundStyle(line.isLoss ? Color.red : HBColors.mutedGray)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
                             }
+                            .padding(.top, 8)
+                        } label: {
+                            Text("Cost & profit")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(HBColors.charcoal)
                         }
                     }
-                    .padding(.vertical, 4)
                 }
 
-                PhotosPicker(
-                    selection: $photoPickerItems,
-                    maxSelectionCount: 12,
-                    matching: .images,
-                    photoLibrary: .shared()
-                ) {
-                    Label("Add from photo library", systemImage: "photo.on.rectangle.angled")
-                }
-                .disabled(isUploadingImages)
-                .onChange(of: photoPickerItems) { _, newItems in
-                    guard !newItems.isEmpty else { return }
-                    Task { await uploadPickedPhotos(newItems) }
-                }
-
-                DisclosureGroup("Paste public IDs (advanced)") {
-                    TextField("folder/item, other-id", text: $manualPublicIdsText, axis: .vertical)
-                        .lineLimit(2...5)
-                    Button("Apply list (replaces gallery order)") {
-                        applyManualPublicIds()
+                shopifySection(title: "Inventory") {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach($variantRows) { $row in
+                            variantShopifyRow($row)
+                        }
+                        Button {
+                            variantRows.append(AdminVariantRow())
+                        } label: {
+                            Label("Add variant", systemImage: "plus.circle.fill")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(HBColors.gold)
+                        }
+                        .padding(.top, 4)
                     }
-                    .font(HBFont.caption())
                 }
-            } header: {
-                Text("Images")
-            } footer: {
-                Text(
-                    "Add photos from your library. Production uses Vercel Blob: link a Blob store on your Vercel project so the API has BLOB_READ_WRITE_TOKEN (nothing secret in the app). Optional Cloudinary fallback only if Blob isn’t set. CLOUDINARY_CLOUD_NAME in the app is only for previewing pasted Cloudinary public IDs."
-                )
-            }
 
-            Section {
-                ForEach($variantRows) { $row in
-                    VStack(alignment: .leading, spacing: 10) {
-                        TextField("Size (e.g. S, M, 8)", text: $row.size)
-                        TextField("SKU (optional)", text: $row.sku)
-                            .textInputAutocapitalization(.never)
-                        TextField("Stock", text: $row.stockText)
-                            .keyboardType(.numberPad)
+                shopifySection(title: "Organization") {
+                    VStack(alignment: .leading, spacing: 14) {
+                        labeledField("Product category", subtitle: "Used for Shop filters") {
+                            TextField("Dresses, Accessories…", text: $category)
+                                .font(.body)
+                        }
+                        labeledField("Shop the Look", subtitle: "Optional group id for curated sets") {
+                            TextField("e.g. spring-soiree", text: $shopLookGroup)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .font(.body)
+                        }
+                        Toggle(isOn: $isFeatured) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Featured on Home")
+                                    .font(.body)
+                                Text("Shows in the home carousel when on")
+                                    .font(HBFont.caption())
+                                    .foregroundStyle(HBColors.mutedGray)
+                            }
+                        }
+                        .tint(HBColors.gold)
                     }
-                    .padding(.vertical, 4)
                 }
-                .onDelete(perform: deleteVariantRows)
 
-                Button {
-                    variantRows.append(AdminVariantRow())
+                DisclosureGroup(isExpanded: $showAdvanced) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        labeledField("URL handle", subtitle: "Leave blank to auto-generate from title") {
+                            TextField("my-product-handle", text: $slug)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .font(.body.monospaced())
+                        }
+                        DisclosureGroup("Paste image IDs (advanced)") {
+                            TextField("folder/item, https://…", text: $manualPublicIdsText, axis: .vertical)
+                                .lineLimit(2...5)
+                            Button("Apply list (replaces gallery order)") {
+                                applyManualPublicIds()
+                            }
+                            .font(HBFont.caption())
+                        }
+                        .font(.subheadline)
+                    }
+                    .padding(.top, 8)
                 } label: {
-                    Label("Add size / inventory row", systemImage: "plus.circle.fill")
+                    Text("Advanced")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(HBColors.charcoal)
                 }
-            } header: {
-                Text("Inventory")
-            } footer: {
-                Text("Each row is one sellable variant. Stock is what shoppers can buy right now.")
-            }
+                .padding(.horizontal, 4)
 
-            if isEditing {
-                Section {
+                if isEditing {
                     Button(role: .destructive) {
                         confirmDeleteProduct = true
                     } label: {
                         Text("Delete product")
+                            .frame(maxWidth: .infinity)
                     }
-                } footer: {
-                    Text("Only allowed if this product was never on an order.")
+                    .padding(.top, 8)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 20)
+            .padding(.bottom, 32)
         }
         .scrollContentBackground(.hidden)
-        .background(HBColors.cream.opacity(0.35))
-        .navigationTitle(isEditing ? "Edit product" : "New product")
+        .background(ShopifyEditorChrome.background)
+        .navigationTitle(isEditing ? "Edit product" : "Add product")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     Task { await save() }
                 }
+                .fontWeight(.semibold)
                 .disabled(isSaving || !canSave)
             }
         }
@@ -234,6 +219,7 @@ struct AdminProductEditorView: View {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
+                .textSelection(.enabled)
         }
         .alert("Delete this product?", isPresented: $confirmDeleteProduct) {
             Button("Cancel", role: .cancel) {}
@@ -245,25 +231,239 @@ struct AdminProductEditorView: View {
         }
     }
 
+    // MARK: - Media (Shopify-style strip + add tile)
+
+    @ViewBuilder
+    private var mediaBlock: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    PhotosPicker(
+                        selection: $photoPickerItems,
+                        maxSelectionCount: 12,
+                        matching: .images,
+                        photoLibrary: .shared()
+                    ) {
+                        addMediaTile
+                    }
+                    .disabled(isUploadingImages)
+                    .onChange(of: photoPickerItems) { _, newItems in
+                        guard !newItems.isEmpty else { return }
+                        Task { await uploadPickedPhotos(newItems) }
+                    }
+
+                    ForEach(imageEntries) { entry in
+                        ZStack(alignment: .topTrailing) {
+                            let url: URL? = entry.previewURL ?? Config.cloudinaryDeliveryURL(publicId: entry.publicId)
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .empty:
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .fill(ShopifyEditorChrome.fieldFill)
+                                        .overlay { ProgressView() }
+                                case let .success(img):
+                                    img
+                                        .resizable()
+                                        .scaledToFill()
+                                case .failure:
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .fill(ShopifyEditorChrome.fieldFill)
+                                        .overlay {
+                                            Image(systemName: "photo")
+                                                .foregroundStyle(HBColors.mutedGray)
+                                        }
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                            .frame(width: 100, height: 100)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
+                            )
+
+                            Button {
+                                imageEntries.removeAll { $0.id == entry.id }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .symbolRenderingMode(.palette)
+                                    .foregroundStyle(.white, Color.black.opacity(0.5))
+                                    .font(.title3)
+                            }
+                            .offset(x: 6, y: -6)
+                        }
+                    }
+                }
+            }
+            Text("Accepts images from your library. Recommended: square or 4:5, good lighting.")
+                .font(HBFont.caption())
+                .foregroundStyle(HBColors.mutedGray)
+        }
+    }
+
+    private var addMediaTile: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "plus")
+                .font(.title2.weight(.medium))
+                .foregroundStyle(HBColors.mutedGray)
+            Text("Add")
+                .font(HBFont.caption().weight(.semibold))
+                .foregroundStyle(HBColors.mutedGray)
+        }
+        .frame(width: 100, height: 100)
+        .background(ShopifyEditorChrome.fieldFill)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                .foregroundStyle(Color.black.opacity(0.15))
+        )
+        .accessibilityLabel("Add product images")
+    }
+
+    // MARK: - Variant row (Shopify-like columns)
+
+    private func variantShopifyRow(_ row: Binding<AdminVariantRow>) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Variant")
+                    .font(HBFont.caption().weight(.semibold))
+                    .foregroundStyle(HBColors.mutedGray)
+                    .textCase(.uppercase)
+                Spacer()
+                if variantRows.count > 1 {
+                    Button {
+                        removeVariant(id: row.wrappedValue.id)
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.body)
+                            .foregroundStyle(.red.opacity(0.85))
+                    }
+                    .accessibilityLabel("Remove variant")
+                }
+            }
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Size")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                    TextField("S, M, 8", text: row.size)
+                        .font(.body)
+                        .padding(10)
+                        .background(ShopifyEditorChrome.fieldFill)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .frame(maxWidth: .infinity)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("SKU")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                    TextField("—", text: row.sku)
+                        .font(.body.monospaced())
+                        .textInputAutocapitalization(.never)
+                        .padding(10)
+                        .background(ShopifyEditorChrome.fieldFill)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .frame(maxWidth: .infinity)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Quantity")
+                    .font(HBFont.caption())
+                    .foregroundStyle(HBColors.mutedGray)
+                TextField("0", text: row.stockText)
+                    .keyboardType(.numberPad)
+                    .font(.body.monospacedDigit())
+                    .padding(10)
+                    .background(ShopifyEditorChrome.fieldFill)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+        }
+        .padding(12)
+        .background(ShopifyEditorChrome.nestedFill)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.black.opacity(0.05), lineWidth: 1)
+        )
+    }
+
+    private func removeVariant(id: UUID) {
+        guard let index = variantRows.firstIndex(where: { $0.id == id }) else { return }
+        if let sid = variantRows[index].serverId {
+            removedVariantIds.append(sid)
+        }
+        variantRows.remove(at: index)
+    }
+
+    // MARK: - Shopify chrome helpers
+
+    private func shopifySection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title.uppercased())
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(HBColors.mutedGray)
+                .tracking(0.6)
+            content()
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(ShopifyEditorChrome.cardFill)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
+                )
+        }
+    }
+
+    private func labeledField<Content: View>(_ title: String, subtitle: String, @ViewBuilder field: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(HBColors.charcoal)
+            field()
+                .padding(12)
+                .background(ShopifyEditorChrome.fieldFill)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
+                )
+            Text(subtitle)
+                .font(HBFont.caption())
+                .foregroundStyle(HBColors.mutedGray)
+        }
+    }
+
+    // MARK: - Pricing / profit (Shopify Price + Compare-at)
+
+    private var parsedSellingCents: Int? {
+        AdminMoney.cents(fromDollarString: sellingPriceDollars)
+    }
+
+    private var parsedCompareAtCents: Int? {
+        let t = compareAtPriceDollars.trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.isEmpty { return nil }
+        return AdminMoney.cents(fromDollarString: t)
+    }
+
     private var parsedCostCents: Int? {
         let t = costDollars.trimmingCharacters(in: .whitespacesAndNewlines)
         if t.isEmpty { return nil }
         return AdminMoney.cents(fromDollarString: t)
     }
 
-    /// Matches server: lowest of list and sale (if any).
+    /// Charge per unit (what the customer pays).
     private var minChargeCents: Int? {
-        guard let list = AdminMoney.cents(fromDollarString: priceDollars) else { return nil }
-        let saleT = salePriceDollars.trimmingCharacters(in: .whitespacesAndNewlines)
-        if saleT.isEmpty { return list }
-        guard let sale = AdminMoney.cents(fromDollarString: saleT) else { return nil }
-        return min(list, sale)
+        parsedSellingCents
     }
 
     private var profitSummaryLine: (text: String, isLoss: Bool)? {
         guard let cost = parsedCostCents else { return nil }
         guard let minCh = minChargeCents else {
-            return ("Enter valid list (and sale) prices to see profit.", false)
+            return ("Enter a valid price to see profit.", false)
         }
         let fee = AdminProfitGuard.estimatedCardFeeCents(chargeCents: minCh)
         let net = minCh - fee
@@ -283,7 +483,7 @@ struct AdminProductEditorView: View {
             )
         }
         return (
-            "Price \(money(minCh)) · ~Fees \(money(fee)) · Net ~\(money(net)) · Cost \(money(cost)) · Est. profit \(money(profit)) (\(pct)% of price; tax/shipping N/A)",
+            "Charge \(money(minCh)) · ~Fees \(money(fee)) · Net ~\(money(net)) · Cost \(money(cost)) · Est. profit \(money(profit)) (\(pct)%)",
             false
         )
     }
@@ -298,7 +498,10 @@ struct AdminProductEditorView: View {
     private var canSave: Bool {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !n.isEmpty else { return false }
-        guard AdminMoney.cents(fromDollarString: priceDollars) != nil else { return false }
+        guard let sell = parsedSellingCents, sell >= 0 else { return false }
+        if let compare = parsedCompareAtCents {
+            guard compare > sell else { return false }
+        }
         let validRows = variantRows.filter { !$0.size.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         guard !validRows.isEmpty else { return false }
         for row in validRows {
@@ -306,16 +509,6 @@ struct AdminProductEditorView: View {
         }
         guard profitAllowsSave else { return false }
         return true
-    }
-
-    private func deleteVariantRows(at offsets: IndexSet) {
-        for i in offsets {
-            guard variantRows.indices.contains(i) else { continue }
-            if let sid = variantRows[i].serverId {
-                removedVariantIds.append(sid)
-            }
-            variantRows.remove(at: i)
-        }
     }
 
     private func load(productId: String) async {
@@ -328,9 +521,12 @@ struct AdminProductEditorView: View {
             slug = p.slug
             description = p.description ?? ""
             category = p.category
-            priceDollars = AdminMoney.dollarsString(cents: p.priceCents)
-            if let s = p.salePriceCents {
-                salePriceDollars = AdminMoney.dollarsString(cents: s)
+            if let sale = p.salePriceCents {
+                sellingPriceDollars = AdminMoney.dollarsString(cents: sale)
+                compareAtPriceDollars = AdminMoney.dollarsString(cents: p.priceCents)
+            } else {
+                sellingPriceDollars = AdminMoney.dollarsString(cents: p.priceCents)
+                compareAtPriceDollars = ""
             }
             if let c = p.costCents {
                 costDollars = AdminMoney.dollarsString(cents: c)
@@ -351,20 +547,17 @@ struct AdminProductEditorView: View {
         }
     }
 
-    /// Strip Cloudinary delivery URL to public id (`folder/item`), or return trimmed token if already an id.
     private static func cloudinaryPublicId(fromImageURL urlString: String) -> String? {
         let t = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else { return nil }
         guard let range = t.range(of: "/upload/") else { return t }
         var rest = String(t[range.upperBound...])
-        // Drop version folder `v1234567/`
         if rest.hasPrefix("v"), let slash = rest.firstIndex(of: "/") {
             let ver = String(rest[..<slash])
             if ver.dropFirst().allSatisfy(\.isNumber) {
                 rest = String(rest[rest.index(after: slash)...])
             }
         }
-        // Drop transformation segments (contain commas, e.g. `f_auto,q_auto`)
         var parts = rest.split(separator: "/").map(String.init)
         while let first = parts.first, first.contains(",") {
             parts.removeFirst()
@@ -416,7 +609,6 @@ struct AdminProductEditorView: View {
         }
     }
 
-    /// Keeps JPEG under ~2.2 MB so base64 JSON stays under Vercel’s ~4.5 MB request limit (and server read cap).
     private static func jpegDataForUpload(from image: UIImage) -> Data? {
         var maxDimension: CGFloat = 2048
         var quality: CGFloat = 0.82
@@ -447,24 +639,35 @@ struct AdminProductEditorView: View {
         return scaled.jpegData(compressionQuality: quality)
     }
 
+    /// Maps UI to API: no compare-at → only `priceCents`; with compare-at → `priceCents` = compare, `salePriceCents` = selling.
+    private func resolvedPricePayload() -> (priceCents: Int, saleCents: Int?)? {
+        guard let sell = parsedSellingCents else { return nil }
+        if let compare = parsedCompareAtCents {
+            guard compare > sell else { return nil }
+            return (priceCents: compare, saleCents: sell)
+        }
+        return (priceCents: sell, saleCents: nil)
+    }
+
     private func save() async {
         isSaving = true
         defer { isSaving = false }
-        guard let priceCents = AdminMoney.cents(fromDollarString: priceDollars) else {
-            errorMessage = "Enter a valid price."
+        guard let resolved = resolvedPricePayload() else {
+            if parsedCompareAtCents != nil, let sell = parsedSellingCents, let c = parsedCompareAtCents, c <= sell {
+                errorMessage = "Compare-at price must be higher than Price."
+            } else {
+                errorMessage = "Enter a valid price."
+            }
             return
         }
-        let saleCents: Int? = {
-            let t = salePriceDollars.trimmingCharacters(in: .whitespacesAndNewlines)
-            if t.isEmpty { return nil }
-            return AdminMoney.cents(fromDollarString: t)
-        }()
+        let priceCents = resolved.priceCents
+        let saleCents = resolved.saleCents
 
         let rows = variantRows.filter { !$0.size.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         var variantPayload: [[String: Any]] = []
         for row in rows {
             guard let stock = Int(row.stockText.trimmingCharacters(in: .whitespacesAndNewlines)), stock >= 0 else {
-                errorMessage = "Each row needs a whole-number stock (0 or more)."
+                errorMessage = "Each variant needs a whole-number quantity (0 or more)."
                 return
             }
             var v: [String: Any] = [
@@ -557,6 +760,15 @@ struct AdminProductEditorView: View {
     }
 }
 
+// MARK: - Chrome
+
+private enum ShopifyEditorChrome {
+    static var background: Color { HBColors.cream.opacity(0.45) }
+    static var cardFill: Color { HBColors.surface }
+    static var fieldFill: Color { Color(uiColor: .secondarySystemGroupedBackground) }
+    static var nestedFill: Color { Color(uiColor: .tertiarySystemGroupedBackground) }
+}
+
 private struct AdminProductImageEntry: Identifiable {
     let id = UUID()
     var publicId: String
@@ -583,7 +795,6 @@ private struct AdminVariantRow: Identifiable {
     }
 }
 
-/// Matches `backend/lib/productProfit.js` defaults (env overrides apply on server only).
 private enum AdminProfitGuard {
     static let cardFeePercent: Double = 0.029
     static let cardFixedCents: Int = 30
