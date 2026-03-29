@@ -1,6 +1,6 @@
-import { getDb } from '../../../lib/db.js';
-import { requireAdmin, hashPassword } from '../../../lib/auth.js';
-import { json, readJson, handleCors } from '../../../lib/http.js';
+import { getDb } from '../../db.js';
+import { requireAdmin, hashPassword } from '../../auth.js';
+import { json, readJson, handleCors } from '../../http.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;

@@ -68,6 +68,7 @@
    | `STRIPE_SECRET_KEY` | Stripe secret key |
    | `STRIPE_WEBHOOK_SECRET` | From Stripe webhook |
    | `BLOB_READ_WRITE_TOKEN` | **Use this on Vercel:** Project → **Storage** → create/link a **Blob** store; Vercel usually injects this token. Admin uploads (`POST /api/admin/upload`) use Blob whenever it is set (unique object per upload). |
+   | `BLOB_STORE_ACCESS` | Optional: `public` or `private` — must match the store. If omitted, uploads try **public** first, then **private** if Vercel returns “private store”. **Catalog images in the app need a public store** (or use Cloudinary). |
    | `CLOUDINARY_CLOUD_NAME` | Optional: only if you still use Cloudinary public IDs — match iOS `CLOUDINARY_CLOUD_NAME` in `ios/project.yml` for admin pasted-ID previews. Pure Blob catalogs do not need it. |
    | `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Optional fallback when **`BLOB_READ_WRITE_TOKEN` is unset** (e.g. local dev without Blob) |
    | `CLOUDINARY_UPLOAD_FOLDER` | Optional; default `heavens-boutique/products` |
@@ -80,6 +81,13 @@
    | `PROFIT_GUARD_CARD_FIXED_CENTS` | Optional; default `30` ($0.30) fixed fee per assumed charge; set `0` with percent `0` to match legacy “price ≥ cost” only |
 
 4. Deploy. The site root **`/`** is the **marketing** page (hero, story, app CTA, contact). The **REST API** lives at **`https://heavens-boutique.vercel.app/api`** (already wired for this repo’s Vercel project).
+
+**Public Vercel Blob (required for product photos in the app):** You **cannot** turn an existing **private** Blob store into a public one. Do this instead:
+
+1. **Dashboard:** [Vercel](https://vercel.com) → your **project** → **Storage** → **Create** → **Blob** → set **Access** to **Public** → finish setup and **connect** the store to the project so **`BLOB_READ_WRITE_TOKEN`** is set (or refreshed).
+2. **CLI** (repo root, `vercel login` done): `npx vercel@latest blob create-store my-catalog --access public` and confirm **link** to your project when prompted.
+
+Then open **Project → Settings → Environment Variables**: **delete** `BLOB_STORE_ACCESS` if it was `private`, or set **`BLOB_STORE_ACCESS=public`**. **Redeploy** production (and Preview if you use it) so the API uses the new token and public uploads.
 
 **If the browser or app shows `404 NOT_FOUND` for `/` or `/api/...`:** In Vercel → Project → Settings → General, set **Root Directory** to the **repository root** (leave the field empty), redeploy, and confirm `GET /api/products` returns JSON. A common cause is **Root Directory = `backend`** while the deployment expects `api/` at the project root, or a prior root bundle that was excluded from upload by `.gitignore` (fixed in this repo for CI).
 

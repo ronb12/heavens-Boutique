@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { requireAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
-import { uploadProductImageToBlob } from '../../lib/blobUpload.js';
-import { uploadProductImageBuffer } from '../../lib/cloudinaryUpload.js';
-import { isProbablyImage, sniffContentType } from '../../lib/imageSniff.js';
+import { requireAdmin } from '../../auth.js';
+import { json, readJson, handleCors } from '../../http.js';
+import { uploadProductImageToBlob } from '../../blobUpload.js';
+import { uploadProductImageBuffer } from '../../cloudinaryUpload.js';
+import { isProbablyImage, sniffContentType } from '../../imageSniff.js';
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -85,14 +85,21 @@ export default async function handler(req, res) {
     });
 
     if (useBlob) {
-      const { url } = await uploadProductImageToBlob(buffer, contentType);
-      log('upload ok blob', { userId: admin.userId, url, bytes: buffer.length });
+      const { url, access } = await uploadProductImageToBlob(buffer, contentType);
+      logInfo('upload ok blob', { userId: admin.userId, url, bytes: buffer.length, blobAccess: access });
       return json(res, 200, {
         publicId: url,
         url,
         width: null,
         height: null,
         storage: 'vercel-blob',
+        blobAccess: access,
+        ...(access === 'private'
+          ? {
+              warning:
+                'Blob store is private: URLs may not load in the shop app. Prefer a public Blob store for catalog images (Vercel → Storage), or set BLOB_STORE_ACCESS=private explicitly.',
+            }
+          : {}),
       });
     }
 

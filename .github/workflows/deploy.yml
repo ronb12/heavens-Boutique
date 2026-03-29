@@ -159,3 +159,12 @@ jobs:
             exit 1
           fi
           echo "GET ${base}/api/products OK (200)"
+          for path in "admin/promos" "admin/upload" "admin/reports" "admin/orders" "admin/customers"; do
+            code=$(curl -sS -o /tmp/hb-admin-smoke.txt -w "%{http_code}" -X POST "${base}/api/${path}" -H "Content-Type: application/json" -d '{}' || echo "000")
+            if [ "$code" = "404" ]; then
+              echo "::error::POST ${base}/api/${path} returned 404 (route missing on deployment). Redeploy with a full build."
+              cat /tmp/hb-admin-smoke.txt 2>/dev/null || true
+              exit 1
+            fi
+            echo "POST ${base}/api/${path} → HTTP $code (expect not 404)"
+          done

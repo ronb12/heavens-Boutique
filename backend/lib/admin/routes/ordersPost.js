@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto';
-import { getDb } from '../../../lib/db.js';
-import { requireAdmin } from '../../../lib/auth.js';
-import { isAllowedOrderStatus } from '../../../lib/orderStatuses.js';
-import { json, readJson, handleCors } from '../../../lib/http.js';
+import { getDb } from '../../db.js';
+import { requireAdmin } from '../../auth.js';
+import { isAllowedOrderStatus } from '../../orderStatuses.js';
+import { json, readJson, handleCors } from '../../http.js';
 import {
   notifyAllAdmins,
   notifyAdminsLowStockForVariants,
   formatMoneyCents,
-} from '../../../lib/adminNotify.js';
+} from '../../adminNotify.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
