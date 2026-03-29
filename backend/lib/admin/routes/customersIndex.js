@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { getDb } from '../../db.js';
 import { requireAdmin, hashPassword } from '../../auth.js';
 import { json, readJson, handleCors } from '../../http.js';
@@ -14,8 +15,15 @@ export default async function handler(req, res) {
       const body = await readJson(req);
       const email = String(body.email || '').trim().toLowerCase();
       const password = String(body.password || '');
-      const fullName = body.fullName != null ? String(body.fullName).trim() || null : null;
+      const firstName = body.firstName != null ? String(body.firstName).trim() : '';
+      const lastName = body.lastName != null ? String(body.lastName).trim() : '';
+      let fullName = body.fullName != null ? String(body.fullName).trim() || null : null;
+      const combined = [firstName, lastName].filter(Boolean).join(' ').trim();
+      if (combined) fullName = combined;
       const phone = body.phone != null ? String(body.phone).trim() || null : null;
+
+      const marketingEmails = body.marketingEmails === true;
+      const tags = marketingEmails ? ['marketing_emails'] : [];
 
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return json(res, 400, { error: 'Valid email required' });
@@ -25,10 +33,40 @@ export default async function handler(req, res) {
       }
 
       const passwordHash = await hashPassword(password);
+      const userId = randomUUID();
+
+      const addr = body.defaultAddress;
+      const hasAddr = addr != null && typeof addr === 'object' && !Array.isArray(addr);
+      const company = hasAddr ? String(addr.company || '').trim() : '';
+      const line1Raw = hasAddr ? String(addr.line1 || '').trim() : '';
+      const line1 = company && line1Raw ? `${company}, ${line1Raw}` : company || line1Raw;
+      const line2 = hasAddr ? String(addr.line2 || '').trim() || null : null;
+      const city = hasAddr ? String(addr.city || '').trim() : '';
+      const state = hasAddr ? String(addr.state || '').trim() || null : null;
+      const postal = hasAddr ? String(addr.postal || '').trim() : '';
+      const country = hasAddr ? String(addr.country || 'US').trim() || 'US' : 'US';
+      const canInsertAddr = Boolean(line1 && city && postal && country);
+
+      const queries = [
+        sql`
+          INSERT INTO users (id, email, password_hash, full_name, phone, role, tags)
+          VALUES (${userId}, ${email}, ${passwordHash}, ${fullName}, ${phone}, 'customer', ${tags})
+        `,
+      ];
+      if (canInsertAddr) {
+        queries.push(sql`
+          INSERT INTO user_addresses (user_id, label, line1, line2, city, state, postal, country, is_default)
+          VALUES (${userId}, ${'Default'}, ${line1}, ${line2}, ${city}, ${state}, ${postal}, ${country}, ${true})
+        `);
+      }
+
+      await sql.transaction(queries);
+
       const rows = await sql`
-        INSERT INTO users (email, password_hash, full_name, phone, role)
-        VALUES (${email}, ${passwordHash}, ${fullName}, ${phone}, 'customer')
-        RETURNING id, email, full_name, phone, role, loyalty_points
+        SELECT id, email, full_name, phone, role, loyalty_points
+        FROM users
+        WHERE id = ${userId}
+        LIMIT 1
       `;
       const u = rows[0];
       return json(res, 201, {
