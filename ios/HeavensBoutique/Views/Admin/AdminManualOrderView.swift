@@ -12,11 +12,13 @@ private struct ManualOrderLineDraft: Identifiable {
 private enum ManualOrderPickSheet: Identifiable {
     case chooseProduct
     case chooseVariant(productId: String)
+    case chooseCustomer
 
     var id: String {
         switch self {
         case .chooseProduct: return "pick-product"
         case .chooseVariant(let pid): return "pick-variant-\(pid)"
+        case .chooseCustomer: return "pick-customer"
         }
     }
 }
@@ -30,7 +32,7 @@ struct AdminManualOrderView: View {
     var onCreated: (() -> Void)?
 
     @State private var linkRegistered = true
-    @State private var userId = ""
+    @State private var selectedCustomer: AdminCustomerSummaryDTO?
     @State private var guestEmail = ""
     @State private var customerName = ""
     @State private var customerPhone = ""
@@ -56,10 +58,40 @@ struct AdminManualOrderView: View {
         Form {
             Section {
                 Toggle("Registered customer", isOn: $linkRegistered)
+                    .onChange(of: linkRegistered) { _, isRegistered in
+                        if isRegistered {
+                            guestEmail = ""
+                        } else {
+                            selectedCustomer = nil
+                        }
+                    }
                 if linkRegistered {
-                    TextField("Customer user ID (UUID)", text: $userId)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    Button {
+                        pickSheet = .chooseCustomer
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                if let c = selectedCustomer {
+                                    Text(manualOrderDisplayName(c))
+                                        .font(.body)
+                                        .foregroundStyle(HBColors.charcoal)
+                                    Text(c.email)
+                                        .font(HBFont.caption())
+                                        .foregroundStyle(HBColors.mutedGray)
+                                } else {
+                                    Text("Choose customer")
+                                        .font(.body)
+                                        .foregroundStyle(HBColors.mutedGray)
+                                }
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(HBColors.mutedGray)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 } else {
                     TextField("Guest email", text: $guestEmail)
                         .keyboardType(.emailAddress)
@@ -74,7 +106,7 @@ struct AdminManualOrderView: View {
                 Text("Who is this order for?")
             } footer: {
                 Text(linkRegistered
-                    ? "Name and phone are optional for registered customers but recommended for pickup slips and follow-up."
+                    ? "Pick the account to attach this order to (same list as Customers). Name and phone are optional but help on pickup slips."
                     : "Name and phone are required for guest orders. Shipping address below is optional for in-store or pickup.")
                     .font(HBFont.caption())
             }
@@ -176,6 +208,12 @@ struct AdminManualOrderView: View {
         .sheet(item: $pickSheet) { sheet in
             NavigationStack {
                 switch sheet {
+                case .chooseCustomer:
+                    ManualOrderCustomerPickerView { customer in
+                        selectedCustomer = customer
+                        pickSheet = nil
+                    }
+                    .environmentObject(api)
                 case .chooseProduct:
                     List(products) { p in
                         Button {
@@ -298,11 +336,10 @@ struct AdminManualOrderView: View {
             errorMessage = "Add at least one line item."
             return
         }
-        let uid = userId.trimmingCharacters(in: .whitespacesAndNewlines)
         let guest = guestEmail.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if linkRegistered {
-            guard !uid.isEmpty else {
-                errorMessage = "Enter the customer’s user ID (from Customers)."
+            guard let uid = selectedCustomer?.id, !uid.isEmpty else {
+                errorMessage = "Choose a registered customer."
                 return
             }
         } else {
@@ -349,7 +386,7 @@ struct AdminManualOrderView: View {
             "shippingCents": shippingCents,
             "decrementStock": decrementStock,
         ]
-        if linkRegistered {
+        if linkRegistered, let uid = selectedCustomer?.id {
             body["userId"] = uid
         } else {
             body["guestEmail"] = guest
@@ -387,5 +424,102 @@ struct AdminManualOrderView: View {
 
     private static func formatMoney(cents: Int) -> String {
         NumberFormatter.localizedString(from: NSNumber(value: Double(cents) / 100), number: .currency)
+    }
+
+    private func manualOrderDisplayName(_ c: AdminCustomerSummaryDTO) -> String {
+        if let n = c.fullName?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty {
+            return n
+        }
+        return c.email
+    }
+}
+
+// MARK: - Customer picker (manual order)
+
+private struct ManualOrderCustomerPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var api: APIClient
+    var onPick: (AdminCustomerSummaryDTO) -> Void
+
+    @State private var customers: [AdminCustomerSummaryDTO] = []
+    @State private var isLoading = true
+    @State private var loadError: String?
+    @State private var search = ""
+
+    private var filtered: [AdminCustomerSummaryDTO] {
+        let base = customers.filter { $0.role == "customer" }
+        let q = search.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if q.isEmpty { return base }
+        return base.filter {
+            $0.email.lowercased().contains(q)
+                || ($0.fullName?.lowercased().contains(q) ?? false)
+                || $0.id.lowercased().contains(q)
+        }
+    }
+
+    var body: some View {
+        Group {
+            if isLoading {
+                ProgressView("Loading customers…")
+                    .tint(HBColors.gold)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let loadError {
+                HBEmptyState(
+                    systemImage: "person.crop.circle.badge.xmark",
+                    title: "Couldn’t load customers",
+                    message: loadError,
+                    retryTitle: "Try again",
+                    retry: { Task { await load() } }
+                )
+            } else if filtered.isEmpty {
+                ContentUnavailableView.search(text: search)
+            } else {
+                List(filtered) { c in
+                    Button {
+                        onPick(c)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(displayName(c))
+                                .font(HBFont.headline())
+                                .foregroundStyle(HBColors.charcoal)
+                            Text(c.email)
+                                .font(HBFont.caption())
+                                .foregroundStyle(HBColors.mutedGray)
+                        }
+                    }
+                    .listRowBackground(HBColors.surface)
+                }
+                .listStyle(.plain)
+                .searchable(text: $search, prompt: "Search name, email, or ID")
+            }
+        }
+        .hbScreenBackground()
+        .navigationTitle("Customer")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+            }
+        }
+        .task { await load() }
+    }
+
+    private func displayName(_ c: AdminCustomerSummaryDTO) -> String {
+        if let n = c.fullName?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty {
+            return n
+        }
+        return c.email
+    }
+
+    private func load() async {
+        isLoading = true
+        loadError = nil
+        defer { isLoading = false }
+        do {
+            let r: AdminCustomersListResponse = try await api.request("/admin/customers", method: "GET")
+            customers = r.customers
+        } catch {
+            loadError = error.localizedDescription
+        }
     }
 }
