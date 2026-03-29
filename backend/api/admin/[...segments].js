@@ -6,7 +6,7 @@ import handleCustomersIndex from '../../lib/admin/routes/customersIndex.js';
 import handleCustomersById from '../../lib/admin/routes/customersById.js';
 
 function normalizeSegments(query) {
-  const raw = query?.segments;
+  const raw = query?.segments ?? query?.slug ?? query?.path;
   if (raw == null || raw === '') return [];
   if (Array.isArray(raw)) return raw.filter(Boolean);
   if (typeof raw === 'string') {
@@ -15,8 +15,25 @@ function normalizeSegments(query) {
   return [String(raw)];
 }
 
+/** Vercel often omits catch-all keys on `req.query`; pathname is reliable. */
+function segmentsFromUrl(req) {
+  try {
+    const host = req.headers?.host || 'localhost';
+    const u = new URL(req.url || '/', `http://${host}`);
+    const pathname = decodeURIComponent(u.pathname);
+    const prefix = '/api/admin/';
+    if (!pathname.startsWith(prefix)) return [];
+    const rest = pathname.slice(prefix.length).replace(/\/+$/, '');
+    if (!rest) return [];
+    return rest.split('/').filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export default async function handler(req, res) {
-  const segments = normalizeSegments(req.query || {});
+  const fromUrl = segmentsFromUrl(req);
+  const segments = fromUrl.length > 0 ? fromUrl : normalizeSegments(req.query || {});
   const head = segments[0];
 
   if (!head) {
