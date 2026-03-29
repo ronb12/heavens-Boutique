@@ -133,6 +133,9 @@ struct HomeView: View {
                 )
 
             HStack(alignment: .center, spacing: 16) {
+                HBBrandAppIcon(size: 56, showShadow: true)
+                    .accessibilityHidden(true)
+
                 VStack(alignment: .leading, spacing: 10) {
                     HBWordmarkWithRoses(roseSize: 24, spacing: 8) {
                         Text("Heaven's Boutique")
@@ -163,31 +166,6 @@ struct HomeView: View {
                 }
 
                 Spacer(minLength: 8)
-
-                ZStack {
-                    ForEach(0 ..< 3, id: \.self) { i in
-                        Image(systemName: "sparkle")
-                            .font(.system(size: CGFloat(12 + i * 4), weight: .semibold))
-                            .foregroundStyle(HBColors.gold.opacity(0.35 + Double(i) * 0.2))
-                            .offset(x: CGFloat(i * 6 - 6), y: CGFloat(i * 5 - 8))
-                    }
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [HBColors.gold, HBColors.rosePink],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .symbolEffect(.pulse, options: .repeating)
-                }
-                .padding(14)
-                .background(
-                    Circle()
-                        .fill(HBColors.glassDiscFill)
-                        .shadow(color: HBColors.gold.opacity(0.2), radius: 12, x: 0, y: 4)
-                )
             }
             .padding(22)
         }

@@ -21,7 +21,7 @@ struct WelcomeAuthView: View {
                 Spacer(minLength: 12)
 
                 VStack(spacing: 20) {
-                    HBBrandMonogram(size: 88)
+                    HBBrandAppIcon(size: 88)
                         .scaleEffect(showLogo ? 1 : 0.82)
                         .rotationEffect(.degrees(showLogo ? 0 : -6))
                         .opacity(showLogo ? 1 : 0)

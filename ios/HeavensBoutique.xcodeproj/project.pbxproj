@@ -31,9 +31,11 @@
 		607D863708B6395AA26BB243 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A2B3B1DBD20A5444C77831 /* RootView.swift */; };
 		64FE923A82CC8EDBBB614293 /* CartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADBD53BC8AC43EA42622B40 /* CartView.swift */; };
 		66C374008B5CFAC08D48C844 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A1F0F45432C908463CDB1A /* ChatView.swift */; };
+		A7E8F9D0C1B243658697809A /* AdminPickCustomerForChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8F9E0D1C2A354769708192B /* AdminPickCustomerForChatView.swift */; };
 		6768292DE057779DEDF9CECA /* GoogleService-Info.plist.example in Resources */ = {isa = PBXBuildFile; fileRef = 406E4239974099F9A9F31E0F /* GoogleService-Info.plist.example */; };
 		685DB75E2E73D3F3C91C30E5 /* ShopViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B2F2AC0BDD39F3AE307AD37 /* ShopViewModel.swift */; };
 		6AFFD46F812D502B1702FD46 /* HBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B8EA4BB03A950D2F99CB15 /* HBTheme.swift */; };
+		F1A2B3C4D5E6789011223344 /* HBBrandAppIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F1A2B3C4D5678900112233 /* HBBrandAppIcon.swift */; };
 		73302A2B9AA81099D9B1570F /* HBFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC3A410381D6D5182E8E50D /* HBFeedback.swift */; };
 		7B29B3FF42380639F22354FB /* AdminFinancialReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DACD16C869D6066093102EF /* AdminFinancialReportsView.swift */; };
 		7C09CCA23DDA01A58CB90E7D /* PushNotificationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9284C4A8F00CB825B173D8A6 /* PushNotificationCoordinator.swift */; };
@@ -106,6 +108,7 @@
 		5E869DA0B21045C204490F78 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		6ED7449AA4978CAD8A917121 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		72A1F0F45432C908463CDB1A /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		B8F9E0D1C2A354769708192B /* AdminPickCustomerForChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminPickCustomerForChatView.swift; sourceTree = "<group>"; };
 		7317BFC3102A4F48CB18EF8B /* ShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopView.swift; sourceTree = "<group>"; };
 		796C9F1EF9BC6A44F31260E4 /* WelcomeAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeAuthView.swift; sourceTree = "<group>"; };
 		7A062756BD06050C71DD62D0 /* HBButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBButtons.swift; sourceTree = "<group>"; };
@@ -133,6 +136,7 @@
 		D82C14CD432FF99E6F230C31 /* HBRoseWordmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBRoseWordmark.swift; sourceTree = "<group>"; };
 		E197BA37B4F8F84D3ECC58FE /* MessagesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesViewModel.swift; sourceTree = "<group>"; };
 		E2B8EA4BB03A950D2F99CB15 /* HBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBTheme.swift; sourceTree = "<group>"; };
+		E0F1A2B3C4D5678900112233 /* HBBrandAppIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBBrandAppIcon.swift; sourceTree = "<group>"; };
 		E65DD49D31550C4E01393FBB /* HeavensBoutique.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeavensBoutique.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8F0D4DF1629745B3F825942 /* CartModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartModels.swift; sourceTree = "<group>"; };
 		E93CFFC760ECB67A0CFB9823 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -318,6 +322,7 @@
 		9FBB03E8B324A6880C129310 /* Messages */ = {
 			isa = PBXGroup;
 			children = (
+				B8F9E0D1C2A354769708192B /* AdminPickCustomerForChatView.swift */,
 				72A1F0F45432C908463CDB1A /* ChatView.swift */,
 				D768E2CED99231AE00FFCB7B /* ConversationsListView.swift */,
 			);
@@ -364,6 +369,7 @@
 			isa = PBXGroup;
 			children = (
 				4C60C28C3DC73CD818A87F3E /* HBAppearancePreference.swift */,
+				E0F1A2B3C4D5678900112233 /* HBBrandAppIcon.swift */,
 				7A062756BD06050C71DD62D0 /* HBButtons.swift */,
 				96F1092FEDA492A5A003BB45 /* HBEmptyState.swift */,
 				D82C14CD432FF99E6F230C31 /* HBRoseWordmark.swift */,
@@ -503,6 +509,7 @@
 				B966B2B5F73E269DC4C83930 /* CartModels.swift in Sources */,
 				24F91CE004304C60A822AF2B /* CartStore.swift in Sources */,
 				64FE923A82CC8EDBBB614293 /* CartView.swift in Sources */,
+				A7E8F9D0C1B243658697809A /* AdminPickCustomerForChatView.swift in Sources */,
 				66C374008B5CFAC08D48C844 /* ChatView.swift in Sources */,
 				F87A3933B447BD6CE87FFB40 /* CheckoutView.swift in Sources */,
 				1D2024DCA39D9C46ABB53793 /* Config.swift in Sources */,
@@ -510,6 +517,7 @@
 				CED792BA682C7830AB4ADE77 /* CustomerOrderDetailView.swift in Sources */,
 				02E25143E0247D6BACAFBD73 /* HBAppDelegate.swift in Sources */,
 				2E87BCFA2BBEA83CE943EFB0 /* HBAppearancePreference.swift in Sources */,
+				F1A2B3C4D5E6789011223344 /* HBBrandAppIcon.swift in Sources */,
 				F353ECBA526EE6FB91612765 /* HBButtons.swift in Sources */,
 				F4572BEA69B0368EAEF09DB3 /* HBEmptyState.swift in Sources */,
 				73302A2B9AA81099D9B1570F /* HBFeedback.swift in Sources */,

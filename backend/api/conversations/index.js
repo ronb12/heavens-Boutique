@@ -2,6 +2,8 @@ import { getDb } from '../../lib/db.js';
 import { requireUser, requireAdmin } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
   const sql = getDb();
@@ -54,9 +56,36 @@ export default async function handler(req, res) {
       const orderId = body.orderId || null;
       const title = body.title ? String(body.title) : 'Stylist chat';
 
+      const roleRows = await sql`SELECT role FROM users WHERE id = ${auth.userId} LIMIT 1`;
+      const dbRole = roleRows[0]?.role || auth.role || 'customer';
+      const isAdmin = dbRole === 'admin';
+
+      let conversationUserId = auth.userId;
+      let staffId = null;
+      if (isAdmin) {
+        const custRaw =
+          body.customerUserId != null
+            ? String(body.customerUserId).trim()
+            : body.userId != null
+              ? String(body.userId).trim()
+              : '';
+        if (!custRaw || !UUID_RE.test(custRaw)) {
+          return json(res, 400, {
+            error:
+              'customerUserId is required when starting a chat as admin (the registered customer you are messaging)',
+          });
+        }
+        const cust = await sql`SELECT id, role FROM users WHERE id = ${custRaw} LIMIT 1`;
+        if (!cust[0] || cust[0].role !== 'customer') {
+          return json(res, 400, { error: 'customerUserId must be a registered customer account' });
+        }
+        conversationUserId = custRaw;
+        staffId = auth.userId;
+      }
+
       const inserted = await sql`
-        INSERT INTO conversations (user_id, order_id, title)
-        VALUES (${auth.userId}, ${orderId}, ${title})
+        INSERT INTO conversations (user_id, order_id, title, staff_id)
+        VALUES (${conversationUserId}, ${orderId}, ${title}, ${staffId})
         RETURNING *
       `;
       const c = inserted[0];

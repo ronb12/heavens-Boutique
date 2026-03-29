@@ -61,14 +61,24 @@ final class MessagesViewModel: ObservableObject {
         }
     }
 
-    func createConversation(api: APIClient, title: String = "Stylist chat") async -> String? {
+    /// For customers, omit `customerUserId`. Admins must pass the customer’s user UUID (`customerUserId` in the API).
+    func createConversation(
+        api: APIClient,
+        title: String = "Stylist chat",
+        customerUserId: String? = nil,
+        listUsesAdminAll: Bool = false
+    ) async -> String? {
         do {
             struct R: Decodable {
                 struct C: Decodable { let id: String }
                 let conversation: C
             }
-            let r: R = try await api.request("/conversations", method: "POST", jsonBody: ["title": title])
-            await loadConversations(api: api, adminAll: false)
+            var body: [String: Any] = ["title": title]
+            if let uid = customerUserId?.trimmingCharacters(in: .whitespacesAndNewlines), !uid.isEmpty {
+                body["customerUserId"] = uid
+            }
+            let r: R = try await api.request("/conversations", method: "POST", jsonBody: body)
+            await loadConversations(api: api, adminAll: listUsesAdminAll)
             return r.conversation.id
         } catch {
             self.error = error.localizedDescription

@@ -9,12 +9,16 @@ struct ShopView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            VStack(alignment: .leading, spacing: 16) {
-                categoryChips
-                content
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    categoryChips
+                    mainContent
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
+            .refreshable { await vm.load(api: api) }
             .hbScreenBackground()
             .navigationTitle("Shop")
             .navigationBarTitleDisplayMode(.large)
@@ -38,7 +42,6 @@ struct ShopView: View {
                 }
                 await vm.load(api: api)
             }
-            .refreshable { await vm.load(api: api) }
         }
     }
 
@@ -78,18 +81,21 @@ struct ShopView: View {
                 .foregroundStyle(selected ? Color.white : HBColors.charcoal)
                 .clipShape(Capsule())
                 .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .animation(nil, value: selected)
         .accessibilityLabel(title)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     @ViewBuilder
-    private var content: some View {
+    private var mainContent: some View {
         if vm.isLoading && vm.products.isEmpty {
             ProgressView("Loading pieces…")
                 .tint(HBColors.gold)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 280)
                 .padding(.top, 40)
         } else if let err = vm.error {
             HBEmptyState(
@@ -100,6 +106,7 @@ struct ShopView: View {
                 retry: { Task { await vm.load(api: api) } }
             )
             .padding(.top, 24)
+            .frame(maxWidth: .infinity)
         } else if vm.products.isEmpty {
             HBEmptyState(
                 systemImage: "tshirt",
@@ -109,19 +116,17 @@ struct ShopView: View {
                 retry: { Task { await vm.load(api: api) } }
             )
             .padding(.top, 24)
+            .frame(maxWidth: .infinity)
         } else {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
-                    ForEach(vm.products) { p in
-                        Button {
-                            path.append(p)
-                        } label: {
-                            ProductCardView(product: p)
-                        }
-                        .buttonStyle(.plain)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
+                ForEach(vm.products) { p in
+                    Button {
+                        path.append(p)
+                    } label: {
+                        ProductCardView(product: p)
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.bottom, 24)
             }
         }
     }

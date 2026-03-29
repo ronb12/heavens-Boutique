@@ -116,6 +116,8 @@ struct ProductDetailView: View {
                             .opacity(v.stock <= 0 ? 0.4 : 1)
                     }
                     .disabled(v.stock <= 0)
+                    .buttonStyle(.plain)
+                    .animation(nil, value: selectedVariant?.id == v.id)
                     .accessibilityLabel("Size \(v.size)")
                     .accessibilityAddTraits(selectedVariant?.id == v.id ? .isSelected : [])
                 }

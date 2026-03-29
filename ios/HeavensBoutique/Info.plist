@@ -26,6 +26,8 @@
 	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 Heaven's Boutique. All rights reserved.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Heaven's Boutique uses the camera when store admins take photos to add or update product images in the catalog.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Heaven's Boutique needs photo access to add product images to your catalog.</string>
 	<key>STRIPE_PUBLISHABLE_KEY</key>

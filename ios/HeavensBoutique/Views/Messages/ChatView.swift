@@ -93,6 +93,11 @@ struct ChatView: View {
         HStack {
             if mine { Spacer(minLength: 48) }
             VStack(alignment: mine ? .trailing : .leading, spacing: 4) {
+                if !mine, let name = m.senderName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+                    Text(name)
+                        .font(HBFont.caption().weight(.medium))
+                        .foregroundStyle(HBColors.mutedGray)
+                }
                 if let body = m.body, !body.isEmpty {
                     Text(body)
                         .font(HBFont.body())

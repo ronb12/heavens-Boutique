@@ -16,7 +16,7 @@ struct HBSplashView: View {
                 Spacer()
 
                 VStack(spacing: 22) {
-                    HBBrandMonogram(size: 84)
+                    HBBrandAppIcon(size: 84)
                         .scaleEffect(showMark ? 1 : 0.88)
                         .opacity(showMark ? 1 : 0)
 

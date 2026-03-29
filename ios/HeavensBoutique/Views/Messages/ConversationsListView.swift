@@ -10,6 +10,7 @@ struct ConversationsListView: View {
     private var needsSignIn: Bool { !session.isLoggedIn }
     @StateObject private var vm = MessagesViewModel()
     @State private var path = NavigationPath()
+    @State private var showAdminPickCustomer = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -46,10 +47,14 @@ struct ConversationsListView: View {
                             retry: nil
                         )
                         HBPrimaryButton(title: "New conversation", isLoading: false) {
-                            Task {
-                                if let id = await vm.createConversation(api: api) {
-                                    await vm.openConversation(id, api: api)
-                                    path.append(id)
+                            if useAdminMessageList {
+                                showAdminPickCustomer = true
+                            } else {
+                                Task {
+                                    if let id = await vm.createConversation(api: api, listUsesAdminAll: false) {
+                                        await vm.openConversation(id, api: api)
+                                        path.append(id)
+                                    }
                                 }
                             }
                         }
@@ -86,10 +91,14 @@ struct ConversationsListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        Task {
-                            if let id = await vm.createConversation(api: api) {
-                                await vm.openConversation(id, api: api)
-                                path.append(id)
+                        if useAdminMessageList {
+                            showAdminPickCustomer = true
+                        } else {
+                            Task {
+                                if let id = await vm.createConversation(api: api, listUsesAdminAll: false) {
+                                    await vm.openConversation(id, api: api)
+                                    path.append(id)
+                                }
                             }
                         }
                     } label: {
@@ -118,6 +127,21 @@ struct ConversationsListView: View {
             .refreshable {
                 guard !needsSignIn else { return }
                 await vm.loadConversations(api: api, adminAll: useAdminMessageList)
+            }
+            .sheet(isPresented: $showAdminPickCustomer) {
+                AdminPickCustomerForChatView { customer in
+                    Task {
+                        if let id = await vm.createConversation(
+                            api: api,
+                            customerUserId: customer.id,
+                            listUsesAdminAll: true
+                        ) {
+                            await vm.openConversation(id, api: api)
+                            path.append(id)
+                        }
+                    }
+                }
+                .environmentObject(api)
             }
         }
     }

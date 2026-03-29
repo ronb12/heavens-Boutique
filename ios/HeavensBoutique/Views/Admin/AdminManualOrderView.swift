@@ -32,6 +32,12 @@ struct AdminManualOrderView: View {
     @State private var linkRegistered = true
     @State private var userId = ""
     @State private var guestEmail = ""
+    @State private var shipLine1 = ""
+    @State private var shipLine2 = ""
+    @State private var shipCity = ""
+    @State private var shipState = ""
+    @State private var shipPostal = ""
+    @State private var shipCountry = "US"
     @State private var status = "paid"
     @State private var lines: [ManualOrderLineDraft] = []
     @State private var discountDollars = "0"
@@ -59,6 +65,30 @@ struct AdminManualOrderView: View {
                 }
             } header: {
                 Text("Who is this order for?")
+            } footer: {
+                Text("Shipping address is optional for in-store or pickup; fill it when you need a ship-to on the order.")
+                    .font(HBFont.caption())
+            }
+
+            Section {
+                TextField("Street address", text: $shipLine1)
+                    .textContentType(.streetAddressLine1)
+                TextField("Apt, suite (optional)", text: $shipLine2)
+                    .textContentType(.streetAddressLine2)
+                TextField("City", text: $shipCity)
+                    .textContentType(.addressCity)
+                TextField("State / province", text: $shipState)
+                    .textContentType(.addressState)
+                TextField("ZIP / postal code", text: $shipPostal)
+                    .textContentType(.postalCode)
+                    .textInputAutocapitalization(.characters)
+                TextField("Country (ISO, e.g. US)", text: $shipCountry)
+                    .textInputAutocapitalization(.characters)
+            } header: {
+                Text("Shipping address")
+            } footer: {
+                Text("Leave all blank if there is no ship-to. If you enter any part, include line 1, city, and postal code. Country defaults to US when empty.")
+                    .font(HBFont.caption())
             }
 
             Section {
@@ -211,6 +241,41 @@ struct AdminManualOrderView: View {
         ))
     }
 
+    private enum ShippingAddressPayload {
+        case none
+        case some([String: String])
+        case invalid(String)
+    }
+
+    private func buildShippingAddressPayload() -> ShippingAddressPayload {
+        let l1 = shipLine1.trimmingCharacters(in: .whitespacesAndNewlines)
+        let l2 = shipLine2.trimmingCharacters(in: .whitespacesAndNewlines)
+        let city = shipCity.trimmingCharacters(in: .whitespacesAndNewlines)
+        let state = shipState.trimmingCharacters(in: .whitespacesAndNewlines)
+        let postal = shipPostal.trimmingCharacters(in: .whitespacesAndNewlines)
+        let countryRaw = shipCountry.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let country = countryRaw.isEmpty ? "US" : countryRaw
+
+        // Do not treat default country alone as “has address” (avoids sending `{}` vs `{country:US}` confusion).
+        let anyFilled = !l1.isEmpty || !l2.isEmpty || !city.isEmpty || !state.isEmpty || !postal.isEmpty
+        if !anyFilled { return .none }
+
+        let coreOk = !l1.isEmpty && !city.isEmpty && !postal.isEmpty
+        if !coreOk {
+            return .invalid("Shipping address: enter line 1, city, and postal code (or clear all address fields).")
+        }
+
+        var addr: [String: String] = [
+            "line1": l1,
+            "city": city,
+            "postal": postal,
+            "country": country,
+        ]
+        if !l2.isEmpty { addr["line2"] = l2 }
+        if !state.isEmpty { addr["state"] = state }
+        return .some(addr)
+    }
+
     private func parseDollarsToCents(_ s: String) -> Int? {
         let t = s.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "$", with: "")
         if t.isEmpty { return 0 }
@@ -266,6 +331,16 @@ struct AdminManualOrderView: View {
             body["userId"] = uid
         } else {
             body["guestEmail"] = guest
+        }
+
+        switch buildShippingAddressPayload() {
+        case .invalid(let message):
+            errorMessage = message
+            return
+        case .none:
+            break
+        case .some(let addr):
+            body["shippingAddress"] = addr
         }
 
         isSaving = true
