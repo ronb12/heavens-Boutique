@@ -6,6 +6,6 @@ export default async function handler(req, res) {
   return json(res, 200, {
     ok: true,
     name: "Heaven's Boutique API",
-    docs: 'See /api/products, /api/admin/upload, /api/admin/reports, /api/admin/customers (GET/POST), /api/admin/orders (POST manual order), /api/auth/login, etc.',
+    docs: 'See /api/products, /api/admin/upload, /api/admin/reports, /api/admin/customers (GET/POST), /api/admin/orders (POST manual order), /api/auth/login, /api/auth/apple, etc.',
   });
 }

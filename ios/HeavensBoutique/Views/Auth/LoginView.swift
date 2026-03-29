@@ -70,9 +70,16 @@ struct LoginView: View {
                             }
                             .padding(.top, 4)
 
+                            HBAuthOrDivider()
+                                .padding(.top, 8)
+
+                            HBSignInWithAppleRow(isLoading: $isLoading, error: $error)
+                                .padding(.top, 4)
+
                             HBSecondaryButton(title: "Create an account") {
                                 mode = .register
                             }
+                                .padding(.top, 12)
                         }
                     }
                     .padding(.horizontal, 20)

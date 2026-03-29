@@ -17,6 +17,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.9.0",
     "google-auth-library": "^9.15.1",
+    "jose": "^5.9.6",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^17.4.0",
     "uuid": "^11.0.3"

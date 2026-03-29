@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       FROM users WHERE email = ${email} LIMIT 1
     `;
     const user = rows[0];
-    if (!user || !(await comparePassword(password, user.password_hash))) {
+    if (!user || !user.password_hash || !(await comparePassword(password, user.password_hash))) {
       return json(res, 401, { error: 'Invalid credentials' });
     }
 

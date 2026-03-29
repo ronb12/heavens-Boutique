@@ -84,9 +84,16 @@ struct RegisterView: View {
                                 Task { await register() }
                             }
 
+                            HBAuthOrDivider()
+                                .padding(.top, 8)
+
+                            HBSignInWithAppleRow(isLoading: $isLoading, error: $error)
+                                .padding(.top, 4)
+
                             HBSecondaryButton(title: "Already have an account?") {
                                 mode = .login
                             }
+                                .padding(.top, 12)
                         }
                     }
                     .padding(.horizontal, 20)
