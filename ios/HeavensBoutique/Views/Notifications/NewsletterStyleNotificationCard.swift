@@ -26,16 +26,16 @@ struct NewsletterStyleNotificationCard: View {
                                 .resizable()
                                 .scaledToFill()
                         case .failure:
-                            newsletterHeroPlaceholder
+                            newsletterHeroPlaceholder(compact: false)
                         default:
-                            newsletterHeroPlaceholder
+                            newsletterHeroPlaceholder(compact: false)
                         }
                     }
                     .frame(height: 148)
                     .frame(maxWidth: .infinity)
                     .clipped()
                 } else {
-                    newsletterHeroPlaceholder
+                    newsletterHeroPlaceholder(compact: true)
                         .frame(height: 56)
                 }
 
@@ -115,10 +115,9 @@ struct NewsletterStyleNotificationCard: View {
                 }
                 .padding(.top, 4)
 
-                HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(HBColors.gold.opacity(0.9))
+                HStack(spacing: 8) {
+                    HBBrandAppIcon(size: 24, showShadow: false)
+                        .accessibilityHidden(true)
                     Text("Heaven’s Boutique")
                         .font(HBFont.caption().weight(.medium))
                         .foregroundStyle(HBColors.mutedGray)
@@ -153,7 +152,8 @@ struct NewsletterStyleNotificationCard: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var newsletterHeroPlaceholder: some View {
+    @ViewBuilder
+    private func newsletterHeroPlaceholder(compact: Bool) -> some View {
         ZStack {
             LinearGradient(
                 colors: [
@@ -164,9 +164,7 @@ struct NewsletterStyleNotificationCard: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            Image(systemName: "envelope.open.fill")
-                .font(.system(size: 28, weight: .medium))
-                .foregroundStyle(HBColors.gold.opacity(0.55))
+            HBBrandAppIcon(size: compact ? 40 : 56, showShadow: false)
         }
     }
 }
