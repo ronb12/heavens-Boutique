@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Customer-facing promotion / “newsletter” card — shared by Notification Center and admin Notify preview.
+/// Customer-facing promotion / “newsletter” card — shared by Notification Center and admin marketing composer preview.
 struct NewsletterStyleNotificationCard: View {
     let title: String
     /// Main copy under the headline (maps to API `body`).

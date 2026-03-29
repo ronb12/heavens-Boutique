@@ -2,7 +2,7 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// Create or edit catalog + inventory. Layout inspired by Shopify Admin (media → title → description → pricing → inventory → organization).
+/// Create or edit catalog + inventory. Sectioned editor: media → title → description → pricing → inventory → organization.
 struct AdminProductEditorView: View {
     let productId: String?
     var onCatalogChanged: (() -> Void)?
@@ -51,23 +51,23 @@ struct AdminProductEditorView: View {
                     .padding(.horizontal, 4)
                 }
 
-                shopifySection(title: "Media") {
+                adminFormSection(title: "Media") {
                     mediaBlock
                 }
 
-                shopifySection(title: "Title") {
+                adminFormSection(title: "Title") {
                     TextField("Short sleeve t-shirt", text: $name)
                         .font(.body)
                         .textInputAutocapitalization(.sentences)
                 }
 
-                shopifySection(title: "Description") {
+                adminFormSection(title: "Description") {
                     TextField("Describe this product for customers…", text: $description, axis: .vertical)
                         .lineLimit(5...14)
                         .font(.body)
                 }
 
-                shopifySection(title: "Pricing") {
+                adminFormSection(title: "Pricing") {
                     VStack(alignment: .leading, spacing: 14) {
                         labeledField("Price", subtitle: "What customers pay") {
                             TextField("0.00", text: $sellingPriceDollars)
@@ -103,10 +103,10 @@ struct AdminProductEditorView: View {
                     }
                 }
 
-                shopifySection(title: "Inventory") {
+                adminFormSection(title: "Inventory") {
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach($variantRows) { $row in
-                            variantShopifyRow($row)
+                            variantEditorRow($row)
                         }
                         Button {
                             variantRows.append(AdminVariantRow())
@@ -119,7 +119,7 @@ struct AdminProductEditorView: View {
                     }
                 }
 
-                shopifySection(title: "Organization") {
+                adminFormSection(title: "Organization") {
                     VStack(alignment: .leading, spacing: 14) {
                         labeledField("Product category", subtitle: "Used for Shop filters") {
                             TextField("Dresses, Accessories…", text: $category)
@@ -185,7 +185,7 @@ struct AdminProductEditorView: View {
             .padding(.bottom, 32)
         }
         .scrollContentBackground(.hidden)
-        .background(ShopifyEditorChrome.background)
+        .background(AdminCatalogEditorChrome.background)
         .navigationTitle(isEditing ? "Edit product" : "Add product")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -231,7 +231,7 @@ struct AdminProductEditorView: View {
         }
     }
 
-    // MARK: - Media (Shopify-style strip + add tile)
+    // MARK: - Media (horizontal strip + add tile)
 
     @ViewBuilder
     private var mediaBlock: some View {
@@ -259,7 +259,7 @@ struct AdminProductEditorView: View {
                                 switch phase {
                                 case .empty:
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .fill(ShopifyEditorChrome.fieldFill)
+                                        .fill(AdminCatalogEditorChrome.fieldFill)
                                         .overlay { ProgressView() }
                                 case let .success(img):
                                     img
@@ -267,7 +267,7 @@ struct AdminProductEditorView: View {
                                         .scaledToFill()
                                 case .failure:
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .fill(ShopifyEditorChrome.fieldFill)
+                                        .fill(AdminCatalogEditorChrome.fieldFill)
                                         .overlay {
                                             Image(systemName: "photo")
                                                 .foregroundStyle(HBColors.mutedGray)
@@ -312,7 +312,7 @@ struct AdminProductEditorView: View {
                 .foregroundStyle(HBColors.mutedGray)
         }
         .frame(width: 100, height: 100)
-        .background(ShopifyEditorChrome.fieldFill)
+        .background(AdminCatalogEditorChrome.fieldFill)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -322,9 +322,9 @@ struct AdminProductEditorView: View {
         .accessibilityLabel("Add product images")
     }
 
-    // MARK: - Variant row (Shopify-like columns)
+    // MARK: - Variant row (labeled columns)
 
-    private func variantShopifyRow(_ row: Binding<AdminVariantRow>) -> some View {
+    private func variantEditorRow(_ row: Binding<AdminVariantRow>) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Variant")
@@ -351,7 +351,7 @@ struct AdminProductEditorView: View {
                     TextField("S, M, 8", text: row.size)
                         .font(.body)
                         .padding(10)
-                        .background(ShopifyEditorChrome.fieldFill)
+                        .background(AdminCatalogEditorChrome.fieldFill)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
                 .frame(maxWidth: .infinity)
@@ -364,7 +364,7 @@ struct AdminProductEditorView: View {
                         .font(.body.monospaced())
                         .textInputAutocapitalization(.never)
                         .padding(10)
-                        .background(ShopifyEditorChrome.fieldFill)
+                        .background(AdminCatalogEditorChrome.fieldFill)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
                 .frame(maxWidth: .infinity)
@@ -377,12 +377,12 @@ struct AdminProductEditorView: View {
                     .keyboardType(.numberPad)
                     .font(.body.monospacedDigit())
                     .padding(10)
-                    .background(ShopifyEditorChrome.fieldFill)
+                    .background(AdminCatalogEditorChrome.fieldFill)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
         }
         .padding(12)
-        .background(ShopifyEditorChrome.nestedFill)
+        .background(AdminCatalogEditorChrome.nestedFill)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -398,9 +398,9 @@ struct AdminProductEditorView: View {
         variantRows.remove(at: index)
     }
 
-    // MARK: - Shopify chrome helpers
+    // MARK: - Admin form section chrome
 
-    private func shopifySection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func adminFormSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title.uppercased())
                 .font(.system(size: 12, weight: .semibold))
@@ -409,7 +409,7 @@ struct AdminProductEditorView: View {
             content()
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ShopifyEditorChrome.cardFill)
+                .background(AdminCatalogEditorChrome.cardFill)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -425,7 +425,7 @@ struct AdminProductEditorView: View {
                 .foregroundStyle(HBColors.charcoal)
             field()
                 .padding(12)
-                .background(ShopifyEditorChrome.fieldFill)
+                .background(AdminCatalogEditorChrome.fieldFill)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -437,7 +437,7 @@ struct AdminProductEditorView: View {
         }
     }
 
-    // MARK: - Pricing / profit (Shopify Price + Compare-at)
+    // MARK: - Pricing / profit (price + compare-at)
 
     private var parsedSellingCents: Int? {
         AdminMoney.cents(fromDollarString: sellingPriceDollars)
@@ -762,7 +762,7 @@ struct AdminProductEditorView: View {
 
 // MARK: - Chrome
 
-private enum ShopifyEditorChrome {
+private enum AdminCatalogEditorChrome {
     static var background: Color { HBColors.cream.opacity(0.45) }
     static var cardFill: Color { HBColors.surface }
     static var fieldFill: Color { Color(uiColor: .secondarySystemGroupedBackground) }

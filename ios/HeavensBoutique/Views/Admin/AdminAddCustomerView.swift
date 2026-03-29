@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Admin-only: create a customer with Shopify Admin–style sections (customer, security, marketing, default address).
+/// Admin-only: create a customer with sectioned fields (customer, security, marketing, default address).
 struct AdminAddCustomerView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var api: APIClient
@@ -41,7 +41,7 @@ struct AdminAddCustomerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                shopifySection(title: "Customer") {
+                adminFormSection(title: "Customer") {
                     VStack(alignment: .leading, spacing: 14) {
                         labeledField("First name", subtitle: "Legal or preferred first name") {
                             TextField("First name", text: $firstName)
@@ -72,7 +72,7 @@ struct AdminAddCustomerView: View {
                     }
                 }
 
-                shopifySection(title: "Security") {
+                adminFormSection(title: "Security") {
                     labeledField("Temporary password", subtitle: "Minimum 8 characters. Ask them to change it after first sign-in.") {
                         SecureField("Password", text: $password)
                             .textContentType(.newPassword)
@@ -80,7 +80,7 @@ struct AdminAddCustomerView: View {
                     }
                 }
 
-                shopifySection(title: "Marketing") {
+                adminFormSection(title: "Marketing") {
                     Toggle(isOn: $marketingEmails) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Customer agreed to receive marketing emails")
@@ -93,7 +93,7 @@ struct AdminAddCustomerView: View {
                     .tint(HBColors.gold)
                 }
 
-                shopifySection(title: "Default address") {
+                adminFormSection(title: "Default address") {
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Optional. If you fill address, country, city, and ZIP/postal code are required to save it.")
                             .font(HBFont.caption())
@@ -150,7 +150,7 @@ struct AdminAddCustomerView: View {
             .padding(.bottom, 32)
         }
         .scrollContentBackground(.hidden)
-        .background(ShopifyCustomerChrome.background)
+        .background(AdminCustomerFormChrome.background)
         .navigationTitle("Add customer")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -181,9 +181,9 @@ struct AdminAddCustomerView: View {
         }
     }
 
-    // MARK: - Shopify chrome (matches AdminProductEditorView)
+    // MARK: - Admin form section chrome (matches product editor)
 
-    private func shopifySection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func adminFormSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title.uppercased())
                 .font(.system(size: 12, weight: .semibold))
@@ -192,7 +192,7 @@ struct AdminAddCustomerView: View {
             content()
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ShopifyCustomerChrome.cardFill)
+                .background(AdminCustomerFormChrome.cardFill)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -208,7 +208,7 @@ struct AdminAddCustomerView: View {
                 .foregroundStyle(HBColors.charcoal)
             field()
                 .padding(12)
-                .background(ShopifyCustomerChrome.fieldFill)
+                .background(AdminCustomerFormChrome.fieldFill)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -278,7 +278,7 @@ struct AdminAddCustomerView: View {
         isSaving = true
         defer { isSaving = false }
         do {
-            let r: AdminCreateCustomerResponse = try await api.request(
+            let _: AdminCreateCustomerResponse = try await api.request(
                 "/admin/customers",
                 method: "POST",
                 jsonBody: json
@@ -296,7 +296,7 @@ struct AdminAddCustomerView: View {
     }
 }
 
-private enum ShopifyCustomerChrome {
+private enum AdminCustomerFormChrome {
     static var background: Color { HBColors.cream.opacity(0.45) }
     static var cardFill: Color { HBColors.surface }
     static var fieldFill: Color { Color(uiColor: .secondarySystemGroupedBackground) }

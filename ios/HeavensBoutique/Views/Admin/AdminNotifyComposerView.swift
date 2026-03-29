@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Shopify-style marketing message: audience, content, appearance, live preview, send with feedback.
+/// Admin marketing message composer: audience, content, appearance, live preview, send with feedback.
 struct AdminNotifyComposerView: View {
     @EnvironmentObject private var api: APIClient
 
@@ -56,7 +56,7 @@ struct AdminNotifyComposerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                shopifySection(title: "Audience") {
+                adminFormSection(title: "Audience") {
                     VStack(alignment: .leading, spacing: 14) {
                         if let err = customersLoadError {
                             Text(err)
@@ -127,7 +127,7 @@ struct AdminNotifyComposerView: View {
                     }
                 }
 
-                shopifySection(title: "Content") {
+                adminFormSection(title: "Content") {
                     VStack(alignment: .leading, spacing: 14) {
                         labeledField("Subject", subtitle: "Short headline — also used as the push title.") {
                             TextField("Spring collection is live", text: $notifyTitle)
@@ -142,7 +142,7 @@ struct AdminNotifyComposerView: View {
                     }
                 }
 
-                shopifySection(title: "Appearance") {
+                adminFormSection(title: "Appearance") {
                     VStack(alignment: .leading, spacing: 14) {
                         labeledField("Label", subtitle: "Small pill above the headline (e.g. New drop, Sale, VIP)") {
                             TextField("Optional", text: $notifyBadge)
@@ -157,7 +157,7 @@ struct AdminNotifyComposerView: View {
                     }
                 }
 
-                shopifySection(title: "Preview") {
+                adminFormSection(title: "Preview") {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("How this appears in Notifications (unread styling).")
                             .font(HBFont.caption())
@@ -178,7 +178,7 @@ struct AdminNotifyComposerView: View {
             .padding(.bottom, 32)
         }
         .scrollContentBackground(.hidden)
-        .background(ShopifyNotifyChrome.background)
+        .background(AdminMarketingComposerChrome.background)
         .navigationTitle("Marketing")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -237,9 +237,9 @@ struct AdminNotifyComposerView: View {
         }
     }
 
-    // MARK: - Shopify chrome
+    // MARK: - Admin form section chrome
 
-    private func shopifySection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func adminFormSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title.uppercased())
                 .font(.system(size: 12, weight: .semibold))
@@ -248,7 +248,7 @@ struct AdminNotifyComposerView: View {
             content()
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ShopifyNotifyChrome.cardFill)
+                .background(AdminMarketingComposerChrome.cardFill)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -264,7 +264,7 @@ struct AdminNotifyComposerView: View {
                 .foregroundStyle(HBColors.charcoal)
             field()
                 .padding(12)
-                .background(ShopifyNotifyChrome.fieldFill)
+                .background(AdminMarketingComposerChrome.fieldFill)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -394,13 +394,13 @@ struct AdminNotifyComposerView: View {
     }
 }
 
-private enum ShopifyNotifyChrome {
+private enum AdminMarketingComposerChrome {
     static var background: Color { HBColors.cream.opacity(0.45) }
     static var cardFill: Color { HBColors.surface }
     static var fieldFill: Color { Color(uiColor: .secondarySystemGroupedBackground) }
 }
 
-// MARK: - Customer picker (notify-specific wrapper)
+// MARK: - Customer picker (marketing composer)
 
 private struct AdminNotifyCustomerPickerView: View {
     @Environment(\.dismiss) private var dismiss

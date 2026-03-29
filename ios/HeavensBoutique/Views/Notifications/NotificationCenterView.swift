@@ -98,7 +98,7 @@ struct NotificationCenterView: View {
         }
     }
 
-    // MARK: - Newsletter / promotion card (Canva-style editorial)
+    // MARK: - Newsletter / promotion card (editorial layout)
 
     @ViewBuilder
     private func promotionNewsletterCard(_ n: NotificationDTO) -> some View {
