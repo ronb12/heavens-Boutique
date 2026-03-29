@@ -12,6 +12,9 @@ struct NewsletterStyleNotificationCard: View {
     /// When true, uses unread gold accent (dot, border, shadow) like a new in-app notification.
     let showUnreadChrome: Bool
 
+    /// Full-width hero strip height (matches remote image hero).
+    private var heroImageHeight: CGFloat { 148 }
+
     var body: some View {
         let unread = showUnreadChrome
         let heroURL = imageURL
@@ -26,17 +29,17 @@ struct NewsletterStyleNotificationCard: View {
                                 .resizable()
                                 .scaledToFill()
                         case .failure:
-                            newsletterHeroPlaceholder(compact: false)
+                            newsletterAppIconHero
                         default:
-                            newsletterHeroPlaceholder(compact: false)
+                            newsletterAppIconHero
                         }
                     }
                     .frame(height: 148)
                     .frame(maxWidth: .infinity)
                     .clipped()
                 } else {
-                    newsletterHeroPlaceholder(compact: true)
-                        .frame(height: 56)
+                    newsletterAppIconHero
+                        .frame(height: heroImageHeight)
                 }
 
                 LinearGradient(
@@ -47,7 +50,7 @@ struct NewsletterStyleNotificationCard: View {
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: heroURL != nil ? 148 : 56)
+                .frame(height: heroImageHeight)
                 .allowsHitTesting(false)
             }
             .clipShape(
@@ -152,8 +155,8 @@ struct NewsletterStyleNotificationCard: View {
         .accessibilityElement(children: .combine)
     }
 
-    @ViewBuilder
-    private func newsletterHeroPlaceholder(compact: Bool) -> some View {
+    /// Default newsletter hero: app artwork on brand gradient (same slot as a remote hero image).
+    private var newsletterAppIconHero: some View {
         ZStack {
             LinearGradient(
                 colors: [
@@ -164,7 +167,7 @@ struct NewsletterStyleNotificationCard: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            HBBrandAppIcon(size: compact ? 40 : 56, showShadow: false)
+            HBBrandAppIcon(size: 96, showShadow: true)
         }
     }
 }
