@@ -30,7 +30,7 @@ targets:
           - "**/Entitlements-Release.plist"
     settings:
       base:
-        # Must match Vercel `CLOUDINARY_CLOUD_NAME` (public; used only for admin image preview URLs).
+        # Optional: only if you still use Cloudinary IDs in the catalog — admin preview URLs. Vercel Blob URLs need no client cloud name.
         CLOUDINARY_CLOUD_NAME: REPLACE_WITH_YOUR_CLOUD_NAME
         DEVELOPMENT_TEAM: 4SQJ3AH62S
         PRODUCT_BUNDLE_IDENTIFIER: com.heavensboutique.app

@@ -12,6 +12,8 @@ struct AdminHubView: View {
     @State private var notifyUserId = ""
     @State private var notifyTitle = ""
     @State private var notifyBody = ""
+    @State private var notifyBadge = ""
+    @State private var notifyImageUrl = ""
     @State private var showNewProduct = false
     @State private var showAddCustomer = false
     @State private var showManualOrder = false
@@ -25,7 +27,7 @@ struct AdminHubView: View {
                     Text("Products").tag(0)
                     Text("Orders").tag(1)
                     Text("Reports").tag(2)
-                    Text("People").tag(3)
+                    Text("Customers").tag(3)
                     Text("Notify").tag(4)
                 }
                 .pickerStyle(.segmented)
@@ -224,7 +226,7 @@ struct AdminHubView: View {
     private var notifySection: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Send in-app notification (push if FCM configured on server).")
+                Text("Newsletter-style message in the Notifications tab — optional hero image and badge (like a simple Canva card). Push sends too if FCM is configured.")
                     .font(HBFont.caption())
                     .foregroundStyle(HBColors.mutedGray)
 
@@ -233,16 +235,49 @@ struct AdminHubView: View {
                     .background(HBColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                TextField("Title", text: $notifyTitle)
+                TextField("Headline", text: $notifyTitle)
                     .padding()
                     .background(HBColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                TextField("Body", text: $notifyBody, axis: .vertical)
-                    .lineLimit(3...6)
+                TextField("Story / details", text: $notifyBody, axis: .vertical)
+                    .lineLimit(4...10)
                     .padding()
                     .background(HBColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                TextField("Badge (optional, e.g. New drop, Sale)", text: $notifyBadge)
+                    .padding()
+                    .background(HBColors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                TextField("Hero image URL (optional, https)", text: $notifyImageUrl)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+                    .padding()
+                    .background(HBColors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Preview")
+                        .font(HBFont.headline())
+                        .foregroundStyle(HBColors.charcoal)
+                    Text("How this card appears in the customer’s Notifications tab (unread styling). Hero loads from your URL when valid https.")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                        .fixedSize(horizontal: false, vertical: true)
+                    NewsletterStyleNotificationCard(
+                        title: notifyPreviewHeadline,
+                        detailText: notifyPreviewBody,
+                        badge: notifyPreviewBadge,
+                        imageURL: notifyPreviewHeroURL,
+                        footerTimeText: "Preview",
+                        showUnreadChrome: true
+                    )
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .hbCardStyle()
 
                 HBPrimaryButton(title: "Send notification", isLoading: isLoading) {
                     Task { await sendNotify() }
@@ -250,6 +285,27 @@ struct AdminHubView: View {
             }
             .padding()
         }
+    }
+
+    private var notifyPreviewHeadline: String {
+        let t = notifyTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? "Headline" : t
+    }
+
+    private var notifyPreviewBody: String? {
+        let b = notifyBody.trimmingCharacters(in: .whitespacesAndNewlines)
+        return b.isEmpty ? nil : b
+    }
+
+    private var notifyPreviewBadge: String? {
+        let b = notifyBadge.trimmingCharacters(in: .whitespacesAndNewlines)
+        return b.isEmpty ? nil : b
+    }
+
+    private var notifyPreviewHeroURL: URL? {
+        let s = notifyImageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let u = URL(string: s), let scheme = u.scheme?.lowercased(), scheme == "https" else { return nil }
+        return u
     }
 
     private func reload() async {
@@ -271,18 +327,32 @@ struct AdminHubView: View {
         let title = notifyTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !uid.isEmpty, !title.isEmpty else { return }
         do {
+            var payload: [String: Any] = [
+                "userId": uid,
+                "type": "promotion",
+                "title": title,
+            ]
+            let bodyText = notifyBody.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !bodyText.isEmpty {
+                payload["body"] = bodyText
+            }
+            var data: [String: String] = [:]
+            let badge = notifyBadge.trimmingCharacters(in: .whitespacesAndNewlines)
+            let img = notifyImageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !badge.isEmpty { data["badge"] = badge }
+            if !img.isEmpty { data["imageUrl"] = img }
+            if !data.isEmpty {
+                payload["data"] = data
+            }
             try await api.requestVoid(
                 "/notifications",
                 method: "POST",
-                jsonBody: [
-                    "userId": uid,
-                    "type": "promotion",
-                    "title": title,
-                    "body": notifyBody,
-                ]
+                jsonBody: payload
             )
             notifyTitle = ""
             notifyBody = ""
+            notifyBadge = ""
+            notifyImageUrl = ""
         } catch { }
     }
 }

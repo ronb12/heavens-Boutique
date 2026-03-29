@@ -33,7 +33,7 @@ struct AdminPickCustomerForChatView: View {
                 } else if let loadError {
                     HBEmptyState(
                         systemImage: "person.crop.circle.badge.xmark",
-                        title: "Couldn’t load people",
+                        title: "Couldn’t load customers",
                         message: loadError,
                         retryTitle: "Try again",
                         retry: { Task { await load() } }

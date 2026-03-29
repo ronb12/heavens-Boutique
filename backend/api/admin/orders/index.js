@@ -3,6 +3,11 @@ import { getDb } from '../../../lib/db.js';
 import { requireAdmin } from '../../../lib/auth.js';
 import { isAllowedOrderStatus } from '../../../lib/orderStatuses.js';
 import { json, readJson, handleCors } from '../../../lib/http.js';
+import {
+  notifyAllAdmins,
+  notifyAdminsLowStockForVariants,
+  formatMoneyCents,
+} from '../../../lib/adminNotify.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -175,6 +180,22 @@ export default async function handler(req, res) {
       } catch (loyErr) {
         console.error('manual order loyalty ledger', loyErr);
       }
+    }
+
+    try {
+      await notifyAllAdmins(sql, {
+        title: 'New order recorded',
+        body: `${formatMoneyCents(totalCents)} — ${userId ? 'registered customer' : guestEmail}`,
+        data: { kind: 'new_order', orderId: String(orderId) },
+      });
+      if (decrementStock && ['paid', 'shipped', 'delivered'].includes(status)) {
+        await notifyAdminsLowStockForVariants(
+          sql,
+          normalized.map((l) => l.variantId),
+        );
+      }
+    } catch (alertErr) {
+      console.error('admin order alerts (manual)', alertErr);
     }
 
     return json(res, 201, { orderId });

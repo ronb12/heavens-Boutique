@@ -184,7 +184,7 @@ CREATE TABLE notifications (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type       TEXT NOT NULL
-    CHECK (type IN ('order', 'promotion', 'back_in_stock', 'abandoned_cart', 'message')),
+    CHECK (type IN ('order', 'promotion', 'back_in_stock', 'abandoned_cart', 'message', 'admin_alert')),
   title      TEXT NOT NULL,
   body       TEXT,
   data       JSONB,

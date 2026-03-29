@@ -2,6 +2,7 @@ import { requireAdmin } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
 import { uploadProductImageToBlob } from '../../lib/blobUpload.js';
 import { uploadProductImageBuffer } from '../../lib/cloudinaryUpload.js';
+import { isProbablyImage, sniffContentType } from '../../lib/imageSniff.js';
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -67,38 +68,16 @@ export default async function handler(req, res) {
     if (e.message?.includes('BLOB_READ_WRITE_TOKEN')) {
       return json(res, 503, {
         error:
-          'Blob upload failed. Check BLOB_READ_WRITE_TOKEN in Vercel (Storage → Blob) or configure Cloudinary instead.',
+          'Vercel Blob upload failed. In the Vercel project: Storage → Blob → link store, ensure BLOB_READ_WRITE_TOKEN is set, then redeploy. Or set Cloudinary env vars as a fallback.',
       });
     }
     if (e.message?.includes('must be set')) {
       return json(res, 503, {
         error:
-          'Image upload is not configured. Add BLOB_READ_WRITE_TOKEN (Vercel Blob, free tier on Hobby) or Cloudinary API env vars — see backend/.env.example.',
+          'Image upload is not configured. On Vercel, add a Blob store and BLOB_READ_WRITE_TOKEN (see backend/.env.example). For local dev without Blob, set CLOUDINARY_* instead.',
       });
     }
     console.error(e);
     return json(res, 500, { error: 'Upload failed' });
   }
-}
-
-function sniffContentType(buf) {
-  if (buf.length < 12) return 'application/octet-stream';
-  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
-  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png';
-  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return 'image/gif';
-  if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46) {
-    if (buf.slice(0, 20).toString('ascii').includes('WEBP')) return 'image/webp';
-  }
-  return 'application/octet-stream';
-}
-
-function isProbablyImage(buf) {
-  if (buf.length < 12) return false;
-  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return true;
-  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return true;
-  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return true;
-  if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46) {
-    return buf.slice(0, 20).toString('ascii').includes('WEBP');
-  }
-  return false;
 }

@@ -1,6 +1,7 @@
 import { getDb } from '../../lib/db.js';
 import { hashPassword, signToken } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
+import { notifyAllAdmins } from '../../lib/adminNotify.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -29,6 +30,19 @@ export default async function handler(req, res) {
 
     const user = rows[0];
     const token = signToken({ sub: user.id, role: user.role });
+
+    if (user.role === 'customer') {
+      try {
+        const label = [fullName, email].filter(Boolean).join(' · ') || email;
+        await notifyAllAdmins(sql, {
+          title: 'New customer signup',
+          body: label,
+          data: { kind: 'new_signup', userId: String(user.id) },
+        });
+      } catch (e) {
+        console.error('admin signup notify', e);
+      }
+    }
 
     return json(res, 201, {
       token,

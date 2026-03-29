@@ -160,7 +160,7 @@ struct AdminProductEditorView: View {
                 Text("Images")
             } footer: {
                 Text(
-                    "Add photos from your library. On Vercel, uploads can use free-tier Vercel Blob (set BLOB_READ_WRITE_TOKEN—no keys in the app). Or use Cloudinary (set CLOUDINARY_* on the server; CLOUDINARY_CLOUD_NAME in ios/project.yml only for pasted public-ID previews). Never put API secrets in the app."
+                    "Add photos from your library. Production uses Vercel Blob: link a Blob store on your Vercel project so the API has BLOB_READ_WRITE_TOKEN (nothing secret in the app). Optional Cloudinary fallback only if Blob isn’t set. CLOUDINARY_CLOUD_NAME in the app is only for previewing pasted Cloudinary public IDs."
                 )
             }
 

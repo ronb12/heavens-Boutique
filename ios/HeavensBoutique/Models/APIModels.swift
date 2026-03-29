@@ -155,7 +155,14 @@ struct NotificationDataPayload: Decodable, Hashable {
     let orderId: String?
     let status: String?
     let type: String?
+    /// Admin alert discriminator: `new_order`, `low_stock`, `new_signup`.
+    let kind: String?
+    let userId: String?
     let conversationId: String?
+    /// Optional hero image for promotion-style in-app cards (HTTPS URL).
+    let imageUrl: String?
+    /// Small label above the title, e.g. “New drop” or “Exclusive”.
+    let badge: String?
 }
 
 struct NotificationDTO: Decodable, Identifiable {
@@ -181,6 +188,12 @@ struct NotificationDTO: Decodable, Identifiable {
         readAt = try c.decodeIfPresent(String.self, forKey: .readAt)
         createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
         data = try? c.decodeIfPresent(NotificationDataPayload.self, forKey: .data)
+    }
+
+    /// Editorial / marketing types use the richer “newsletter” card chrome.
+    var usesNewsletterLayout: Bool {
+        let t = type.lowercased()
+        return t == "promotion" || t == "back_in_stock"
     }
 }
 

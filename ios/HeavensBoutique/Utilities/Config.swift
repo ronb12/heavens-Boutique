@@ -43,7 +43,7 @@ enum Config {
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
-    /// Same as server `CLOUDINARY_CLOUD_NAME`; used only to build admin image previews for pasted public IDs.
+    /// Optional: Cloudinary cloud name for admin previews of pasted public IDs. Vercel Blob URLs need no cloud name.
     static var cloudinaryCloudName: String {
         (Bundle.main.object(forInfoDictionaryKey: "CLOUDINARY_CLOUD_NAME") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""

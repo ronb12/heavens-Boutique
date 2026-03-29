@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test test/*.test.mjs",
     "lint": "node --check lib/*.js 2>/dev/null || true",
     "deploy": "npx vercel deploy --prod --yes",
     "db:apply": "bash ../scripts/neon-apply-schema.sh",

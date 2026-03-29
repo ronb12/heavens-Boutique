@@ -2,6 +2,11 @@ import Stripe from 'stripe';
 import { getDb } from '../../lib/db.js';
 import { json, readRawBody, handleCors } from '../../lib/http.js';
 import { sendPushToToken } from '../../lib/fcm.js';
+import {
+  notifyAllAdmins,
+  notifyAdminsLowStockForVariants,
+  formatMoneyCents,
+} from '../../lib/adminNotify.js';
 
 function stripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY || '');
@@ -99,6 +104,22 @@ export default async function handler(req, res) {
           UPDATE product_variants SET stock = stock - ${line.quantity}
           WHERE id = ${line.variantId} AND stock >= ${line.quantity}
         `;
+      }
+
+      try {
+        await notifyAllAdmins(sql, {
+          title: 'New order placed',
+          body: userId
+            ? `${formatMoneyCents(total)} paid (registered customer).`
+            : `${formatMoneyCents(total)} paid — guest ${guestEmail}`,
+          data: { kind: 'new_order', orderId: String(orderId) },
+        });
+        await notifyAdminsLowStockForVariants(
+          sql,
+          parsedItems.map((l) => l.variantId),
+        );
+      } catch (alertErr) {
+        console.error('admin order alerts (stripe)', alertErr);
       }
 
       if (promoId) {

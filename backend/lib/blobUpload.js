@@ -11,11 +11,12 @@ export async function uploadProductImageToBlob(buffer, contentType) {
     throw new Error('BLOB_READ_WRITE_TOKEN must be set');
   }
   const ext = extensionForContentType(contentType);
-  const pathname = `heavens-boutique/products/item.${ext}`;
+  const pathname = `heavens-boutique/products/product.${ext}`;
   const blob = await put(pathname, buffer, {
     access: 'public',
     token: String(token).trim(),
     contentType,
+    addRandomSuffix: true,
   });
   return { url: blob.url };
 }

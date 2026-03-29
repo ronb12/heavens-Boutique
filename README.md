@@ -67,9 +67,9 @@
    | `JWT_SECRET` | Long random string |
    | `STRIPE_SECRET_KEY` | Stripe secret key |
    | `STRIPE_WEBHOOK_SECRET` | From Stripe webhook |
-   | `BLOB_READ_WRITE_TOKEN` | **Recommended (free on Vercel Hobby):** Vercel Blob store token — enables admin photo upload **without** Cloudinary (`POST /api/admin/upload` prefers Blob when set) |
-   | `CLOUDINARY_CLOUD_NAME` | If you use Cloudinary IDs / delivery URLs: **same** as iOS `CLOUDINARY_CLOUD_NAME` in `ios/project.yml` for pasted-ID previews |
-   | `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Only if Blob is **not** set — admin uploads go to Cloudinary |
+   | `BLOB_READ_WRITE_TOKEN` | **Use this on Vercel:** Project → **Storage** → create/link a **Blob** store; Vercel usually injects this token. Admin uploads (`POST /api/admin/upload`) use Blob whenever it is set (unique object per upload). |
+   | `CLOUDINARY_CLOUD_NAME` | Optional: only if you still use Cloudinary public IDs — match iOS `CLOUDINARY_CLOUD_NAME` in `ios/project.yml` for admin pasted-ID previews. Pure Blob catalogs do not need it. |
+   | `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Optional fallback when **`BLOB_READ_WRITE_TOKEN` is unset** (e.g. local dev without Blob) |
    | `CLOUDINARY_UPLOAD_FOLDER` | Optional; default `heavens-boutique/products` |
    | `ADMIN_EMAILS` | e.g. `you@domain.com` — comma-separated; those emails get `admin` on register **or** on next login if they were `customer` |
    | `CORS_ORIGIN` | Optional; default `*` |

@@ -302,7 +302,7 @@ struct AdminManualOrderView: View {
         let guest = guestEmail.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if linkRegistered {
             guard !uid.isEmpty else {
-                errorMessage = "Enter the customer’s user ID (from People)."
+                errorMessage = "Enter the customer’s user ID (from Customers)."
                 return
             }
         } else {
