@@ -18,7 +18,6 @@
 		1BED776C9ED25F99451206B0 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7FB756C2F91E8575EBC8913 /* HomeView.swift */; };
 		1D2024DCA39D9C46ABB53793 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84F0213178CDCB0393B9F93 /* Config.swift */; };
 		1DE9C6C151F0C9B03456BFF7 /* AdminAddCustomerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC475E51CA123399F38BF6F9 /* AdminAddCustomerView.swift */; };
-		B2A1C3D4E5F60718291A0B31 /* AdminNotifyComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */; };
 		22ED7C47CF4B771C61FCD617 /* NotificationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA245E015398258B1D2A013F /* NotificationsViewModel.swift */; };
 		24C1858281A32BAEF09D6CCF /* ConversationsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D768E2CED99231AE00FFCB7B /* ConversationsListView.swift */; };
 		24F91CE004304C60A822AF2B /* CartStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F977D07FCB219EF2DD0B73B /* CartStore.swift */; };
@@ -55,6 +54,7 @@
 		A616109F1BACDBD626D61045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 814DDAD1C5A0CF913A818056 /* Assets.xcassets */; };
 		A9ECF60A0AB9CF98E5B670C1 /* HBSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67365895BAC072AA2CAF9EF6 /* HBSplashView.swift */; };
 		AC0D78FDB9D2EC6EF85189CB /* NewsletterStyleNotificationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA672A29498E4D8DEB1172DF /* NewsletterStyleNotificationCard.swift */; };
+		B2A1C3D4E5F60718291A0B31 /* AdminNotifyComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */; };
 		B54F202B20EB2E45EB9B02BC /* SessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC78CFCE9D2548D2AEDCA24B /* SessionViewModel.swift */; };
 		B966B2B5F73E269DC4C83930 /* CartModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F0D4DF1629745B3F825942 /* CartModels.swift */; };
 		B9E956798035A7A232327974 /* HBFirebaseBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0FC1FA763BA398A8676AC54 /* HBFirebaseBootstrap.swift */; };
@@ -101,7 +101,6 @@
 		3DDEA3A2F8A937F06D1FA5AB /* AdminProductEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminProductEditorView.swift; sourceTree = "<group>"; };
 		406E4239974099F9A9F31E0F /* GoogleService-Info.plist.example */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "GoogleService-Info.plist.example"; sourceTree = "<group>"; };
 		461BFC3988E33A54D6875737 /* AdminHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminHubView.swift; sourceTree = "<group>"; };
-		C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminNotifyComposerView.swift; sourceTree = "<group>"; };
 		4ADBD53BC8AC43EA42622B40 /* CartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartView.swift; sourceTree = "<group>"; };
 		4BC3A410381D6D5182E8E50D /* HBFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBFeedback.swift; sourceTree = "<group>"; };
 		4C60C28C3DC73CD818A87F3E /* HBAppearancePreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBAppearancePreference.swift; sourceTree = "<group>"; };
@@ -132,6 +131,7 @@
 		B9B05EC0B3E9B79CE4DB763B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		BC6836C4252819E4AB00BC99 /* OrdersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersViewModel.swift; sourceTree = "<group>"; };
 		C0CB89513D46F62C50BE3E59 /* HeavensBoutiqueApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeavensBoutiqueApp.swift; sourceTree = "<group>"; };
+		C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminNotifyComposerView.swift; sourceTree = "<group>"; };
 		D3BFBFC6AD5D335E365FF4CC /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		D768E2CED99231AE00FFCB7B /* ConversationsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsListView.swift; sourceTree = "<group>"; };
 		D7FB756C2F91E8575EBC8913 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -683,8 +683,10 @@
 				CLOUDINARY_CLOUD_NAME = REPLACE_WITH_YOUR_CLOUD_NAME;
 				CODE_SIGN_ENTITLEMENTS = "HeavensBoutique/Entitlements-Debug.plist";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				INFOPLIST_FILE = HeavensBoutique/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Heaven's Boutique";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
@@ -692,7 +694,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.heavensboutique.app;
 				PRODUCT_NAME = HeavensBoutique;
 				SDKROOT = iphoneos;
@@ -774,8 +776,10 @@
 				CLOUDINARY_CLOUD_NAME = REPLACE_WITH_YOUR_CLOUD_NAME;
 				CODE_SIGN_ENTITLEMENTS = "HeavensBoutique/Entitlements-Release.plist";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				INFOPLIST_FILE = HeavensBoutique/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Heaven's Boutique";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
@@ -783,7 +787,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.heavensboutique.app;
 				PRODUCT_NAME = HeavensBoutique;
 				SDKROOT = iphoneos;
