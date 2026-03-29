@@ -43,6 +43,7 @@ CREATE TABLE products (
   category    TEXT NOT NULL,
   price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
   sale_price_cents INTEGER CHECK (sale_price_cents IS NULL OR sale_price_cents >= 0),
+  cost_cents INTEGER CHECK (cost_cents IS NULL OR cost_cents >= 0),
   is_featured BOOLEAN NOT NULL DEFAULT false,
   shop_look_group TEXT,
   cloudinary_ids TEXT[] DEFAULT '{}',

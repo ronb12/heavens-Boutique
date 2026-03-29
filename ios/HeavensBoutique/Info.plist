@@ -26,9 +26,30 @@
 	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 Heaven's Boutique. All rights reserved.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Heaven's Boutique needs photo access to add product images to your catalog.</string>
 	<key>STRIPE_PUBLISHABLE_KEY</key>
 	<string>pk_test_REPLACE_ME</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
 </dict>
 </plist>

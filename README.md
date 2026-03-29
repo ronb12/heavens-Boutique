@@ -67,10 +67,17 @@
    | `JWT_SECRET` | Long random string |
    | `STRIPE_SECRET_KEY` | Stripe secret key |
    | `STRIPE_WEBHOOK_SECRET` | From Stripe webhook |
-   | `CLOUDINARY_CLOUD_NAME` | Product image URLs |
+   | `BLOB_READ_WRITE_TOKEN` | **Recommended (free on Vercel Hobby):** Vercel Blob store token — enables admin photo upload **without** Cloudinary (`POST /api/admin/upload` prefers Blob when set) |
+   | `CLOUDINARY_CLOUD_NAME` | If you use Cloudinary IDs / delivery URLs: **same** as iOS `CLOUDINARY_CLOUD_NAME` in `ios/project.yml` for pasted-ID previews |
+   | `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Only if Blob is **not** set — admin uploads go to Cloudinary |
+   | `CLOUDINARY_UPLOAD_FOLDER` | Optional; default `heavens-boutique/products` |
    | `ADMIN_EMAILS` | e.g. `you@domain.com` — comma-separated; those emails get `admin` on register **or** on next login if they were `customer` |
    | `CORS_ORIGIN` | Optional; default `*` |
    | `CRON_SECRET` | Optional; `Authorization: Bearer …` for cron |
+   | `FCM_PROJECT_ID` | Firebase / GCP project ID for **server-side** push (`sendPushToToken`); omit → pushes skipped |
+   | `FCM_ACCESS_TOKEN` | Short-lived OAuth2 access token for FCM HTTP v1 (service account); omit → pushes skipped |
+   | `PROFIT_GUARD_CARD_PERCENT` | Optional; default `0.029` — estimated card fee rate in admin **profit guard** (`products` save) |
+   | `PROFIT_GUARD_CARD_FIXED_CENTS` | Optional; default `30` ($0.30) fixed fee per assumed charge; set `0` with percent `0` to match legacy “price ≥ cost” only |
 
 4. Deploy. The site root **`/`** is the **marketing** page (hero, story, app CTA, contact). The **REST API** lives at **`https://heavens-boutique.vercel.app/api`** (already wired for this repo’s Vercel project).
 
@@ -130,11 +137,14 @@ Registered customers get an in-app **Order update** notification when status cha
 3. Add a real **App Icon** in `Assets.xcassets` before App Store submission.
 4. **Stripe / Apple Pay:** Exercise checkout on a **physical device** with a test card and (when configured) Apple Pay; simulators do not fully match wallet behavior.
 5. **UI tests:** Scheme **HeavensBoutique** includes **HeavensBoutiqueUITests** (smoke launch / welcome). Run **Product → Test** in Xcode.
-6. **App Store Connect — Privacy Nutrition Labels:** Align answers with what the app and API actually collect (account email/name, order and payment data via Stripe, optional FCM device token, in-app messages/notifications). Cross-check `backend/public/privacy.html` and third-party SDKs (e.g. **Stripe**). Backend data lives on **Neon**; the app talks to your **Vercel** API — there is **no Firebase** in this stack.
+6. **Push notifications (FCM):** The app uses the **Firebase iOS SDK** (`FirebaseCore` + `FirebaseMessaging`) only to obtain an FCM registration token and receive APNs; the **server** still sends pushes via `backend/lib/fcm.js` (HTTP v1) using `FCM_PROJECT_ID` + `FCM_ACCESS_TOKEN` on Vercel.
+   - This repo’s iOS app is registered under Firebase / GCP project **`taskpilot-ronb12`** (shared with TaskPilot) as **Heavens Boutique iOS** (`com.heavensboutique.app`). **`GoogleService-Info.plist`** lives at **`ios/HeavensBoutique/GoogleService-Info.plist`** (gitignored; regenerate with `firebase apps:sdkconfig IOS <AppId> --project taskpilot-ronb12 -o …` if needed). Set **`FCM_PROJECT_ID=taskpilot-ronb12`** on Vercel so server FCM v1 matches. The app skips `FirebaseApp.configure()` if the plist is missing or still looks like a template.
+   - Firebase → **Cloud Messaging** → upload your **APNs Authentication Key** from Apple Developer (or APNs certificates). Xcode target **Push Notifications** is enabled via **`Entitlements-Debug.plist`** / **`Entitlements-Release.plist`** in `project.yml`.
+   - After **sign-in**, the app requests notification permission, registers for remote notifications, and **`PATCH`es `/users/me`** with **`fcmToken`**. **Sign-out** clears `fcm_token` on the server before dropping the JWT.
+7. **App Store Connect — Privacy Nutrition Labels:** Align answers with what the app and API actually collect (account email/name, order and payment data via Stripe, **FCM device token** (Firebase SDK), in-app messages/notifications). Cross-check `backend/public/privacy.html` and third-party SDKs (**Stripe**, **Firebase** for push). Backend data lives on **Neon**; the app talks to your **Vercel** API.
 
-### 5. Optional: FCM / Apple Pay
+### 5. Optional: Apple Pay
 
-- **FCM:** Set `FCM_PROJECT_ID` and a short-lived `FCM_ACCESS_TOKEN` (or replace with a token refresh worker). Register device tokens via `PATCH /api/users/me` with `fcmToken`.
 - **Apple Pay:** Add the Apple Pay capability, merchant ID, and `PaymentSheet.Configuration.applePay` in `CheckoutView.swift`.
 
 ## Local backend

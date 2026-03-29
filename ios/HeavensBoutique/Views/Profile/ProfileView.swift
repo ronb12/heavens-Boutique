@@ -261,7 +261,7 @@ struct ProfileView: View {
                 Button("Sign out", role: .destructive) {
                     HBFeedback.light()
                     appModel.exitCustomerViewPreview()
-                    session.logout()
+                    Task { await session.logout() }
                 }
                 .listRowBackground(HBColors.surface)
             }
@@ -285,7 +285,7 @@ struct ProfileView: View {
             try await api.requestVoid("/users/me", method: "DELETE")
             cart.clear()
             appModel.exitCustomerViewPreview()
-            session.logout()
+            await session.logout()
             HBFeedback.success()
         } catch {
             deleteError = error.localizedDescription

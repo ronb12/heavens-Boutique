@@ -196,7 +196,7 @@ async function main() {
 
   console.log('Products & variants…');
   await sql`
-    INSERT INTO products (id, name, slug, description, category, price_cents, sale_price_cents, is_featured, shop_look_group)
+    INSERT INTO products (id, name, slug, description, category, price_cents, sale_price_cents, cost_cents, is_featured, shop_look_group)
     VALUES
       (
         ${I.pDress},
@@ -206,6 +206,7 @@ async function main() {
         ${'Dresses'},
         18900,
         15900,
+        8200,
         true,
         ${'spring-soiree'}
       ),
@@ -217,6 +218,7 @@ async function main() {
         ${'Outerwear'},
         34900,
         null,
+        21000,
         true,
         null
       ),
@@ -228,6 +230,7 @@ async function main() {
         ${'Accessories'},
         4800,
         null,
+        1750,
         false,
         null
       ),
@@ -239,6 +242,7 @@ async function main() {
         ${'Tops'},
         6200,
         null,
+        2800,
         false,
         ${'spring-soiree'}
       ),
@@ -250,6 +254,7 @@ async function main() {
         ${'Bottoms'},
         12800,
         10800,
+        6200,
         false,
         null
       ),
@@ -261,6 +266,7 @@ async function main() {
         ${'Outerwear'},
         16500,
         null,
+        8800,
         false,
         ${'spring-soiree'}
       )
@@ -271,6 +277,7 @@ async function main() {
       category = EXCLUDED.category,
       price_cents = EXCLUDED.price_cents,
       sale_price_cents = EXCLUDED.sale_price_cents,
+      cost_cents = EXCLUDED.cost_cents,
       is_featured = EXCLUDED.is_featured,
       shop_look_group = EXCLUDED.shop_look_group,
       updated_at = now()

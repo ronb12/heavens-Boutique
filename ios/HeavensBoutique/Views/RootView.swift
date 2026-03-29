@@ -12,15 +12,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if session.isRestoring {
-                ZStack {
-                    AuthChromeBackground()
-                    VStack(spacing: 20) {
-                        HBBrandMonogram(size: 64)
-                        ProgressView()
-                            .scaleEffect(1.05)
-                            .tint(HBColors.gold)
-                    }
-                }
+                HBSplashView()
             } else if session.isLoggedIn {
                 MainTabView()
             } else if guestBrowsing {
@@ -70,6 +62,10 @@ struct RootView: View {
         }
         .task {
             await session.restore()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .hbFCMRegistrationToken)) { note in
+            guard let token = note.object as? String else { return }
+            Task { await appModel.pushNotificationCoordinator.handleRegistrationToken(token) }
         }
     }
 }

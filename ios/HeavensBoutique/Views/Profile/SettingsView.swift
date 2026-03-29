@@ -68,7 +68,7 @@ struct SettingsView: View {
                 }
                 .listRowBackground(HBColors.surface)
             } footer: {
-                Text("Manage push permissions, sounds, and badges in iOS Settings. Your in-app notification list is under the Notifications tab.")
+                Text("After you sign in, the app may ask to send push alerts for orders and messages. You can change sounds, badges, and delivery in iOS Settings anytime. Your in-app notification list is under the Notifications tab.")
                     .font(HBFont.caption())
                     .foregroundStyle(HBColors.mutedGray)
             }
@@ -143,7 +143,7 @@ struct SettingsView: View {
             } header: {
                 Text("App information")
             } footer: {
-                Text("Copyright © \(Calendar.current.component(.year, from: Date())) Heaven's Boutique. All rights reserved.")
+                Text(Self.copyrightLine)
                     .font(HBFont.caption())
                     .foregroundStyle(HBColors.mutedGray)
             }
@@ -157,6 +157,23 @@ struct SettingsView: View {
                 .environmentObject(api)
                 .environmentObject(appModel)
         }
+    }
+
+    /// Matches `NSHumanReadableCopyright` in Info.plist; strips a stray comma after the year (e.g. `© 2026,`).
+    private static var copyrightLine: String {
+        let year = Calendar.current.component(.year, from: Date())
+        let yearDigits = String(year)
+        let base: String
+        if let s = Bundle.main.object(forInfoDictionaryKey: "NSHumanReadableCopyright") as? String,
+           !s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            base = s
+        } else {
+            base = "Copyright © \(yearDigits) Heaven's Boutique. All rights reserved."
+        }
+        return base
+            .replacingOccurrences(of: "\(yearDigits),", with: yearDigits)
+            .replacingOccurrences(of: "2026,", with: "2026")
+            .replacingOccurrences(of: "2,026", with: "2026")
     }
 
     private static let aboutAppDescription = """

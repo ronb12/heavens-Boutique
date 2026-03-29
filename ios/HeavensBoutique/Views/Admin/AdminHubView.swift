@@ -12,6 +12,10 @@ struct AdminHubView: View {
     @State private var notifyUserId = ""
     @State private var notifyTitle = ""
     @State private var notifyBody = ""
+    @State private var showNewProduct = false
+    @State private var showAddCustomer = false
+    @State private var showManualOrder = false
+    @State private var customersRefreshNonce = 0
 
     var body: some View {
         NavigationStack {
@@ -20,15 +24,23 @@ struct AdminHubView: View {
                 Picker("Section", selection: $tab) {
                     Text("Products").tag(0)
                     Text("Orders").tag(1)
-                    Text("Notify").tag(2)
+                    Text("Reports").tag(2)
+                    Text("People").tag(3)
+                    Text("Notify").tag(4)
                 }
                 .pickerStyle(.segmented)
-                .padding()
+                .padding(.horizontal, 4)
 
                 Group {
                     switch tab {
                     case 0: productSection
                     case 1: orderSection
+                    case 2:
+                        AdminFinancialReportsView()
+                            .environmentObject(api)
+                    case 3:
+                        AdminCustomersView(refreshNonce: customersRefreshNonce)
+                            .environmentObject(api)
                     default: notifySection
                     }
                 }
@@ -41,14 +53,74 @@ struct AdminHubView: View {
                     Button("Close") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        Task { await reload() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
+                    HStack(spacing: 16) {
+                        if tab == 0 {
+                            Button {
+                                showNewProduct = true
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                            }
+                            .accessibilityLabel("Add product")
+                        }
+                        if tab == 1 {
+                            Button {
+                                showManualOrder = true
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                            }
+                            .accessibilityLabel("Add order")
+                        }
+                        if tab == 3 {
+                            Button {
+                                showAddCustomer = true
+                            } label: {
+                                Image(systemName: "person.badge.plus")
+                            }
+                            .accessibilityLabel("Add customer")
+                        }
+                        Button {
+                            Task { await reload() }
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        .accessibilityLabel("Refresh")
                     }
                 }
             }
             .task { await reload() }
+            .sheet(isPresented: $showNewProduct, onDismiss: { Task { await reload() } }) {
+                NavigationStack {
+                    AdminProductEditorView(productId: nil, onCatalogChanged: { Task { await reload() } })
+                        .environmentObject(api)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Close") { showNewProduct = false }
+                            }
+                        }
+                }
+            }
+            .sheet(isPresented: $showAddCustomer, onDismiss: { customersRefreshNonce += 1 }) {
+                NavigationStack {
+                    AdminAddCustomerView(onCreated: { customersRefreshNonce += 1 })
+                        .environmentObject(api)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Close") { showAddCustomer = false }
+                            }
+                        }
+                }
+            }
+            .sheet(isPresented: $showManualOrder, onDismiss: { Task { await reload() } }) {
+                NavigationStack {
+                    AdminManualOrderView(products: products, onCreated: { Task { await reload() } })
+                        .environmentObject(api)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Close") { showManualOrder = false }
+                            }
+                        }
+                }
+            }
         }
     }
 
@@ -87,25 +159,31 @@ struct AdminHubView: View {
     private var productSection: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Use API or add inventory from Neon for bulk edits. Below is a live read of catalog.")
+                Text("Tap a product to edit details, prices, photos, and stock. Use + to add a new product.")
                     .font(HBFont.caption())
                     .foregroundStyle(HBColors.mutedGray)
 
                 ForEach(products) { p in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(p.name)
-                            .font(HBFont.headline())
-                            .foregroundStyle(HBColors.charcoal)
-                        Text(p.category)
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.mutedGray)
-                        Text("\(p.variants.count) sizes · total stock \(p.variants.map(\.stock).reduce(0, +))")
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.gold)
+                    NavigationLink {
+                        AdminProductEditorView(productId: p.id, onCatalogChanged: { Task { await reload() } })
+                            .environmentObject(api)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(p.name)
+                                .font(HBFont.headline())
+                                .foregroundStyle(HBColors.charcoal)
+                            Text(p.category)
+                                .font(HBFont.caption())
+                                .foregroundStyle(HBColors.mutedGray)
+                            Text("\(p.variants.count) sizes · total stock \(p.variants.map(\.stock).reduce(0, +))")
+                                .font(HBFont.caption())
+                                .foregroundStyle(HBColors.gold)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .hbCardStyle()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .hbCardStyle()
+                    .buttonStyle(.plain)
                 }
             }
             .padding()
@@ -182,6 +260,7 @@ struct AdminHubView: View {
             products = pr.products
             let or: OrdersResponse = try await api.request("/orders?all=1", method: "GET")
             orders = or.orders
+            customersRefreshNonce += 1
         } catch { }
     }
 

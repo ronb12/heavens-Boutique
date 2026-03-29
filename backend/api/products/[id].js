@@ -1,7 +1,8 @@
 import { getDb } from '../../lib/db.js';
-import { requireAdmin } from '../../lib/auth.js';
+import { requireAdmin, optionalAdmin } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
 import { mapProduct } from '../../lib/productsMap.js';
+import { validateProductProfit } from '../../lib/productProfit.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -16,7 +17,8 @@ export default async function handler(req, res) {
       const p = rows[0];
       if (!p) return json(res, 404, { error: 'Not found' });
       const vars = await sql`SELECT * FROM product_variants WHERE product_id = ${id}`;
-      return json(res, 200, { product: mapProduct(p, vars) });
+      const { isAdmin } = await optionalAdmin(req);
+      return json(res, 200, { product: mapProduct(p, vars, { includeCost: isAdmin }) });
     }
 
     if (req.method === 'PUT' || req.method === 'PATCH') {
@@ -36,6 +38,21 @@ export default async function handler(req, res) {
       const isFeatured = body.isFeatured != null ? Boolean(body.isFeatured) : existing[0].is_featured;
       const shopLookGroup = body.shopLookGroup !== undefined ? (body.shopLookGroup == null ? null : String(body.shopLookGroup)) : existing[0].shop_look_group;
       const cloudinaryIds = body.cloudinaryIds != null ? (Array.isArray(body.cloudinaryIds) ? body.cloudinaryIds : existing[0].cloudinary_ids) : existing[0].cloudinary_ids;
+      const existingCost =
+        existing[0].cost_cents !== undefined && existing[0].cost_cents !== null
+          ? Number(existing[0].cost_cents)
+          : null;
+      const costCents =
+        body.costCents !== undefined
+          ? body.costCents === null
+            ? null
+            : Number(body.costCents)
+          : existingCost;
+      if (costCents != null && (!Number.isFinite(costCents) || costCents < 0)) {
+        return json(res, 400, { error: 'Invalid cost' });
+      }
+      const profitCheck = validateProductProfit({ priceCents, salePriceCents, costCents });
+      if (!profitCheck.ok) return json(res, 400, { error: profitCheck.error });
 
       await sql`
         UPDATE products SET
@@ -45,12 +62,30 @@ export default async function handler(req, res) {
           category = ${category},
           price_cents = ${priceCents},
           sale_price_cents = ${salePriceCents},
+          cost_cents = ${costCents},
           is_featured = ${isFeatured},
           shop_look_group = ${shopLookGroup},
           cloudinary_ids = ${cloudinaryIds},
           updated_at = now()
         WHERE id = ${id}
       `;
+
+      if (Array.isArray(body.removedVariantIds)) {
+        for (const raw of body.removedVariantIds) {
+          const vid = String(raw || '').trim();
+          if (!vid) continue;
+          const refs = await sql`
+            SELECT COUNT(*)::int AS c FROM order_items WHERE variant_id = ${vid}
+          `;
+          if ((refs[0]?.c ?? 0) > 0) {
+            return json(res, 409, {
+              error:
+                'Cannot delete a variant that appears on orders. Set stock to 0 or archive the product instead.',
+            });
+          }
+          await sql`DELETE FROM product_variants WHERE id = ${vid} AND product_id = ${id}`;
+        }
+      }
 
       if (Array.isArray(body.variants)) {
         for (const v of body.variants) {
@@ -70,12 +105,21 @@ export default async function handler(req, res) {
 
       const rows = await sql`SELECT * FROM products WHERE id = ${id} LIMIT 1`;
       const vars = await sql`SELECT * FROM product_variants WHERE product_id = ${id}`;
-      return json(res, 200, { product: mapProduct(rows[0], vars) });
+      return json(res, 200, { product: mapProduct(rows[0], vars, { includeCost: true }) });
     }
 
     if (req.method === 'DELETE') {
       const auth = await requireAdmin(req);
       if (auth.error) return json(res, auth.status, { error: auth.error });
+      const orderRefs = await sql`
+        SELECT COUNT(*)::int AS c FROM order_items WHERE product_id = ${id}
+      `;
+      if ((orderRefs[0]?.c ?? 0) > 0) {
+        return json(res, 409, {
+          error:
+            'Cannot delete a product that appears on orders. Unlist it (set stock to 0) or hide it from featured instead.',
+        });
+      }
       await sql`DELETE FROM products WHERE id = ${id}`;
       return json(res, 200, { ok: true });
     }

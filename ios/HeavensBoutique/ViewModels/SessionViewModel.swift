@@ -6,6 +6,7 @@ final class SessionViewModel: ObservableObject {
     @Published private(set) var isRestoring = true
 
     private let api: APIClient
+    weak var pushCoordinator: PushNotificationCoordinator?
 
     init(api: APIClient) {
         self.api = api
@@ -25,6 +26,7 @@ final class SessionViewModel: ObservableObject {
         do {
             let me: UserDTO = try await api.request("/users/me", method: "GET")
             user = me
+            await pushCoordinator?.sessionDidAuthenticate()
         } catch {
             api.setToken(nil)
             user = nil
@@ -34,9 +36,11 @@ final class SessionViewModel: ObservableObject {
     func applyAuth(_ response: AuthResponse) {
         api.setToken(response.token)
         user = response.user
+        Task { await pushCoordinator?.sessionDidAuthenticate() }
     }
 
-    func logout() {
+    func logout() async {
+        await pushCoordinator?.sessionWillEnd()
         api.setToken(nil)
         user = nil
     }

@@ -43,6 +43,26 @@ enum Config {
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
+    /// Same as server `CLOUDINARY_CLOUD_NAME`; used only to build admin image previews for pasted public IDs.
+    static var cloudinaryCloudName: String {
+        (Bundle.main.object(forInfoDictionaryKey: "CLOUDINARY_CLOUD_NAME") as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    static func cloudinaryDeliveryURL(publicId: String) -> URL? {
+        let trimmed = publicId.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.lowercased().hasPrefix("http://") || trimmed.lowercased().hasPrefix("https://") {
+            return URL(string: trimmed)
+        }
+        let cloud = cloudinaryCloudName
+        guard !cloud.isEmpty else { return nil }
+        let encoded = trimmed
+            .split(separator: "/")
+            .map { String($0).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "" }
+            .joined(separator: "/")
+        return URL(string: "https://res.cloudinary.com/\(cloud)/image/upload/f_auto,q_auto/\(encoded)")
+    }
+
     static var appMarketingVersion: String {
         (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "—"
     }

@@ -1,8 +1,13 @@
-import { cloudinaryImageUrl } from './cloudinary.js';
+import { resolveProductImageUrl } from './productImages.js';
 
-export function mapProduct(row, variants) {
-  const images = (row.cloudinary_ids || []).map((id) => cloudinaryImageUrl(id)).filter(Boolean);
-  return {
+/**
+ * @param {object} row
+ * @param {object[]} variants
+ * @param {{ includeCost?: boolean }} [opts]
+ */
+export function mapProduct(row, variants, opts = {}) {
+  const images = (row.cloudinary_ids || []).map((id) => resolveProductImageUrl(id)).filter(Boolean);
+  const out = {
     id: row.id,
     name: row.name,
     slug: row.slug,
@@ -20,4 +25,8 @@ export function mapProduct(row, variants) {
       stock: v.stock,
     })),
   };
+  if (opts.includeCost) {
+    out.costCents = row.cost_cents != null && row.cost_cents !== undefined ? row.cost_cents : null;
+  }
+  return out;
 }

@@ -2,6 +2,7 @@ import { getDb } from '../../lib/db.js';
 import { requireAdmin } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
 import { mapProduct } from '../../lib/productsMap.js';
+import { validateProductProfit } from '../../lib/productProfit.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -68,7 +69,7 @@ export default async function handler(req, res) {
       }
 
       return json(res, 200, {
-        products: products.map((p) => mapProduct(p, byProduct[p.id])),
+        products: products.map((p) => mapProduct(p, byProduct[p.id], { includeCost: false })),
       });
     }
 
@@ -87,14 +88,21 @@ export default async function handler(req, res) {
       const shopLookGroup = body.shopLookGroup ? String(body.shopLookGroup) : null;
       const cloudinaryIds = Array.isArray(body.cloudinaryIds) ? body.cloudinaryIds : [];
       const variantsIn = Array.isArray(body.variants) ? body.variants : [];
+      const costCents =
+        body.costCents !== undefined && body.costCents !== null ? Number(body.costCents) : null;
 
       if (!name || !Number.isFinite(priceCents) || priceCents < 0) {
         return json(res, 400, { error: 'Invalid product data' });
       }
+      if (costCents != null && (!Number.isFinite(costCents) || costCents < 0)) {
+        return json(res, 400, { error: 'Invalid cost' });
+      }
+      const profitCheck = validateProductProfit({ priceCents, salePriceCents, costCents });
+      if (!profitCheck.ok) return json(res, 400, { error: profitCheck.error });
 
       const inserted = await sql`
-        INSERT INTO products (name, slug, description, category, price_cents, sale_price_cents, is_featured, shop_look_group, cloudinary_ids)
-        VALUES (${name}, ${slug}, ${description}, ${category}, ${priceCents}, ${salePriceCents}, ${isFeatured}, ${shopLookGroup}, ${cloudinaryIds})
+        INSERT INTO products (name, slug, description, category, price_cents, sale_price_cents, cost_cents, is_featured, shop_look_group, cloudinary_ids)
+        VALUES (${name}, ${slug}, ${description}, ${category}, ${priceCents}, ${salePriceCents}, ${costCents}, ${isFeatured}, ${shopLookGroup}, ${cloudinaryIds})
         RETURNING *
       `;
       const p = inserted[0];
@@ -110,7 +118,7 @@ export default async function handler(req, res) {
       }
 
       const vars = await sql`SELECT * FROM product_variants WHERE product_id = ${p.id}`;
-      return json(res, 201, { product: mapProduct(p, vars) });
+      return json(res, 201, { product: mapProduct(p, vars, { includeCost: true }) });
     }
 
     return json(res, 405, { error: 'Method not allowed' });

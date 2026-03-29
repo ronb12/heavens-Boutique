@@ -9,8 +9,10 @@
 # Node
 backend/node_modules/
 npm-debug.log*
+firebase-debug.log*
 
 # Xcode / iOS
+ios/HeavensBoutique/GoogleService-Info.plist
 ios/**/*.xcodeproj/xcuserdata/
 ios/**/*.xcworkspace/xcuserdata/
 ios/**/*.xcworkspace/xcshareddata/swiftpm/configuration/
@@ -34,3 +36,4 @@ DerivedData/
 /package.json
 /package-lock.json
 /node_modules/
+.env*.local

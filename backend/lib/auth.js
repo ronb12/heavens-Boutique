@@ -64,3 +64,12 @@ export async function requireAdmin(req) {
   }
   return { userId: r.userId, role: 'admin' };
 }
+
+/** For optional fields (e.g. cost on product detail): true only with valid admin JWT + DB role. */
+export async function optionalAdmin(req) {
+  const r = requireUser(req);
+  if (r.error) return { isAdmin: false };
+  const sql = getDb();
+  const rows = await sql`SELECT role FROM users WHERE id = ${r.userId} LIMIT 1`;
+  return { isAdmin: rows[0]?.role === 'admin' };
+}

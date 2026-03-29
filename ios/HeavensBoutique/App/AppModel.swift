@@ -23,11 +23,14 @@ final class AppModel: ObservableObject {
     let api: APIClient
     let session: SessionViewModel
     let cart: CartStore
+    let pushNotificationCoordinator = PushNotificationCoordinator()
 
     init() {
         let a = APIClient()
         api = a
         session = SessionViewModel(api: a)
+        pushNotificationCoordinator.attach(api: a, session: session)
+        session.pushCoordinator = pushNotificationCoordinator
         cart = CartStore(api: a)
     }
 
