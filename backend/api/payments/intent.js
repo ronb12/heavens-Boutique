@@ -3,12 +3,7 @@ import { getDb } from '../../lib/db.js';
 import { optionalUser } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
 import { buildOrderTotals } from '../../lib/stripeOrder.js';
-
-function stripe() {
-  const k = process.env.STRIPE_SECRET_KEY;
-  if (!k) throw new Error('STRIPE_SECRET_KEY not configured');
-  return new Stripe(k);
-}
+import { getStripeSecretKey } from '../../lib/stripeCredentials.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -57,7 +52,14 @@ export default async function handler(req, res) {
       };
     }
 
-    const pi = await stripe().paymentIntents.create({
+    const sk = await getStripeSecretKey(sql);
+    if (!sk) {
+      return json(res, 503, {
+        error: 'Payments are not configured. Add Stripe keys in Vercel env or Admin → Settings.',
+      });
+    }
+    const stripe = new Stripe(sk);
+    const pi = await stripe.paymentIntents.create({
       amount: totals.totalCents,
       currency: 'usd',
       automatic_payment_methods: { enabled: true },

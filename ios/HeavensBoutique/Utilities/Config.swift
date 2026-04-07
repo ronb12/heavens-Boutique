@@ -1,4 +1,5 @@
 import Foundation
+import StripePayments
 
 enum Config {
     /// Base URL for REST calls. Must end with `/api` for this backend (paths are like `/auth/register`).
@@ -89,4 +90,21 @@ enum Config {
 
     /// Settings → About: owning company (separate from developer credit).
     static let productOfCompany = "Bradley Virtual Solutions, LLC"
+
+    /// If the API has a publishable key in Admin → Settings, prefer it over Info.plist after fetch.
+    @MainActor
+    static func applyServerStripePublishableKeyIfAvailable() async {
+        let base = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !base.isEmpty else { return }
+        let client = APIClient()
+        do {
+            let r: PublicStripeConfigResponse = try await client.request("/config/stripe", method: "GET")
+            let k = r.publishableKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !k.isEmpty {
+                STPAPIClient.shared.publishableKey = k
+            }
+        } catch {
+            /* keep Info.plist value */
+        }
+    }
 }

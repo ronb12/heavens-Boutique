@@ -102,6 +102,15 @@ CREATE TABLE loyalty_ledger (
 
 CREATE INDEX idx_loyalty_user ON loyalty_ledger(user_id);
 
+-- ─── Stripe (admin-configured; env vars override when set) ──────────
+CREATE TABLE stripe_settings (
+  id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  publishable_key TEXT,
+  secret_key TEXT,
+  webhook_secret TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- ─── Carts (abandoned cart tracking) ────────────────────────────────
 CREATE TABLE carts (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),

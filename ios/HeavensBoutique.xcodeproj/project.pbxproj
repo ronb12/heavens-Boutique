@@ -53,6 +53,7 @@
 		A4AFE5823809200D65D9D4CB /* AdminProductEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDEA3A2F8A937F06D1FA5AB /* AdminProductEditorView.swift */; };
 		A616109F1BACDBD626D61045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 814DDAD1C5A0CF913A818056 /* Assets.xcassets */; };
 		A9ECF60A0AB9CF98E5B670C1 /* HBSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67365895BAC072AA2CAF9EF6 /* HBSplashView.swift */; };
+		C7E8F9012A3B4C5D6E7F8092 /* HBSignInWithAppleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E8F9012A3B4C5D6E7F8091 /* HBSignInWithAppleRow.swift */; };
 		AC0D78FDB9D2EC6EF85189CB /* NewsletterStyleNotificationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA672A29498E4D8DEB1172DF /* NewsletterStyleNotificationCard.swift */; };
 		B2A1C3D4E5F60718291A0B31 /* AdminNotifyComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */; };
 		B54F202B20EB2E45EB9B02BC /* SessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC78CFCE9D2548D2AEDCA24B /* SessionViewModel.swift */; };
@@ -70,6 +71,7 @@
 		F4B15DC85A6C6377CA6C0ABF /* ProductImagePrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE318E7B3458CD792CC6BD9 /* ProductImagePrefetcher.swift */; };
 		F87A3933B447BD6CE87FFB40 /* CheckoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B52C2276C121AA9AFCAF0D /* CheckoutView.swift */; };
 		F93976800DED3941A038FFE7 /* AdminHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461BFC3988E33A54D6875737 /* AdminHubView.swift */; };
+		F1E2D3C4B5A69708191A1B1C1 /* AdminStripeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A69708191A1B1C2 /* AdminStripeSettingsView.swift */; };
 		FBFD5AA2B6A234F49F96DE2B /* OrdersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6836C4252819E4AB00BC99 /* OrdersViewModel.swift */; };
 		FD6F3B59F52DDF7E4AB4C141 /* HBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C984E38435CBFD30E23ABF /* HBTypography.swift */; };
 		FE41EF9D9A73A2D69762FA59 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123748103D0CBA623D08E388 /* MainTabView.swift */; };
@@ -101,12 +103,14 @@
 		3DDEA3A2F8A937F06D1FA5AB /* AdminProductEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminProductEditorView.swift; sourceTree = "<group>"; };
 		406E4239974099F9A9F31E0F /* GoogleService-Info.plist.example */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "GoogleService-Info.plist.example"; sourceTree = "<group>"; };
 		461BFC3988E33A54D6875737 /* AdminHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminHubView.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A69708191A1B1C2 /* AdminStripeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminStripeSettingsView.swift; sourceTree = "<group>"; };
 		4ADBD53BC8AC43EA42622B40 /* CartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartView.swift; sourceTree = "<group>"; };
 		4BC3A410381D6D5182E8E50D /* HBFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBFeedback.swift; sourceTree = "<group>"; };
 		4C60C28C3DC73CD818A87F3E /* HBAppearancePreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBAppearancePreference.swift; sourceTree = "<group>"; };
 		567C2FFA197390B290798EF1 /* AdminCustomersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminCustomersView.swift; sourceTree = "<group>"; };
 		5E869DA0B21045C204490F78 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		67365895BAC072AA2CAF9EF6 /* HBSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBSplashView.swift; sourceTree = "<group>"; };
+		C7E8F9012A3B4C5D6E7F8091 /* HBSignInWithAppleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HBSignInWithAppleRow.swift; sourceTree = "<group>"; };
 		6ED7449AA4978CAD8A917121 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		72A1F0F45432C908463CDB1A /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		7317BFC3102A4F48CB18EF8B /* ShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopView.swift; sourceTree = "<group>"; };
@@ -194,6 +198,7 @@
 			children = (
 				80ABABAEF61D38F65CB1B5AC /* AuthChrome.swift */,
 				67365895BAC072AA2CAF9EF6 /* HBSplashView.swift */,
+				C7E8F9012A3B4C5D6E7F8091 /* HBSignInWithAppleRow.swift */,
 				D3BFBFC6AD5D335E365FF4CC /* LoginView.swift */,
 				377C27B155E970AC33481398 /* RegisterView.swift */,
 				796C9F1EF9BC6A44F31260E4 /* WelcomeAuthView.swift */,
@@ -304,6 +309,7 @@
 				C1A2B3C4D5E6F7080910A1B21 /* AdminNotifyComposerView.swift */,
 				A2D7ACB55EEC5DB489A8F8CF /* AdminOrderDetailView.swift */,
 				3DDEA3A2F8A937F06D1FA5AB /* AdminProductEditorView.swift */,
+				F1E2D3C4B5A69708191A1B1C2 /* AdminStripeSettingsView.swift */,
 			);
 			path = Admin;
 			sourceTree = "<group>";
@@ -510,6 +516,7 @@
 				CC82B5F32A44CAE2ECCF6426 /* AdminOrderDetailView.swift in Sources */,
 				9226FB1E72C8177641A7640A /* AdminPickCustomerForChatView.swift in Sources */,
 				A4AFE5823809200D65D9D4CB /* AdminProductEditorView.swift in Sources */,
+				F1E2D3C4B5A69708191A1B1C1 /* AdminStripeSettingsView.swift in Sources */,
 				846277C0C4F322ACED48306D /* AppModel.swift in Sources */,
 				FECA6460D455F1112738AD20 /* AuthChrome.swift in Sources */,
 				B966B2B5F73E269DC4C83930 /* CartModels.swift in Sources */,
@@ -529,6 +536,7 @@
 				B9E956798035A7A232327974 /* HBFirebaseBootstrap.swift in Sources */,
 				E149C5B0139E0BC55813CC1F /* HBRoseWordmark.swift in Sources */,
 				A9ECF60A0AB9CF98E5B670C1 /* HBSplashView.swift in Sources */,
+				C7E8F9012A3B4C5D6E7F8092 /* HBSignInWithAppleRow.swift in Sources */,
 				6AFFD46F812D502B1702FD46 /* HBTheme.swift in Sources */,
 				FD6F3B59F52DDF7E4AB4C141 /* HBTypography.swift in Sources */,
 				51CD3988B51968A6D008CEC8 /* HBURLCache.swift in Sources */,

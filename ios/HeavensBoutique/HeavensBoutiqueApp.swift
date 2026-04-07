@@ -10,6 +10,9 @@ struct HeavensBoutiqueApp: App {
     init() {
         HBURLCache.configureSharedCache()
         STPAPIClient.shared.publishableKey = Config.stripePublishableKey
+        Task { @MainActor in
+            await Config.applyServerStripePublishableKeyIfAvailable()
+        }
     }
 
     private var preferredColorScheme: ColorScheme? {

@@ -7,17 +7,20 @@ import {
   notifyAdminsLowStockForVariants,
   formatMoneyCents,
 } from '../../lib/adminNotify.js';
-
-function stripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY || '');
-}
+import { getStripeSecretKey, getStripeWebhookSecret } from '../../lib/stripeCredentials.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
   const sig = req.headers['stripe-signature'];
-  const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const sql = getDb();
+  let whSecret;
+  try {
+    whSecret = await getStripeWebhookSecret(sql);
+  } catch {
+    whSecret = '';
+  }
   if (!whSecret || !sig) {
     return json(res, 400, { error: 'Webhook not configured' });
   }
@@ -25,7 +28,9 @@ export default async function handler(req, res) {
   let event;
   try {
     const buf = await readRawBody(req);
-    event = stripe().webhooks.constructEvent(buf, sig, whSecret);
+    const sk = await getStripeSecretKey(sql);
+    const stripe = new Stripe(sk || 'sk_test_'); // API key unused for signature verification
+    event = stripe.webhooks.constructEvent(buf, sig, whSecret);
   } catch (err) {
     console.error(err.message);
     return json(res, 400, { error: `Webhook Error: ${err.message}` });
@@ -33,7 +38,6 @@ export default async function handler(req, res) {
 
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
-    const sql = getDb();
     const userId = pi.metadata?.userId || null;
     const isGuest = pi.metadata?.guestCheckout === 'true';
     const guestEmail =

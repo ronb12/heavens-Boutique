@@ -18,6 +18,7 @@ struct AdminHubView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 customerPreviewEntry
+                stripeSettingsEntry
                 Picker("Section", selection: $tab) {
                     Text("Products").tag(0)
                     Text("Orders").tag(1)
@@ -121,6 +122,40 @@ struct AdminHubView: View {
                 }
             }
         }
+    }
+
+    private var stripeSettingsEntry: some View {
+        NavigationLink {
+            AdminStripeSettingsView()
+                .environmentObject(api)
+        } label: {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "key.horizontal.fill")
+                    .font(.title2)
+                    .foregroundStyle(HBColors.gold)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Stripe & payments")
+                        .font(HBFont.headline())
+                        .foregroundStyle(HBColors.charcoal)
+                    Text("Publishable, secret, and webhook signing keys for checkout.")
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(HBColors.mutedGray)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(HBColors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal)
+        .padding(.bottom, 4)
+        .accessibilityHint("Configure Stripe keys for the store.")
     }
 
     private var customerPreviewEntry: some View {

@@ -335,6 +335,21 @@ struct AdminDailyRevenueRow: Decodable, Identifiable {
     let orderCount: Int
 }
 
+// MARK: - Admin Stripe settings (`GET` / `POST /admin/settings/stripe`)
+
+struct AdminStripeSettingsResponse: Decodable {
+    let publishableKey: String?
+    let hasSecretKey: Bool
+    let hasWebhookSecret: Bool
+    let envOverridesSecret: Bool
+    let envOverridesWebhook: Bool
+}
+
+/// `GET /config/stripe` — publishable key when configured in admin (otherwise empty).
+struct PublicStripeConfigResponse: Decodable {
+    let publishableKey: String
+}
+
 struct APIErrorBody: Decodable {
     let error: String?
     /// Extra server message (e.g. `admin/upload` exception text).
