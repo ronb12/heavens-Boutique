@@ -95,7 +95,7 @@ struct AdminStripeSettingsView: View {
 
     private func load() async {
         do {
-            let r: AdminStripeSettingsResponse = try await api.request("/admin/settings/stripe", method: "GET")
+            let r: AdminStripeSettingsResponse = try await api.request("/admin/stripe-settings", method: "GET")
             publishableKey = r.publishableKey ?? ""
             hasSecretKey = r.hasSecretKey
             hasWebhookSecret = r.hasWebhookSecret
@@ -129,7 +129,7 @@ struct AdminStripeSettingsView: View {
         isSaving = true
         defer { isSaving = false }
         do {
-            try await api.requestVoid("/admin/settings/stripe", method: "POST", jsonBody: body)
+            try await api.requestVoid("/admin/stripe-settings", method: "POST", jsonBody: body)
             secretKeyDraft = ""
             webhookSecretDraft = ""
             await load()

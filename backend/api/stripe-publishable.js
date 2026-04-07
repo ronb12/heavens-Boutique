@@ -1,6 +1,6 @@
-import { getDb } from '../../lib/db.js';
-import { json, handleCors } from '../../lib/http.js';
-import { getStripePublishableKey } from '../../lib/stripeCredentials.js';
+import { getDb } from '../lib/db.js';
+import { json, handleCors } from '../lib/http.js';
+import { getStripePublishableKey } from '../lib/stripeCredentials.js';
 
 /** Public: publishable key for the mobile app (Info.plist fallback if empty). */
 export default async function handler(req, res) {

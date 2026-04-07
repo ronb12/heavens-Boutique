@@ -98,7 +98,7 @@ enum Config {
         guard !base.isEmpty else { return }
         let client = APIClient()
         do {
-            let r: PublicStripeConfigResponse = try await client.request("/config/stripe", method: "GET")
+            let r: PublicStripeConfigResponse = try await client.request("/stripe-publishable", method: "GET")
             let k = r.publishableKey.trimmingCharacters(in: .whitespacesAndNewlines)
             if !k.isEmpty {
                 STPAPIClient.shared.publishableKey = k

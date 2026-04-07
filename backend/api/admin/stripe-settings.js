@@ -1,7 +1,7 @@
-import { getDb } from '../../../lib/db.js';
-import { requireAdmin } from '../../../lib/auth.js';
-import { json, readJson, handleCors } from '../../../lib/http.js';
-import { getStripePublishableKey } from '../../../lib/stripeCredentials.js';
+import { getDb } from '../../lib/db.js';
+import { requireAdmin } from '../../lib/auth.js';
+import { json, readJson, handleCors } from '../../lib/http.js';
+import { getStripePublishableKey } from '../../lib/stripeCredentials.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;

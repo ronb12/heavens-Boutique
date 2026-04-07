@@ -335,7 +335,7 @@ struct AdminDailyRevenueRow: Decodable, Identifiable {
     let orderCount: Int
 }
 
-// MARK: - Admin Stripe settings (`GET` / `POST /admin/settings/stripe`)
+// MARK: - Admin Stripe settings (`GET` / `POST /admin/stripe-settings`)
 
 struct AdminStripeSettingsResponse: Decodable {
     let publishableKey: String?
@@ -345,7 +345,7 @@ struct AdminStripeSettingsResponse: Decodable {
     let envOverridesWebhook: Bool
 }
 
-/// `GET /config/stripe` — publishable key when configured in admin (otherwise empty).
+/// `GET /stripe-publishable` — publishable key when configured in admin (otherwise empty).
 struct PublicStripeConfigResponse: Decodable {
     let publishableKey: String
 }
