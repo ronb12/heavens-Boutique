@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+:root {
+  /* Light mode: warmer, more pink-forward boutique palette */
+  --cream: #fff5f9;
+  --pink-mist: #fdeef4;
+  --soft-pink: #eab0c8;
+  --rose: #d9889e;
+  --gold: #d4af37;
+  --gold-light: #f1e5ac;
+  --charcoal: #2b2b2b;
+  --muted: #8a8a8a;
+
+  --pink-glow-strong: rgba(234, 176, 200, 0.38);
+  --pink-glow-soft: rgba(252, 228, 238, 0.55);
+  --border-subtle: rgba(210, 140, 165, 0.28);
+
+  --background: var(--cream);
+  --foreground: var(--charcoal);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+}
+
+body {
+  color: var(--foreground);
+  font-family: var(--font-body), system-ui, sans-serif;
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(ellipse 130% 85% at 50% -25%, var(--pink-glow-strong), transparent 58%),
+    radial-gradient(ellipse 75% 55% at 0% 45%, var(--pink-glow-soft), transparent 52%),
+    radial-gradient(ellipse 65% 50% at 100% 55%, rgba(234, 176, 200, 0.18), transparent 52%),
+    linear-gradient(185deg, #fffbfc 0%, var(--pink-mist) 42%, #fce8f0 100%);
+}
+
+::selection {
+  background: rgba(234, 176, 200, 0.45);
+  color: var(--charcoal);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+.hb-script {
+  font-family: var(--font-script), cursive;
+}
+
+/* Homepage hero — animation keys aligned with iOS `HomepageHeroView` */
+@keyframes hb-hero-kenburns {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.12) translate3d(-2.5%, -1.5%, 0);
+  }
+}
+
+@keyframes hb-hero-subtle-zoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes hb-hero-fade-pulse {
+  0% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0.42;
+  }
+}
+
+.hb-hero-anim-kenburns img {
+  animation: hb-hero-kenburns 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hb-hero-anim-subtle-zoom img {
+  animation: hb-hero-subtle-zoom 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hb-hero-anim-fade .hb-hero-fade-layer {
+  animation: hb-hero-fade-pulse 6s ease-in-out infinite alternate;
+}
