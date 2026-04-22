@@ -17,6 +17,9 @@ export function mapProduct(row, variants, opts = {}) {
     salePriceCents: row.sale_price_cents,
     isFeatured: row.is_featured,
     shopLookGroup: row.shop_look_group,
+    supplierName: row.supplier_name ?? null,
+    supplierUrl: row.supplier_url ?? null,
+    supplierNotes: row.supplier_notes ?? null,
     images,
     variants: (variants || []).map((v) => ({
       id: v.id,
@@ -26,6 +29,7 @@ export function mapProduct(row, variants, opts = {}) {
     })),
   };
   if (opts.includeCost) {
+    out.cloudinaryIds = row.cloudinary_ids || [];
     out.costCents = row.cost_cents != null && row.cost_cents !== undefined ? row.cost_cents : null;
   }
   return out;

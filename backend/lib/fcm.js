@@ -48,7 +48,12 @@ export async function sendPushToToken({ token, title, body, data }) {
       notification: { title, body },
       data: data ? Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])) : undefined,
       apns: {
-        payload: { aps: { sound: 'default' } },
+        payload: {
+          aps: {
+            sound: 'default',
+            category: data?.type === 'order' ? 'HB_ORDER' : data?.type === 'back_in_stock' ? 'HB_BACK_IN_STOCK' : undefined,
+          },
+        },
       },
     },
   };

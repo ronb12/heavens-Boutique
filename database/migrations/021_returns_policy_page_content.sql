@@ -1,0 +1,9 @@
+-- Richer default copy for the public Returns policy page (CMS: content_pages.slug = returns; URL /pages/returns)
+
+UPDATE content_pages
+SET
+  title = 'Returns policy',
+  excerpt = 'How to start a return, what we can accept, and when to expect a refund or exchange.',
+  body = E'We want you to love every purchase from Heaven''s Boutique. If something is not quite right—fit, color, or just a change of heart—our return process is designed to be clear and fair. The exact return window and any item-specific rules are shown at checkout and in your order confirmation.\n\nTo request a return, sign in to your account and submit a return request from your order detail page, or follow the instructions emailed with your shipment. Include your order number so we can match your items quickly.\n\nItems should be unworn, unwashed, and free of stains, odors, or alterations, with tags attached where they were shipped to you. Shoes should be tried on indoors on a clean surface. Items that arrive damaged or defective should be reported right away—we will help with photos and next steps.\n\nApproved returns are typically refunded to your original payment method once we receive and inspect the items. Timing can vary by bank or card issuer. If an exchange or store credit is offered for certain promotions or products, that will be spelled out before you complete your purchase.\n\nUnless we sent the wrong item or an item arrives faulty, return shipping may be deducted from your refund or paid by you, depending on the option you choose at return request—details appear in the returns flow.\n\nFinal-sale or clearly marked clearance items may not be eligible for return; those exclusions are labeled on the product page and at checkout.\n\nQuestions before you buy or while your return is on the way? Reach out with your order number—we are happy to clarify sizing, timing, or anything else so you can shop with confidence.',
+  updated_at = now()
+WHERE slug = 'returns';

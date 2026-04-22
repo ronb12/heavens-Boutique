@@ -3,6 +3,188 @@
   "framework": null,
   "installCommand": "cp backend/package.json backend/package-lock.json . && npm ci",
   "buildCommand": "rm -rf api lib public && cp -R backend/api api && cp -R backend/lib lib && mkdir -p public && cp -R backend/public/. public/",
+  "redirects": [
+    {
+      "source": "/_next/static/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/_next/static/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/_next/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/_next/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/icon.png",
+      "destination": "https://heavens-boutique-web.vercel.app/icon.png",
+      "permanent": false
+    },
+    {
+      "source": "/apple-icon.png",
+      "destination": "https://heavens-boutique-web.vercel.app/apple-icon.png",
+      "permanent": false
+    },
+    {
+      "source": "/marketing.css",
+      "destination": "https://heavens-boutique-web.vercel.app/marketing.css",
+      "permanent": false
+    },
+    {
+      "source": "/app-icon.png",
+      "destination": "https://heavens-boutique-web.vercel.app/app-icon.png",
+      "permanent": false
+    },
+    {
+      "source": "/favicon.svg",
+      "destination": "https://heavens-boutique-web.vercel.app/favicon.svg",
+      "permanent": false
+    },
+    {
+      "source": "/site.webmanifest",
+      "destination": "https://heavens-boutique-web.vercel.app/site.webmanifest",
+      "permanent": false
+    },
+    {
+      "source": "/shop/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/shop/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/cart/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/cart/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/checkout/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/checkout/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/account/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/account/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/orders/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/orders/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/wishlist/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/wishlist/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/messages/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/messages/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/returns/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/returns/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/blog/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/pages/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/pages/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/admin/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/login/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/login/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/register/:path*",
+      "destination": "https://heavens-boutique-web.vercel.app/register/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/shop",
+      "destination": "https://heavens-boutique-web.vercel.app/shop",
+      "permanent": false
+    },
+    {
+      "source": "/cart",
+      "destination": "https://heavens-boutique-web.vercel.app/cart",
+      "permanent": false
+    },
+    {
+      "source": "/checkout",
+      "destination": "https://heavens-boutique-web.vercel.app/checkout",
+      "permanent": false
+    },
+    {
+      "source": "/account",
+      "destination": "https://heavens-boutique-web.vercel.app/account",
+      "permanent": false
+    },
+    {
+      "source": "/orders",
+      "destination": "https://heavens-boutique-web.vercel.app/orders",
+      "permanent": false
+    },
+    {
+      "source": "/wishlist",
+      "destination": "https://heavens-boutique-web.vercel.app/wishlist",
+      "permanent": false
+    },
+    {
+      "source": "/messages",
+      "destination": "https://heavens-boutique-web.vercel.app/messages",
+      "permanent": false
+    },
+    {
+      "source": "/returns",
+      "destination": "https://heavens-boutique-web.vercel.app/returns",
+      "permanent": false
+    },
+    {
+      "source": "/blog",
+      "destination": "https://heavens-boutique-web.vercel.app/blog",
+      "permanent": false
+    },
+    {
+      "source": "/pages",
+      "destination": "https://heavens-boutique-web.vercel.app/pages",
+      "permanent": false
+    },
+    {
+      "source": "/admin",
+      "destination": "https://heavens-boutique-web.vercel.app/admin",
+      "permanent": false
+    },
+    {
+      "source": "/login",
+      "destination": "https://heavens-boutique-web.vercel.app/login",
+      "permanent": false
+    },
+    {
+      "source": "/register",
+      "destination": "https://heavens-boutique-web.vercel.app/register",
+      "permanent": false
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://heavens-boutique-web.vercel.app/robots.txt",
+      "permanent": false
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://heavens-boutique-web.vercel.app/sitemap.xml",
+      "permanent": false
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/abandoned-cart",

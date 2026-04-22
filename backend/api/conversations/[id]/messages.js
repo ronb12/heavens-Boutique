@@ -111,6 +111,13 @@ export default async function handler(req, res) {
       });
     }
 
+    if (req.method === 'DELETE') {
+      // Allow customer who owns the conversation, or any admin, to clear all messages.
+      await sql`DELETE FROM messages WHERE conversation_id = ${conversationId}`;
+      await sql`UPDATE conversations SET last_message_at = NULL WHERE id = ${conversationId}`;
+      return json(res, 200, { ok: true, cleared: true });
+    }
+
     return json(res, 405, { error: 'Method not allowed' });
   } catch (e) {
     console.error(e);

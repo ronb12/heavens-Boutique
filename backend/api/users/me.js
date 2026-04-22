@@ -1,6 +1,7 @@
 import { getDb } from '../../lib/db.js';
 import { requireUser } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
+import { hashPassword, comparePassword } from '../../lib/auth.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -12,7 +13,7 @@ export default async function handler(req, res) {
     const sql = getDb();
     if (req.method === 'GET') {
       const rows = await sql`
-        SELECT id, email, full_name, role, loyalty_points, tags, created_at
+        SELECT id, email, full_name, phone, role, loyalty_points, tags, created_at
         FROM users WHERE id = ${auth.userId} LIMIT 1
       `;
       const u = rows[0];
@@ -27,6 +28,7 @@ export default async function handler(req, res) {
         id: u.id,
         email: u.email,
         fullName: u.full_name,
+        phone: u.phone,
         role: u.role,
         loyaltyPoints: u.loyalty_points,
         tags: u.tags || [],
@@ -46,17 +48,49 @@ export default async function handler(req, res) {
 
     if (req.method === 'PATCH') {
       const body = await readJson(req);
+      const updates = {};
+
       if (body.fcmToken !== undefined) {
-        await sql`
-          UPDATE users SET fcm_token = ${body.fcmToken || null}, updated_at = now()
-          WHERE id = ${auth.userId}
-        `;
+        updates.fcm_token = body.fcmToken || null;
       }
       if (body.fullName !== undefined) {
-        await sql`
-          UPDATE users SET full_name = ${String(body.fullName).trim() || null}, updated_at = now()
-          WHERE id = ${auth.userId}
-        `;
+        updates.full_name = String(body.fullName).trim() || null;
+      }
+      if (body.phone !== undefined) {
+        const v = String(body.phone).trim();
+        updates.phone = v || null;
+      }
+      if (body.email !== undefined) {
+        const v = String(body.email).trim().toLowerCase();
+        if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+          return json(res, 400, { error: 'Invalid email' });
+        }
+        if (!v) return json(res, 400, { error: 'Email is required' });
+        // Ensure unique
+        const exists = await sql`SELECT id FROM users WHERE email = ${v} AND id <> ${auth.userId} LIMIT 1`;
+        if (exists[0]) return json(res, 409, { error: 'Email already in use' });
+        updates.email = v;
+      }
+
+      // Password update (supports setting a password for Apple accounts with no hash yet)
+      if (body.newPassword !== undefined) {
+        const newPw = String(body.newPassword || '');
+        if (newPw.length < 8) return json(res, 400, { error: 'Password must be at least 8 characters' });
+
+        const curRows = await sql`SELECT password_hash FROM users WHERE id = ${auth.userId} LIMIT 1`;
+        const existingHash = curRows[0]?.password_hash || null;
+        const requiresCurrent = Boolean(existingHash);
+        if (requiresCurrent) {
+          const currentPw = String(body.currentPassword || '');
+          const ok = await comparePassword(currentPw, existingHash);
+          if (!ok) return json(res, 403, { error: 'Current password is incorrect' });
+        }
+        updates.password_hash = await hashPassword(newPw);
+      }
+
+      if (Object.keys(updates).length > 0) {
+        updates.updated_at = new Date();
+        await sql`UPDATE users SET ${sql(updates)} WHERE id = ${auth.userId}`;
       }
       return json(res, 200, { ok: true });
     }

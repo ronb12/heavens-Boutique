@@ -3,6 +3,8 @@ import { requireAdmin, optionalAdmin } from '../../lib/auth.js';
 import { json, readJson, handleCors } from '../../lib/http.js';
 import { mapProduct } from '../../lib/productsMap.js';
 import { validateProductProfit } from '../../lib/productProfit.js';
+import { notifyBackInStock } from '../../lib/backInStock.js';
+import { notifyAdminsLowStockForVariants, getLowStockThreshold } from '../../lib/adminNotify.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
@@ -38,6 +40,24 @@ export default async function handler(req, res) {
       const isFeatured = body.isFeatured != null ? Boolean(body.isFeatured) : existing[0].is_featured;
       const shopLookGroup = body.shopLookGroup !== undefined ? (body.shopLookGroup == null ? null : String(body.shopLookGroup)) : existing[0].shop_look_group;
       const cloudinaryIds = body.cloudinaryIds != null ? (Array.isArray(body.cloudinaryIds) ? body.cloudinaryIds : existing[0].cloudinary_ids) : existing[0].cloudinary_ids;
+      const supplierName =
+        body.supplierName !== undefined
+          ? body.supplierName == null
+            ? null
+            : String(body.supplierName).trim().slice(0, 200) || null
+          : existing[0].supplier_name ?? null;
+      const supplierUrl =
+        body.supplierUrl !== undefined
+          ? body.supplierUrl == null
+            ? null
+            : String(body.supplierUrl).trim().slice(0, 2000) || null
+          : existing[0].supplier_url ?? null;
+      const supplierNotes =
+        body.supplierNotes !== undefined
+          ? body.supplierNotes == null
+            ? null
+            : String(body.supplierNotes).trim().slice(0, 4000) || null
+          : existing[0].supplier_notes ?? null;
       const existingCost =
         existing[0].cost_cents !== undefined && existing[0].cost_cents !== null
           ? Number(existing[0].cost_cents)
@@ -66,6 +86,9 @@ export default async function handler(req, res) {
           is_featured = ${isFeatured},
           shop_look_group = ${shopLookGroup},
           cloudinary_ids = ${cloudinaryIds},
+          supplier_name = ${supplierName},
+          supplier_url = ${supplierUrl},
+          supplier_notes = ${supplierNotes},
           updated_at = now()
         WHERE id = ${id}
       `;
@@ -90,10 +113,57 @@ export default async function handler(req, res) {
       if (Array.isArray(body.variants)) {
         for (const v of body.variants) {
           if (v.id) {
+            const prev = await sql`SELECT stock, size FROM product_variants WHERE id = ${v.id} AND product_id = ${id} LIMIT 1`;
+            const prevStock = Number(prev[0]?.stock ?? 0);
+            const prevSize = String(prev[0]?.size ?? '');
+            const nextStock = Number(v.stock) || 0;
             await sql`
-              UPDATE product_variants SET size = ${String(v.size)}, sku = ${v.sku || null}, stock = ${Number(v.stock) || 0}
+              UPDATE product_variants SET size = ${String(v.size)}, sku = ${v.sku || null}, stock = ${nextStock}
               WHERE id = ${v.id} AND product_id = ${id}
             `;
+
+            // Inventory audit
+            try {
+              const delta = nextStock - prevStock;
+              if (delta !== 0) {
+                await sql`
+                  INSERT INTO inventory_audit (variant_id, delta, reason, actor_user_id, meta)
+                  VALUES (
+                    ${String(v.id)},
+                    ${delta},
+                    ${'admin_edit'},
+                    ${auth.userId},
+                    ${JSON.stringify({ productId: String(id) })}::jsonb
+                  )
+                `;
+              }
+            } catch (e) {
+              if (e?.code !== '42P01') console.error('inventory_audit (admin_edit)', e);
+            }
+
+            // Back-in-stock trigger: 0 -> >0
+            if (prevStock <= 0 && nextStock > 0) {
+              try {
+                await notifyBackInStock(sql, {
+                  variantId: String(v.id),
+                  productId: String(id),
+                  productName: String(name),
+                  size: String(v.size || prevSize || ''),
+                });
+              } catch (e) {
+                console.error('notifyBackInStock', e);
+              }
+            }
+
+            // Low-stock alert (admin): crossing threshold -> at/below threshold
+            try {
+              const threshold = getLowStockThreshold();
+              if (prevStock > threshold && nextStock <= threshold) {
+                await notifyAdminsLowStockForVariants(sql, [String(v.id)]);
+              }
+            } catch (e) {
+              console.error('notifyAdminsLowStockForVariants', e);
+            }
           } else if (v.size) {
             await sql`
               INSERT INTO product_variants (product_id, size, sku, stock)

@@ -14,6 +14,11 @@ export default async function handler(req, res) {
       const category = url.searchParams.get('category');
       const featured = url.searchParams.get('featured');
       const shopLook = url.searchParams.get('shopLook');
+      const q = url.searchParams.get('q');
+      const size = url.searchParams.get('size');
+      const minPrice = url.searchParams.get('minPrice');
+      const maxPrice = url.searchParams.get('maxPrice');
+      const sort = url.searchParams.get('sort'); // newest | price_asc | price_desc
 
       let products;
       let variants;
@@ -68,8 +73,41 @@ export default async function handler(req, res) {
         byProduct[v.product_id].push(v);
       }
 
+      // Apply search + filters in memory (sufficient for boutique-scale catalogs).
+      const qNorm = q ? String(q).trim().toLowerCase() : '';
+      const sizeNorm = size ? String(size).trim().toLowerCase() : '';
+      const min = minPrice != null && String(minPrice).trim() !== '' ? Number(minPrice) : null;
+      const max = maxPrice != null && String(maxPrice).trim() !== '' ? Number(maxPrice) : null;
+
+      let mapped = products.map((p) => mapProduct(p, byProduct[p.id], { includeCost: false }));
+
+      if (qNorm) {
+        mapped = mapped.filter((p) => {
+          const hay = `${p.name || ''} ${p.description || ''} ${p.category || ''}`.toLowerCase();
+          return hay.includes(qNorm);
+        });
+      }
+      if (sizeNorm) {
+        mapped = mapped.filter((p) => (p.variants || []).some((v) => String(v.size || '').toLowerCase() === sizeNorm));
+      }
+      if (min != null && Number.isFinite(min)) {
+        mapped = mapped.filter((p) => (p.salePriceCents ?? p.priceCents) >= min);
+      }
+      if (max != null && Number.isFinite(max)) {
+        mapped = mapped.filter((p) => (p.salePriceCents ?? p.priceCents) <= max);
+      }
+
+      const sortKey = (sort || 'newest').toLowerCase();
+      if (sortKey === 'price_asc') {
+        mapped.sort((a, b) => (a.salePriceCents ?? a.priceCents) - (b.salePriceCents ?? b.priceCents));
+      } else if (sortKey === 'price_desc') {
+        mapped.sort((a, b) => (b.salePriceCents ?? b.priceCents) - (a.salePriceCents ?? a.priceCents));
+      } else {
+        // already newest from DB
+      }
+
       return json(res, 200, {
-        products: products.map((p) => mapProduct(p, byProduct[p.id], { includeCost: false })),
+        products: mapped,
       });
     }
 
@@ -90,6 +128,18 @@ export default async function handler(req, res) {
       const variantsIn = Array.isArray(body.variants) ? body.variants : [];
       const costCents =
         body.costCents !== undefined && body.costCents !== null ? Number(body.costCents) : null;
+      const supplierName =
+        body.supplierName != null && String(body.supplierName).trim() !== ''
+          ? String(body.supplierName).trim().slice(0, 200)
+          : null;
+      const supplierUrl =
+        body.supplierUrl != null && String(body.supplierUrl).trim() !== ''
+          ? String(body.supplierUrl).trim().slice(0, 2000)
+          : null;
+      const supplierNotes =
+        body.supplierNotes != null && String(body.supplierNotes).trim() !== ''
+          ? String(body.supplierNotes).trim().slice(0, 4000)
+          : null;
 
       if (!name || !Number.isFinite(priceCents) || priceCents < 0) {
         return json(res, 400, { error: 'Invalid product data' });
@@ -101,8 +151,36 @@ export default async function handler(req, res) {
       if (!profitCheck.ok) return json(res, 400, { error: profitCheck.error });
 
       const inserted = await sql`
-        INSERT INTO products (name, slug, description, category, price_cents, sale_price_cents, cost_cents, is_featured, shop_look_group, cloudinary_ids)
-        VALUES (${name}, ${slug}, ${description}, ${category}, ${priceCents}, ${salePriceCents}, ${costCents}, ${isFeatured}, ${shopLookGroup}, ${cloudinaryIds})
+        INSERT INTO products (
+          name,
+          slug,
+          description,
+          category,
+          price_cents,
+          sale_price_cents,
+          cost_cents,
+          is_featured,
+          shop_look_group,
+          cloudinary_ids,
+          supplier_name,
+          supplier_url,
+          supplier_notes
+        )
+        VALUES (
+          ${name},
+          ${slug},
+          ${description},
+          ${category},
+          ${priceCents},
+          ${salePriceCents},
+          ${costCents},
+          ${isFeatured},
+          ${shopLookGroup},
+          ${cloudinaryIds},
+          ${supplierName},
+          ${supplierUrl},
+          ${supplierNotes}
+        )
         RETURNING *
       `;
       const p = inserted[0];
