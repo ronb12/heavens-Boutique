@@ -35,7 +35,33 @@ async function handler(req, res) {
       }
 
       if (Object.keys(updates).length > 0) {
-        await sql`UPDATE user_addresses SET ${sql(updates)} WHERE id = ${id}`;
+        if (Object.prototype.hasOwnProperty.call(updates, 'name')) {
+          await sql`UPDATE user_addresses SET name = ${updates.name} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'label')) {
+          await sql`UPDATE user_addresses SET label = ${updates.label} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'line1')) {
+          await sql`UPDATE user_addresses SET line1 = ${updates.line1} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'line2')) {
+          await sql`UPDATE user_addresses SET line2 = ${updates.line2} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'city')) {
+          await sql`UPDATE user_addresses SET city = ${updates.city} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'state')) {
+          await sql`UPDATE user_addresses SET state = ${updates.state} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'postal')) {
+          await sql`UPDATE user_addresses SET postal = ${updates.postal} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'country')) {
+          await sql`UPDATE user_addresses SET country = ${updates.country} WHERE id = ${id}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'is_default')) {
+          await sql`UPDATE user_addresses SET is_default = ${updates.is_default} WHERE id = ${id}`;
+        }
       }
 
       const updated = await sql`SELECT * FROM user_addresses WHERE id = ${id} LIMIT 1`;

@@ -94,8 +94,21 @@ async function handler(req, res) {
       }
 
       if (Object.keys(updates).length > 0) {
-        updates.updated_at = new Date();
-        await sql`UPDATE users SET ${sql(updates)} WHERE id = ${auth.userId}`;
+        if (Object.prototype.hasOwnProperty.call(updates, 'fcm_token')) {
+          await sql`UPDATE users SET fcm_token = ${updates.fcm_token}, updated_at = now() WHERE id = ${auth.userId}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'full_name')) {
+          await sql`UPDATE users SET full_name = ${updates.full_name}, updated_at = now() WHERE id = ${auth.userId}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'phone')) {
+          await sql`UPDATE users SET phone = ${updates.phone}, updated_at = now() WHERE id = ${auth.userId}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'email')) {
+          await sql`UPDATE users SET email = ${updates.email}, updated_at = now() WHERE id = ${auth.userId}`;
+        }
+        if (Object.prototype.hasOwnProperty.call(updates, 'password_hash')) {
+          await sql`UPDATE users SET password_hash = ${updates.password_hash}, updated_at = now() WHERE id = ${auth.userId}`;
+        }
       }
       return json(res, 200, { ok: true });
     }
