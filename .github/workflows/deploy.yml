@@ -106,8 +106,8 @@ jobs:
 
           # Repo slug: job env sets GITHUB_REPOSITORY_NAME (GitHub only provides GITHUB_REPOSITORY / _OWNER).
           REPO_SLUG_LOWER="$(echo -n "${GITHUB_REPOSITORY_NAME}" | tr '[:upper:]' '[:lower:]')"
-          PROJ="$(echo -n "${VERCEL_PROJECT_SLUG_VAR:-$REPO_SLUG_LOWER}" | tr -d '[:space:]')"
-          if [ -z "$PROJ" ]; then PROJ='heavens-boutique'; fi
+          PROJ="$(echo -n "${VERCEL_PROJECT_SLUG_VAR:-heavens-boutique-api}" | tr -d '[:space:]')"
+          if [ -z "$PROJ" ]; then PROJ='heavens-boutique-api'; fi
 
           # Vercel CLI 50+ in --non-interactive mode requires --scope (or --team); it does not infer
           # a default. This repo's production project lives under team ronell-bradleys-projects.
@@ -118,24 +118,16 @@ jobs:
 
           echo "Deploy target: project=$PROJ (repo_slug=$REPO_SLUG_LOWER)"
 
-          if [ -n "${VERCEL_ORG_ID:-}" ] && [ -n "${VERCEL_PROJECT_ID:-}" ]; then
-            echo "::notice::Using VERCEL_ORG_ID + VERCEL_PROJECT_ID from secrets; writing .vercel/project.json (Vercel CLI 50+ needs a linked project file, not env vars alone)."
-            node -e "const fs=require('fs');const o=process.env.VERCEL_ORG_ID;const p=process.env.VERCEL_PROJECT_ID;if(!o||!p){console.error('missing org/project');process.exit(1)}fs.mkdirSync('.vercel',{recursive:true});fs.writeFileSync('.vercel/project.json',JSON.stringify({orgId:o,projectId:p},null,2)+'\n');"
-            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive --archive=tgz \
-              --token "$VERCEL_TOKEN" \
-              "${SCOPE_ARGS[@]}"
-          else
-            # CLI reads these env vars during deploy; a lone VERCEL_ORG_ID triggers "forgot VERCEL_PROJECT_ID".
-            unset VERCEL_ORG_ID VERCEL_PROJECT_ID
-            # Non-interactive deploy with --project alone is brittle; link first writes .vercel/project.json.
-            npx --yes "$VERCEL_PKG" link --yes --non-interactive \
-              --token "$VERCEL_TOKEN" \
-              "${SCOPE_ARGS[@]}" \
-              --project "$PROJ"
-            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive --archive=tgz \
-              --token "$VERCEL_TOKEN" \
-              "${SCOPE_ARGS[@]}"
-          fi
+          # Do not trust VERCEL_PROJECT_ID here: this repo has several Heaven's Boutique projects,
+          # and stale secrets can point the API job at an old storefront. Link by slug every time.
+          unset VERCEL_ORG_ID VERCEL_PROJECT_ID
+          npx --yes "$VERCEL_PKG" link --yes --non-interactive \
+            --token "$VERCEL_TOKEN" \
+            "${SCOPE_ARGS[@]}" \
+            --project "$PROJ"
+          npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive --archive=tgz \
+            --token "$VERCEL_TOKEN" \
+            "${SCOPE_ARGS[@]}"
 
       - name: Smoke test API (production)
         env:
