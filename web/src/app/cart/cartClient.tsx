@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useCart } from "@/components/CartProvider";
 import { formatUsd } from "@/lib/money";
 
 export function CartClient() {
-  const { items, setQuantity } = useCart();
+  const { items, setQuantity, revalidatePrices } = useCart();
+
+  useEffect(() => {
+    if (!items.length) return;
+    void revalidatePrices();
+  }, [revalidatePrices, items.length]);
 
   const subtotal = useMemo(() => {
     return items.reduce((sum, i) => sum + i.unitPriceCents * i.quantity, 0);

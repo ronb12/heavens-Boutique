@@ -1,6 +1,6 @@
 import { getDb } from '../../lib/db.js';
-import { requireAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { requireStoreAccess, PERM } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 
 function slugify(s) {
   return String(s || '')
@@ -11,10 +11,10 @@ function slugify(s) {
     .slice(0, 120);
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   try {
-    const auth = await requireAdmin(req);
+    const auth = await requireStoreAccess(req, PERM.CONTENT);
     if (auth.error) return json(res, auth.status, { error: auth.error });
 
     const sql = getDb();
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const body = await readJson(req);
       let slug = slugify(body.slug || body.title);
-      if (!slug) return json(res, 400, { error: 'slug or title required' });
+      if (!slug) return json(res, 400, { error: 'URL path or title required' });
       const title = String(body.title || '').trim().slice(0, 300);
       if (!title) return json(res, 400, { error: 'title required' });
       const kind = body.kind === 'blog' ? 'blog' : 'page';
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       const excerpt = body.excerpt != null ? String(body.excerpt).slice(0, 500) : null;
 
       const dup = await sql`SELECT id FROM content_pages WHERE slug = ${slug} LIMIT 1`;
-      if (dup[0]) return json(res, 409, { error: 'Slug already in use' });
+      if (dup[0]) return json(res, 409, { error: 'That URL path is already in use' });
 
       const ins = await sql`
         INSERT INTO content_pages (slug, title, body, excerpt, kind, published, published_at)
@@ -83,11 +83,11 @@ export default async function handler(req, res) {
       let slug = existing.slug;
       if (body.slug != null) {
         slug = slugify(body.slug);
-        if (!slug) return json(res, 400, { error: 'invalid slug' });
+        if (!slug) return json(res, 400, { error: 'Invalid URL path — use letters, numbers, and hyphens' });
         const clash = await sql`
           SELECT id FROM content_pages WHERE slug = ${slug} AND id <> ${id} LIMIT 1
         `;
-        if (clash[0]) return json(res, 409, { error: 'Slug already in use' });
+        if (clash[0]) return json(res, 409, { error: 'That URL path is already in use' });
       }
 
       const title = body.title != null ? String(body.title).trim().slice(0, 300) : existing.title;
@@ -143,3 +143,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

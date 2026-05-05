@@ -50,7 +50,7 @@ export function ProductShareControls({ url, title, description, compact }: Props
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex flex-wrap items-center justify-end gap-2 min-w-0 shrink">
         <button
           type="button"
           aria-label="Share product link"

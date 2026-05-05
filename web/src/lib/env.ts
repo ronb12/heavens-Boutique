@@ -1,3 +1,5 @@
+import { hasConfiguredApiOrigin } from "@/lib/backendOrigin";
+
 /**
  * Public API base URL (browser + server). Example: `https://your-api.vercel.app/api` (no trailing slash).
  *
@@ -5,8 +7,8 @@
  * project should set **`BACKEND_PROXY_ORIGIN`** so `next.config.ts` rewrites `/api/*` to the API deployment.
  * That avoids browser → API cross-origin requests (no CORS surface, cookies behave predictably).
  *
- * If you set `NEXT_PUBLIC_API_BASE_URL`, it still applies on the **server** (SSR). In the **browser**, `apiFetch`
- * uses same-origin `/api/...` so Next.js rewrites avoid CORS; unset `NEXT_PUBLIC_API_BASE_URL` if you only need SSR to hit the API directly.
+ * You may set **`NEXT_PUBLIC_API_BASE_URL`** instead of (or as well as) `BACKEND_PROXY_ORIGIN`; both are
+ * honored for rewrites, the `/api` proxy, and SSR (see `backendOrigin.ts`).
  */
 export function getApiBaseUrl(): string {
   const v = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
@@ -14,8 +16,8 @@ export function getApiBaseUrl(): string {
   return v.replace(/\/+$/, "");
 }
 
-/** Server/build: set when `next.config` will proxy `/api` to `BACKEND_PROXY_ORIGIN`. */
+/** True when the API deployment can be resolved from env (either variable). */
 export function hasBackendProxyOrigin(): boolean {
-  return Boolean(process.env.BACKEND_PROXY_ORIGIN?.trim());
+  return hasConfiguredApiOrigin();
 }
 

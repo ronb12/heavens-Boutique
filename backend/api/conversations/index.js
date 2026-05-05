@@ -1,10 +1,10 @@
 import { getDb } from '../../lib/db.js';
-import { requireUser, requireAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { requireUser, requireStoreAccess, PERM } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const sql = getDb();
 
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
       let rows;
       if (all) {
-        const admin = await requireAdmin(req);
+        const admin = await requireStoreAccess(req, PERM.CUSTOMERS);
         if (admin.error) return json(res, admin.status, { error: admin.error });
         rows = await sql`
           SELECT c.*, u.email as customer_email, u.full_name as customer_name
@@ -56,13 +56,12 @@ export default async function handler(req, res) {
       const orderId = body.orderId || null;
       const title = body.title ? String(body.title) : 'Stylist chat';
 
-      const roleRows = await sql`SELECT role FROM users WHERE id = ${auth.userId} LIMIT 1`;
-      const dbRole = roleRows[0]?.role || auth.role || 'customer';
-      const isAdmin = dbRole === 'admin';
+      const teamDesk = await requireStoreAccess(req, PERM.CUSTOMERS);
+      const canOpenStaffConversation = !teamDesk.error;
 
       let conversationUserId = auth.userId;
       let staffId = null;
-      if (isAdmin) {
+      if (canOpenStaffConversation) {
         const custRaw =
           body.customerUserId != null
             ? String(body.customerUserId).trim()
@@ -72,7 +71,7 @@ export default async function handler(req, res) {
         if (!custRaw || !UUID_RE.test(custRaw)) {
           return json(res, 400, {
             error:
-              'customerUserId is required when starting a chat as admin (the registered customer you are messaging)',
+              'customerUserId is required when staff start a thread (the registered customer you are messaging)',
           });
         }
         const cust = await sql`SELECT id, role FROM users WHERE id = ${custRaw} LIMIT 1`;
@@ -105,3 +104,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

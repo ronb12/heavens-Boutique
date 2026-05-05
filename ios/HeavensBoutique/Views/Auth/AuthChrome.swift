@@ -12,21 +12,23 @@ struct AuthChromeBackground: View {
 
             if reduceMotion {
                 staticPinkBlob
+                staticGoldBlob
                 staticRoseBlob
             } else {
                 TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
                     let t = context.date.timeIntervalSinceReferenceDate
                     ZStack {
                         animatedPinkBlob(t: t)
+                        animatedGoldBlob(t: t)
                         animatedRoseBlob(t: t)
                     }
                 }
             }
 
             LinearGradient(
-                colors: [HBColors.goldLight.opacity(0.12), Color.clear],
-                startPoint: .top,
-                endPoint: .center
+                colors: [HBColors.goldLight.opacity(0.14), Color.clear, HBColors.softPink.opacity(0.06)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
         }
@@ -63,6 +65,21 @@ struct AuthChromeBackground: View {
             .blur(radius: 6)
     }
 
+    private var staticGoldBlob: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.goldLight.opacity(0.38), HBColors.goldLight.opacity(0)],
+                    center: .center,
+                    startRadius: 14,
+                    endRadius: 150
+                )
+            )
+            .frame(width: 300, height: 300)
+            .offset(x: 40, y: 200)
+            .blur(radius: 14)
+    }
+
     private func animatedPinkBlob(t: TimeInterval) -> some View {
         let dx = sin(t * 0.35) * 14
         let dy = cos(t * 0.28) * 12
@@ -78,6 +95,23 @@ struct AuthChromeBackground: View {
             .frame(width: 360, height: 360)
             .offset(x: -120 + dx, y: -280 + dy)
             .blur(radius: 8)
+    }
+
+    private func animatedGoldBlob(t: TimeInterval) -> some View {
+        let dx = cos(t * 0.22) * 20
+        let dy = sin(t * 0.27) * 14
+        return Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.goldLight.opacity(0.38), HBColors.goldLight.opacity(0)],
+                    center: .center,
+                    startRadius: 14,
+                    endRadius: 150
+                )
+            )
+            .frame(width: 300, height: 300)
+            .offset(x: 40 + dx, y: 200 + dy)
+            .blur(radius: 14)
     }
 
     private func animatedRoseBlob(t: TimeInterval) -> some View {

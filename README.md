@@ -41,7 +41,7 @@
 ### 1. Database (Neon)
 
 1. Create a Neon project and copy the **connection string**.
-2. In the Neon SQL editor (or `psql`), run `database/schema.sql`. If you already have a live database from an older schema, apply incremental migrations under `database/migrations/` in order (e.g. **`002_orders_guest_checkout.sql`** for guest checkout; **`003_orders_refunded_status.sql`** adds `refunded` to `orders.status`).
+2. In the Neon SQL editor (or `psql`), run `database/schema.sql`. If you already have a live database from an older schema, apply incremental migrations under `database/migrations/` in order (e.g. **`002_orders_guest_checkout.sql`** for guest checkout; **`003_orders_refunded_status.sql`** adds `refunded` to `orders.status`). For gift cards + feature flags only: **`DATABASE_URL=… ./scripts/apply-migrations-024-025.sh`** applies **`024_gift_card_purchase_tracking.sql`** and **`025_store_settings.sql`**.
 3. **Admin account:** Set Vercel (and local `.env`) **`ADMIN_EMAILS`** to your admin email (comma-separated for several). That email gets **admin** on **register**, and if you already registered as a customer, the next **login** promotes you to **admin** automatically. To create or reset the owner in Postgres, run **`npm run seed:admin`** (defaults: **`heavenbowie0913@gmail.com`** / **`password1234`** — bcrypt 10 rounds; **change this password after first login**):
 
    ```bash
@@ -88,6 +88,16 @@
 2. **CLI** (repo root, `vercel login` done): `npx vercel@latest blob create-store my-catalog --access public` and confirm **link** to your project when prompted.
 
 Then open **Project → Settings → Environment Variables**: **delete** `BLOB_STORE_ACCESS` if it was `private`, or set **`BLOB_STORE_ACCESS=public`**. **Redeploy** production (and Preview if you use it) so the API uses the new token and public uploads.
+
+### 2b. Next.js storefront (`web/`) — keep `heavens-boutique.vercel.app` updating on every deploy
+
+CI deploys the **Node API** from the **repo root** (`vercel.json`). The **Next.js storefront** is in **`web/`**. A single Vercel production deployment cannot be both bundles at once, so pick **one** way to ship the shop:
+
+**Option A — Vercel Git integration (recommended)**  
+In [Vercel](https://vercel.com) → **Add New…** → **Project** → import this GitHub repo → set **Root Directory** to **`web`** → **Production Branch** = **`main`**. Pushes to `main` then **automatically** produce a new production deployment for the URL attached to that project (e.g. **[heavens-boutique.vercel.app](https://heavens-boutique.vercel.app)**). Copy over any variables the Next app needs. Set **`BACKEND_PROXY_ORIGIN`** on that project to your API’s origin **without** a path (for example `https://<your-api-project>.vercel.app`) so browser requests to same-origin **`/api/*`** are rewritten to the API (see `web/next.config.ts`). Point the iOS **`API_BASE_URL`** (and any `NEXT_PUBLIC_*` URLs) at **`https://heavens-boutique.vercel.app/api`** when the storefront hostname proxies `/api`, or at the dedicated API URL if you do not use the proxy.
+
+**Option B — GitHub Actions `deploy-storefront` job**  
+Set repository variable **`VERCEL_WEB_PROJECT_SLUG`** to the Vercel **project slug** used for the Next app (the CLI deploys from **`web/`** after the API job). Use a **different** project than the API project so production is not overwritten. Optional: secrets **`VERCEL_WEB_PROJECT_ID`** + **`VERCEL_ORG_ID`** for non-interactive links; **`VERCEL_API_SMOKE_BASE`** to smoke-test the API host directly after splitting.
 
 **If the browser or app shows `404 NOT_FOUND` for `/` or `/api/...`:** In Vercel → Project → Settings → General, set **Root Directory** to the **repository root** (leave the field empty), redeploy, and confirm `GET /api/products` returns JSON. A common cause is **Root Directory = `backend`** while the deployment expects `api/` at the project root, or a prior root bundle that was excluded from upload by `.gitignore` (fixed in this repo for CI).
 
@@ -176,6 +186,18 @@ Workflow: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 |--------|----------------|
 | **Push to `main`** | Prepares the **repo-root** Vercel bundle (`api/`, `lib/`, `public/`) and **deploys to Vercel production**. Set the Vercel project **Root Directory** to **repository root** (`.`). If `database/**` or `scripts/neon-apply-schema.sh` changed, runs **`database/schema.sql` on Neon** first. After deploy, **smoke-tests** `GET /api/products` (override base URL with repo variable `VERCEL_SMOKE_BASE` if needed). |
 | **Workflow dispatch** | Same Vercel deploy; set **Apply database** = `yes` to force a Neon schema run. |
+
+### Direct to Vercel (CLI, no Git)
+
+These run the same `vercel deploy --prod` path as CI, from your machine. Install or use `npx vercel@50`; run `vercel link` once in the **repo root** (API project) and once in **`web/`** (storefront project) so the CLI has a project to target.
+
+| Command | What it does |
+|--------|----------------|
+| `./scripts/deploy-vercel-api.sh` | Bundles `api/`, `lib/`, `public/` and deploys the **API** project. |
+| `./scripts/deploy-vercel-web.sh` | `npm ci` in `web/` and deploys the **Next.js** storefront project. |
+| `./scripts/deploy-vercel-all.sh` | API deploy, then storefront deploy. |
+
+From **`web/`** only: `npm run deploy` (production) or `npm run deploy:preview` (preview URL).
 
 ### GitHub Actions → Vercel (required)
 

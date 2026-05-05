@@ -24,6 +24,12 @@ type OrderDetail = {
     status: string;
     trackingNumber: string | null;
     fulfillmentStatus: string;
+    supplierOrderStatus: string;
+    supplierName: string | null;
+    supplierOrderUrl: string | null;
+    supplierOrderNumber: string | null;
+    supplierTrackingUrl: string | null;
+    fulfillmentNotes: string | null;
     shippingAddress: Record<string, unknown> | null;
     labelUrl: string | null;
     carrier: string | null;
@@ -45,6 +51,12 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
   const [status, setStatus] = useState("");
   const [tracking, setTracking] = useState("");
   const [fulfillmentStatus, setFulfillmentStatus] = useState("unfulfilled");
+  const [supplierOrderStatus, setSupplierOrderStatus] = useState("not_needed");
+  const [supplierName, setSupplierName] = useState("");
+  const [supplierOrderUrl, setSupplierOrderUrl] = useState("");
+  const [supplierOrderNumber, setSupplierOrderNumber] = useState("");
+  const [supplierTrackingUrl, setSupplierTrackingUrl] = useState("");
+  const [fulfillmentNotes, setFulfillmentNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [ratesBusy, setRatesBusy] = useState(false);
@@ -58,6 +70,12 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
     setStatus(r.order.status);
     setTracking(r.order.trackingNumber || "");
     setFulfillmentStatus(r.order.fulfillmentStatus || "unfulfilled");
+    setSupplierOrderStatus(r.order.supplierOrderStatus || "not_needed");
+    setSupplierName(r.order.supplierName || "");
+    setSupplierOrderUrl(r.order.supplierOrderUrl || "");
+    setSupplierOrderNumber(r.order.supplierOrderNumber || "");
+    setSupplierTrackingUrl(r.order.supplierTrackingUrl || "");
+    setFulfillmentNotes(r.order.fulfillmentNotes || "");
   };
 
   useEffect(() => {
@@ -225,13 +243,60 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
                 onChange={(e) => setFulfillmentStatus(e.target.value)}
                 className="h-11 rounded-2xl border border-black/10 bg-white px-4"
               >
-                {["unfulfilled", "label_purchased", "packed", "handed_off", "delivered"].map((s) => (
+                {["unfulfilled", "needs_supplier_order", "supplier_ordered", "supplier_shipped", "label_purchased", "packed", "handed_off", "delivered"].map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
                 ))}
               </select>
             </label>
+
+            <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
+              <div className="font-semibold">Supplier order</div>
+              <p className="mt-1 text-sm text-black/60">
+                Use this when an order needs to be placed with AliExpress or a partner warehouse.
+              </p>
+
+              <label className="mt-4 grid gap-2">
+                <span className="text-sm font-semibold">Supplier status</span>
+                <select
+                  value={supplierOrderStatus}
+                  onChange={(e) => setSupplierOrderStatus(e.target.value)}
+                  className="h-11 rounded-2xl border border-black/10 bg-white px-4"
+                >
+                  {["not_needed", "needs_order", "ordered", "supplier_shipped", "received", "cancelled"].map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="mt-3 grid gap-2">
+                <span className="text-sm font-semibold">Supplier</span>
+                <input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} className="h-11 rounded-2xl border border-black/10 bg-white px-4" placeholder="AliExpress" />
+              </label>
+
+              <label className="mt-3 grid gap-2">
+                <span className="text-sm font-semibold">Supplier order URL</span>
+                <input value={supplierOrderUrl} onChange={(e) => setSupplierOrderUrl(e.target.value)} className="h-11 rounded-2xl border border-black/10 bg-white px-4" placeholder="https://" />
+              </label>
+
+              <label className="mt-3 grid gap-2">
+                <span className="text-sm font-semibold">Supplier order number</span>
+                <input value={supplierOrderNumber} onChange={(e) => setSupplierOrderNumber(e.target.value)} className="h-11 rounded-2xl border border-black/10 bg-white px-4" placeholder="Optional" />
+              </label>
+
+              <label className="mt-3 grid gap-2">
+                <span className="text-sm font-semibold">Supplier tracking URL</span>
+                <input value={supplierTrackingUrl} onChange={(e) => setSupplierTrackingUrl(e.target.value)} className="h-11 rounded-2xl border border-black/10 bg-white px-4" placeholder="https://" />
+              </label>
+
+              <label className="mt-3 grid gap-2">
+                <span className="text-sm font-semibold">Fulfillment notes</span>
+                <textarea value={fulfillmentNotes} onChange={(e) => setFulfillmentNotes(e.target.value)} rows={3} className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm" placeholder="Size checked, U.S. warehouse selected, backup supplier..." />
+              </label>
+            </div>
 
             <label className="mt-4 grid gap-2">
               <span className="text-sm font-semibold">Tracking number</span>
@@ -258,6 +323,12 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
                       status,
                       trackingNumber: tracking || null,
                       fulfillmentStatus,
+                      supplierOrderStatus,
+                      supplierName: supplierName || null,
+                      supplierOrderUrl: supplierOrderUrl || null,
+                      supplierOrderNumber: supplierOrderNumber || null,
+                      supplierTrackingUrl: supplierTrackingUrl || null,
+                      fulfillmentNotes: fulfillmentNotes || null,
                     }),
                   });
                   setSaved("Saved.");
@@ -277,4 +348,3 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
     </AdminShell>
   );
 }
-

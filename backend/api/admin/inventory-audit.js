@@ -1,10 +1,10 @@
 import { getDb } from '../../lib/db.js';
-import { requireAdmin } from '../../lib/auth.js';
-import { json, handleCors } from '../../lib/http.js';
+import { requireStoreAccessAny, PERM } from '../../lib/auth.js';
+import { json, handleCors, withCorsContext } from '../../lib/http.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
-  const admin = await requireAdmin(req);
+  const admin = await requireStoreAccessAny(req, [PERM.INVENTORY, PERM.PRODUCTS]);
   if (admin.error) return json(res, admin.status, { error: admin.error });
   if (req.method !== 'GET') return json(res, 405, { error: 'Method not allowed' });
 
@@ -68,4 +68,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
-
+export default withCorsContext(handler);

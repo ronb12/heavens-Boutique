@@ -209,3 +209,100 @@ export async function sendBackInStockEmail({ to, productName, variantSize, produ
 
   await sendEmail({ to, subject: `Back in stock: ${title}${size ? ` · ${size}` : ''}`, html });
 }
+
+/**
+ * Delivers the gift card code by email (self or recipient).
+ * @param {{ to: string, code: string, amountCents: number, isGift: boolean, purchaserEmail: string, giftMessage?: string }} opts
+ */
+export async function sendGiftCardRecipientEmail({
+  to,
+  code,
+  amountCents,
+  isGift,
+  purchaserEmail,
+  giftMessage = '',
+}) {
+  if (!to) return;
+  const amt = moneyFmt(amountCents);
+  const noteBlock = giftMessage
+    ? `<p style="margin:16px 0 0;font-size:14px;color:${TEXT_COLOR};line-height:1.6;font-style:italic;border-left:3px solid ${BRAND_COLOR};padding-left:14px;">“${String(
+        giftMessage,
+      )
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')}”</p>`
+    : '';
+  const fromLine = isGift && purchaserEmail
+    ? `<p style="margin:0 0 16px;font-size:14px;color:${MUTED};">A gift from <strong style="color:${TEXT_COLOR};">${String(purchaserEmail).replace(/</g, '&lt;')}</strong></p>`
+    : '';
+
+  const html = base(`
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:${TEXT_COLOR};">Your ${BRAND} gift card</h1>
+    <p style="margin:0 0 20px;font-size:15px;color:${TEXT_COLOR};">Value: <strong style="color:${BRAND_COLOR};font-size:18px;">${amt}</strong></p>
+    ${fromLine}
+    ${noteBlock}
+    <p style="margin:20px 0 10px;font-size:12px;letter-spacing:0.14em;color:${MUTED};text-transform:uppercase;">Card number</p>
+    <p style="margin:0;padding:18px 20px;background:#F8F5F0;border-radius:12px;border:2px dashed #D4C4A8;font-size:18px;font-weight:700;font-family:ui-monospace,Menlo,monospace;letter-spacing:0.06em;color:${TEXT_COLOR};text-align:center;">${String(
+      code,
+    )
+      .replace(/</g, '')
+      .replace(/>/g, '')}</p>
+    <p style="margin:22px 0 0;font-size:14px;color:${MUTED};">
+      Redeem at checkout on our website or in the Heaven’s Boutique app — enter this code in the gift card field.
+    </p>
+    <p style="margin:12px 0 0;font-size:13px;color:${MUTED};">
+      Treat this code like cash. Don’t share it publicly.
+    </p>
+  `);
+
+  const subj = isGift ? `You received a ${amt} gift card — ${BRAND}` : `Your ${amt} gift card — ${BRAND}`;
+  await sendEmail({ to, subject: subj, html });
+}
+
+/**
+ * Purchaser receipt when the code was emailed to someone else.
+ * @param {{ to: string, amountCents: number, recipientEmail: string }} opts
+ */
+export async function sendGiftCardPurchaserConfirmation({ to, amountCents, recipientEmail }) {
+  if (!to) return;
+  const amt = moneyFmt(amountCents);
+  const html = base(`
+    <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:${TEXT_COLOR};">Gift card purchase confirmed</h1>
+    <p style="margin:0 0 16px;font-size:14px;color:${TEXT_COLOR};">
+      Thank you — we charged ${amt} and emailed the gift card code to:
+    </p>
+    <p style="margin:0 0 20px;font-size:15px;font-weight:600;color:${BRAND_COLOR};">${String(recipientEmail).replace(/</g, '&lt;')}</p>
+    <p style="margin:0;font-size:14px;color:${MUTED};">
+      For security, the full code is only sent to that address. Keep your receipt for your records.
+    </p>
+  `);
+
+  await sendEmail({ to, subject: `Gift card receipt — ${amt}`, html });
+}
+
+/**
+ * Replacement code after admin reissue — previous code no longer redeems.
+ * @param {{ to: string, code: string, balanceCents: number }} opts
+ */
+export async function sendGiftCardReplacementEmail({ to, code, balanceCents }) {
+  if (!to) return;
+  const amt = moneyFmt(balanceCents);
+  const html = base(`
+    <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:${TEXT_COLOR};">Replacement gift card code</h1>
+    <p style="margin:0 0 14px;font-size:14px;color:${TEXT_COLOR};">
+      Your previous gift card code <strong style="color:${TEXT_COLOR};">no longer works</strong> — use this new code instead.
+      Remaining balance: <strong style="color:${BRAND_COLOR};">${amt}</strong>
+    </p>
+    <p style="margin:16px 0 10px;font-size:12px;letter-spacing:0.14em;color:${MUTED};text-transform:uppercase;">New card number</p>
+    <p style="margin:0;padding:18px 20px;background:#F8F5F0;border-radius:12px;border:2px dashed #D4C4A8;font-size:18px;font-weight:700;font-family:ui-monospace,Menlo,monospace;letter-spacing:0.06em;color:${TEXT_COLOR};text-align:center;">${String(
+      code,
+    )
+      .replace(/</g, '')
+      .replace(/>/g, '')}</p>
+    <p style="margin:22px 0 0;font-size:14px;color:${MUTED};">
+      Redeem at checkout on our website or in the Heaven’s Boutique app — enter this code in the gift card field.
+    </p>
+  `);
+
+  await sendEmail({ to, subject: `Your replacement gift card code — ${BRAND}`, html });
+}

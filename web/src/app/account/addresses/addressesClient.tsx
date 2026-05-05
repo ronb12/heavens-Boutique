@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
+import { AccountSubNav } from "@/components/AccountSubNav";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import {
@@ -124,14 +125,10 @@ export function AddressesClient() {
       <SiteHeader active="account" />
 
       <main className="mx-auto max-w-5xl px-4 py-10 flex-1">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl">Addresses</h1>
-            <p className="mt-2 text-black/60">Save addresses for faster checkout.</p>
-          </div>
-          <Link href="/account" className="font-semibold text-[color:var(--gold)] no-underline">
-            ← Account
-          </Link>
+        <AccountSubNav />
+        <div>
+          <h1 className="text-3xl">Addresses</h1>
+          <p className="mt-2 text-black/60">Save addresses for faster checkout.</p>
         </div>
 
         {error ? <div className="mt-6 text-sm text-rose-700 font-semibold">{error}</div> : null}

@@ -29,6 +29,7 @@ export function DiscountsAdminClient() {
   const [valueText, setValueText] = useState("10");
   const [maxUses, setMaxUses] = useState("");
   const [saving, setSaving] = useState(false);
+  const [busyIds, setBusyIds] = useState<Record<string, true>>({});
 
   const load = async () => {
     const r = await apiFetch<{ promos: PromoRow[] }>("/api/admin/promos", { method: "GET" });
@@ -182,11 +183,77 @@ export function DiscountsAdminClient() {
               key={p.id}
               className="rounded-2xl border border-black/10 bg-white/80 px-4 py-3 flex flex-wrap items-baseline justify-between gap-2"
             >
-              <span className="font-mono font-semibold">{p.code}</span>
-              <span className="text-sm text-black/60">
-                {summary(p)} · uses {p.uses_count}
-                {p.max_uses != null ? ` / ${p.max_uses}` : ""} · {p.active ? "active" : "off"}
-              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="font-mono font-semibold">{p.code}</span>
+                  <span className="text-sm text-black/60">
+                    {summary(p)} · uses {p.uses_count}
+                    {p.max_uses != null ? ` / ${p.max_uses}` : ""}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-black/45">{p.active ? "Enabled" : "Disabled"}</div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!!busyIds[p.id]}
+                  className={`h-9 rounded-full px-4 text-sm font-semibold border ${
+                    p.active
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                      : "border-black/10 bg-white text-black/70"
+                  } disabled:opacity-60`}
+                  onClick={async () => {
+                    setError(null);
+                    setBusyIds((s) => ({ ...s, [p.id]: true }));
+                    try {
+                      await apiFetch("/api/admin/promos", {
+                        method: "PATCH",
+                        body: JSON.stringify({ id: p.id, active: !p.active }),
+                      });
+                      await load();
+                    } catch (e: unknown) {
+                      setError(apiErrMessage(e));
+                    } finally {
+                      setBusyIds((s) => {
+                        const next = { ...s };
+                        delete next[p.id];
+                        return next;
+                      });
+                    }
+                  }}
+                >
+                  {p.active ? "Disable" : "Enable"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!!busyIds[p.id]}
+                  className="h-9 rounded-full px-4 text-sm font-semibold border border-rose-200 bg-rose-50 text-rose-800 disabled:opacity-60"
+                  onClick={async () => {
+                    if (!confirm(`Delete code ${p.code}? This cannot be undone.`)) return;
+                    setError(null);
+                    setBusyIds((s) => ({ ...s, [p.id]: true }));
+                    try {
+                      await apiFetch("/api/admin/promos", {
+                        method: "PATCH",
+                        body: JSON.stringify({ id: p.id, delete: true }),
+                      });
+                      await load();
+                    } catch (e: unknown) {
+                      setError(apiErrMessage(e));
+                    } finally {
+                      setBusyIds((s) => {
+                        const next = { ...s };
+                        delete next[p.id];
+                        return next;
+                      });
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>

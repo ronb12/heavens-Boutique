@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
+import { resolveUpstreamApiBase } from "@/lib/backendOrigin";
 
 /**
  * Proxies public store flags from the Node API deployment.
  * Ensures `/api/store-settings` works on the Next origin even when rewrites mis-order or env is minimal.
  */
 export async function GET() {
-  const backend = process.env.BACKEND_PROXY_ORIGIN?.trim()?.replace(/\/+$/, "");
+  const base = resolveUpstreamApiBase();
 
-  if (backend) {
+  if (base) {
     try {
-      const r = await fetch(`${backend}/api/store-settings`, {
+      const r = await fetch(`${base.replace(/\/+$/, "")}/store-settings`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });

@@ -180,29 +180,34 @@ struct AdminFinancialReportsView: View {
         NumberFormatter.localizedString(from: NSNumber(value: Double(cents) / 100), number: .currency)
     }
 
+    private static let _isoFractional: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]; return f
+    }()
+    private static let _iso: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime]; return f
+    }()
+    private static let _mediumDateTime: DateFormatter = {
+        let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short; return f
+    }()
+    private static let _dayParser: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+    private static let _dayDisplay: DateFormatter = {
+        let f = DateFormatter(); f.dateStyle = .medium; return f
+    }()
+
     private static func formatAsOf(_ iso: String) -> String {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        var d = f.date(from: iso)
-        if d == nil {
-            f.formatOptions = [.withInternetDateTime]
-            d = f.date(from: iso)
-        }
+        let d = _isoFractional.date(from: iso) ?? _iso.date(from: iso)
         guard let date = d else { return iso }
-        let out = DateFormatter()
-        out.dateStyle = .medium
-        out.timeStyle = .short
-        return out.string(from: date)
+        return _mediumDateTime.string(from: date)
     }
 
     private static func formatDayLabel(_ ymd: String) -> String {
-        let p = DateFormatter()
-        p.calendar = Calendar(identifier: .gregorian)
-        p.locale = Locale(identifier: "en_US_POSIX")
-        p.dateFormat = "yyyy-MM-dd"
-        guard let d = p.date(from: String(ymd.prefix(10))) else { return ymd }
-        let out = DateFormatter()
-        out.dateStyle = .medium
-        return out.string(from: d)
+        guard let d = _dayParser.date(from: String(ymd.prefix(10))) else { return ymd }
+        return _dayDisplay.string(from: d)
     }
 }

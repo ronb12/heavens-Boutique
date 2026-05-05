@@ -172,12 +172,21 @@ struct AdminManualOrderView: View {
             }
 
             Section {
-                TextField("Discount ($)", text: $discountDollars)
-                    .keyboardType(.decimalPad)
-                TextField("Tax ($)", text: $taxDollars)
-                    .keyboardType(.decimalPad)
-                TextField("Shipping ($)", text: $shippingDollars)
-                    .keyboardType(.decimalPad)
+                LabeledContent("Discount ($)") {
+                    TextField("0", text: $discountDollars)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                }
+                LabeledContent("Tax ($)") {
+                    TextField("0", text: $taxDollars)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                }
+                LabeledContent("Shipping ($)") {
+                    TextField("0", text: $shippingDollars)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                }
                 Text("Subtotal: \(Self.formatMoney(cents: subtotalCents))")
                 Text("Total: \(Self.formatMoney(cents: computedTotalCents))")
                     .fontWeight(.semibold)

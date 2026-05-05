@@ -51,6 +51,7 @@ export function hrefToPermission(href: string): StaffPermissionKey | "dashboard"
   if (href.startsWith("/admin/orders")) return PERM.ORDERS;
   if (href.startsWith("/admin/customers")) return PERM.CUSTOMERS;
   if (href.startsWith("/admin/returns")) return PERM.RETURNS;
+  if (href.startsWith("/admin/product-imports")) return PERM.PRODUCTS;
   if (href.startsWith("/admin/products")) return PERM.PRODUCTS;
   if (href.startsWith("/admin/products-csv")) return PERM.PRODUCTS_CSV;
   if (href.startsWith("/admin/discounts")) return PERM.DISCOUNTS;

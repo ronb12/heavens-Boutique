@@ -19,6 +19,15 @@ function AdminProductShareActions({ productId, title }: { productId: string; tit
   return <ProductShareControls url={url} title={title} compact />;
 }
 
+function productProfit(product: ProductDTO): { profitCents: number | null; margin: number | null } {
+  const revenue = product.salePriceCents ?? product.priceCents;
+  const cost = product.costCents;
+  if (cost == null || !Number.isFinite(cost)) return { profitCents: null, margin: null };
+  const profitCents = revenue - cost;
+  const margin = revenue > 0 ? (profitCents / revenue) * 100 : null;
+  return { profitCents, margin };
+}
+
 export function AdminProductsClient() {
   const [items, setItems] = useState<ProductDTO[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -70,14 +79,15 @@ export function AdminProductsClient() {
       <div className="mt-8 grid gap-3">
         {items.map((p) => {
           const img = (p.images || [])[0] || "";
+          const profit = productProfit(p);
           return (
             <div
               key={p.id}
-              className="rounded-3xl border border-black/10 bg-white/80 p-5 flex flex-wrap items-center justify-between gap-4 hover:shadow-sm transition-shadow"
+              className="grid gap-4 rounded-3xl border border-black/10 bg-white/80 p-5 transition-shadow hover:shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
             >
               <Link
                 href={`/admin/products/${p.id}`}
-                className="flex flex-1 items-center gap-4 min-w-0 no-underline"
+                className="flex min-w-0 items-center gap-4 no-underline"
               >
                 <div className="h-14 w-14 rounded-2xl bg-black/5 overflow-hidden shrink-0">
                   {img ? (
@@ -87,12 +97,30 @@ export function AdminProductsClient() {
                 </div>
                 <div className="min-w-0">
                   <div className="font-semibold text-lg truncate text-[color:var(--foreground)]">{p.name}</div>
-                  <div className="text-sm text-black/55 truncate">{p.category || ""}</div>
+                  <div className="text-sm text-black/55 truncate">
+                    {[p.category || "Uncategorized", p.supplierName ? `Source: ${p.supplierName}` : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </div>
                 </div>
               </Link>
-              <div className="flex items-center gap-4 shrink-0">
-                <div className="font-semibold">{formatUsd(p.salePriceCents ?? p.priceCents)}</div>
-                <AdminProductShareActions productId={p.id} title={p.name} />
+              <div className="grid min-w-0 grid-cols-2 items-center gap-3 sm:flex sm:flex-wrap sm:justify-end">
+                <div className="rounded-2xl border border-black/[0.06] bg-white px-4 py-2 text-right">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-black/40">Price</div>
+                  <div className="font-semibold tabular-nums">{formatUsd(p.salePriceCents ?? p.priceCents)}</div>
+                </div>
+                <div className="rounded-2xl border border-black/[0.06] bg-white px-4 py-2 text-right">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-black/40">Profit</div>
+                  <div className="font-semibold tabular-nums text-[color:var(--charcoal)]">
+                    {profit.profitCents != null ? formatUsd(profit.profitCents) : "Add cost"}
+                  </div>
+                  {profit.margin != null ? (
+                    <div className="text-[11px] text-black/45">{profit.margin.toFixed(1)}% margin</div>
+                  ) : null}
+                </div>
+                <div className="col-span-2 min-w-0 sm:col-span-1">
+                  <AdminProductShareActions productId={p.id} title={p.name} />
+                </div>
               </div>
             </div>
           );

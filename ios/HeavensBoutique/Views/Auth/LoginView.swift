@@ -19,7 +19,7 @@ struct LoginView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     VStack(spacing: 16) {
-                        HBBrandMonogram(size: 56)
+                        HBBrandAppIcon(size: 88)
                         VStack(spacing: 6) {
                             Text("Welcome back")
                                 .font(HBFont.title(30))

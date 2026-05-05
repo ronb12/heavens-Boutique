@@ -7,6 +7,7 @@ struct CustomerOrderDetailView: View {
     @State private var order: OrderDTO?
     @State private var isLoading = true
     @State private var error: String?
+    @State private var showReturnRequest = false
 
     var body: some View {
         ScrollView {
@@ -93,6 +94,26 @@ struct CustomerOrderDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .hbCardStyle()
                     }
+
+                    if let items = o.items, !items.isEmpty {
+                        Button {
+                            showReturnRequest = true
+                            HBFeedback.light()
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.uturn.left")
+                                Text("Request a return")
+                            }
+                            .font(HBFont.caption().weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(HBColors.gold.opacity(0.15))
+                            .foregroundStyle(HBColors.charcoal)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 4)
+                    }
                 }
             }
             .padding()
@@ -102,6 +123,12 @@ struct CustomerOrderDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .refreshable { await load() }
+        .sheet(isPresented: $showReturnRequest) {
+            if let o = order, let items = o.items {
+                ReturnRequestView(orderId: o.id, orderItems: items)
+                    .environmentObject(api)
+            }
+        }
     }
 
     private func shortId(_ uuid: String) -> String {

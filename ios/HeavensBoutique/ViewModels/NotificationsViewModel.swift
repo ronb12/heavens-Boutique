@@ -35,4 +35,23 @@ final class NotificationsViewModel: ObservableObject {
             self.error = error.localizedDescription
         }
     }
+
+    func delete(ids: [String], api: APIClient) async {
+        guard !ids.isEmpty else { return }
+        do {
+            try await api.requestVoid("/notifications", method: "DELETE", jsonBody: ["ids": ids])
+            await load(api: api)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    func deleteAll(api: APIClient) async {
+        do {
+            try await api.requestVoid("/notifications", method: "DELETE", jsonBody: ["deleteAll": true])
+            await load(api: api)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
 }

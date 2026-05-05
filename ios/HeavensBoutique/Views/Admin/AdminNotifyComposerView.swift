@@ -413,10 +413,11 @@ private struct AdminNotifyCustomerPickerView: View {
     @State private var search = ""
 
     private var filtered: [AdminCustomerSummaryDTO] {
-        let base = customers.filter { $0.role == "customer" }
+        // All rows from `/admin/customers` — same as Customers tab. Staff/admin accounts
+        // are included so you can target any registered user for a one-off send.
         let q = search.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if q.isEmpty { return base }
-        return base.filter {
+        if q.isEmpty { return customers }
+        return customers.filter {
             $0.email.lowercased().contains(q)
                 || ($0.fullName?.lowercased().contains(q) ?? false)
                 || $0.id.lowercased().contains(q)
@@ -446,15 +447,34 @@ private struct AdminNotifyCustomerPickerView: View {
                             onPick(c)
                             dismiss()
                         } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(displayName(c))
-                                    .font(HBFont.headline())
-                                    .foregroundStyle(HBColors.charcoal)
-                                Text(c.email)
-                                    .font(HBFont.caption())
-                                    .foregroundStyle(HBColors.mutedGray)
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(displayName(c))
+                                        .font(HBFont.headline())
+                                        .foregroundStyle(HBColors.charcoal)
+                                    Text(c.email)
+                                        .font(HBFont.caption())
+                                        .foregroundStyle(HBColors.mutedGray)
+                                }
+                                Spacer(minLength: 0)
+                                if c.role == "admin" {
+                                    Text("Admin")
+                                        .font(HBFont.caption())
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .background(HBColors.gold.opacity(0.25))
+                                        .clipShape(Capsule())
+                                } else if c.role == "staff" {
+                                    Text("Staff")
+                                        .font(HBFont.caption())
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .background(HBColors.gold.opacity(0.25))
+                                        .clipShape(Capsule())
+                                }
                             }
                         }
+                        .buttonStyle(.borderless)
                         .listRowBackground(HBColors.surface)
                     }
                     .listStyle(.plain)

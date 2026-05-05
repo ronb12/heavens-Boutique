@@ -3,10 +3,14 @@
 <plist version="1.0">
 <dict>
 	<key>API_BASE_URL</key>
-	<string>https://heavens-boutique.vercel.app/api</string>
+	<string>https://heavens-boutique-api.vercel.app/api</string>
+	<key>STOREFRONT_URL</key>
+	<string>https://heavens-boutique-web.vercel.app</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
+	<string>Heaven's Boutique</string>
+	<key>CFBundleSpokenName</key>
 	<string>Heaven's Boutique</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
@@ -22,6 +26,23 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.heavensboutique.app.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>heavensboutique</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>com.heavensboutique.product</string>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>

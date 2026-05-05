@@ -1,8 +1,8 @@
 import { getDb } from '../../lib/db.js';
-import { requireUser, requireAdmin } from '../../lib/auth.js';
+import { requireUser, requireStoreAccess, PERM } from '../../lib/auth.js';
 import { isAllowedOrderStatus } from '../../lib/orderStatuses.js';
 import { sendPushToToken } from '../../lib/fcm.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { sendShippingConfirmation } from '../../lib/emailTemplates.js';
 
 /**
@@ -78,7 +78,7 @@ function orderCustomerNotificationCopy(p) {
   return { title: 'Order update', body: 'Your order was updated.', pushTitle: 'Order update', pushBody: 'Tap to view your order.' };
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const id = req.query?.id;
   if (!id) return json(res, 400, { error: 'Missing id' });
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
       const o = rows[0];
       if (!o) return json(res, 404, { error: 'Not found' });
       if (o.user_id !== auth.userId) {
-        const admin = await requireAdmin(req);
+        const admin = await requireStoreAccess(req, PERM.ORDERS);
         if (admin.error) return json(res, admin.status, { error: admin.error });
       }
 
@@ -122,6 +122,12 @@ export default async function handler(req, res) {
           carrier: o.carrier || null,
           service: o.service || null,
           fulfillmentStatus: o.fulfillment_status || 'unfulfilled',
+          supplierOrderStatus: o.supplier_order_status || 'not_needed',
+          supplierName: o.supplier_name || null,
+          supplierOrderUrl: o.supplier_order_url || null,
+          supplierOrderNumber: o.supplier_order_number || null,
+          supplierTrackingUrl: o.supplier_tracking_url || null,
+          fulfillmentNotes: o.fulfillment_notes || null,
           createdAt: o.created_at,
           items: items.map((i) => ({
             id: i.id,
@@ -137,13 +143,15 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      const admin = await requireAdmin(req);
+      const admin = await requireStoreAccess(req, PERM.ORDERS);
       if (admin.error) return json(res, admin.status, { error: admin.error });
 
       const body = await readJson(req);
       const status = body.status != null ? String(body.status).trim() : '';
       const trackingNumber = body.trackingNumber;
       const fulfillmentStatusRaw = body.fulfillmentStatus !== undefined ? String(body.fulfillmentStatus || '').trim() : null;
+      const supplierOrderStatusRaw =
+        body.supplierOrderStatus !== undefined ? String(body.supplierOrderStatus || '').trim() : null;
 
       if (status) {
         if (!isAllowedOrderStatus(status)) {
@@ -155,12 +163,35 @@ export default async function handler(req, res) {
         await sql`UPDATE orders SET tracking_number = ${trackingNumber || null}, updated_at = now() WHERE id = ${id}`;
       }
       if (fulfillmentStatusRaw !== null) {
-        const allowed = new Set(['unfulfilled', 'label_purchased', 'packed', 'handed_off', 'delivered']);
+        const allowed = new Set(['unfulfilled', 'needs_supplier_order', 'supplier_ordered', 'supplier_shipped', 'label_purchased', 'packed', 'handed_off', 'delivered']);
         const next = fulfillmentStatusRaw || 'unfulfilled';
         if (!allowed.has(next)) {
           return json(res, 400, { error: `Invalid fulfillmentStatus. Allowed: ${[...allowed].join(', ')}` });
         }
         await sql`UPDATE orders SET fulfillment_status = ${next}, updated_at = now() WHERE id = ${id}`;
+      }
+      if (supplierOrderStatusRaw !== null) {
+        const allowed = new Set(['not_needed', 'needs_order', 'ordered', 'supplier_shipped', 'received', 'cancelled']);
+        const next = supplierOrderStatusRaw || 'not_needed';
+        if (!allowed.has(next)) {
+          return json(res, 400, { error: `Invalid supplierOrderStatus. Allowed: ${[...allowed].join(', ')}` });
+        }
+        await sql`UPDATE orders SET supplier_order_status = ${next}, updated_at = now() WHERE id = ${id}`;
+      }
+      if (body.supplierName !== undefined) {
+        await sql`UPDATE orders SET supplier_name = ${String(body.supplierName || '').trim() || null}, updated_at = now() WHERE id = ${id}`;
+      }
+      if (body.supplierOrderUrl !== undefined) {
+        await sql`UPDATE orders SET supplier_order_url = ${String(body.supplierOrderUrl || '').trim() || null}, updated_at = now() WHERE id = ${id}`;
+      }
+      if (body.supplierOrderNumber !== undefined) {
+        await sql`UPDATE orders SET supplier_order_number = ${String(body.supplierOrderNumber || '').trim() || null}, updated_at = now() WHERE id = ${id}`;
+      }
+      if (body.supplierTrackingUrl !== undefined) {
+        await sql`UPDATE orders SET supplier_tracking_url = ${String(body.supplierTrackingUrl || '').trim() || null}, updated_at = now() WHERE id = ${id}`;
+      }
+      if (body.fulfillmentNotes !== undefined) {
+        await sql`UPDATE orders SET fulfillment_notes = ${String(body.fulfillmentNotes || '').trim() || null}, updated_at = now() WHERE id = ${id}`;
       }
 
       const rows = await sql`SELECT * FROM orders WHERE id = ${id} LIMIT 1`;
@@ -230,3 +261,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

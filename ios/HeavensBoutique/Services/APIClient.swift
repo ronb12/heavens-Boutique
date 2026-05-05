@@ -82,6 +82,24 @@ final class APIClient: ObservableObject {
         }
     }
 
+    /// Fetch raw Data (e.g. CSV downloads).
+    func requestData(_ path: String, method: String = "GET", jsonBody: [String: Any]? = nil) async throws -> Data {
+        let data: Data? = try jsonBody.map { try JSONSerialization.data(withJSONObject: $0) }
+        let req = try makeRequest(path: path, method: method, body: data)
+        do {
+            let (respData, resp) = try await session.data(for: req)
+            guard let http = resp as? HTTPURLResponse else { throw APIError.status(-1, nil) }
+            if http.statusCode >= 400 {
+                throw APIError.status(http.statusCode, Self.apiFailureMessage(data: respData, statusCode: http.statusCode))
+            }
+            return respData
+        } catch let e as APIError {
+            throw e
+        } catch {
+            throw APIError.network(error)
+        }
+    }
+
     /// Prefer structured `{ error, details, uploadDebugId }`; fall back to a short raw body snippet for debugging.
     private static func apiFailureMessage(data: Data, statusCode: Int) -> String {
         if let body = try? JSONDecoder().decode(APIErrorBody.self, from: data) {

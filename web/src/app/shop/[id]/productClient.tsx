@@ -50,6 +50,7 @@ export function ProductClient({
   const compareAtCents = product.salePriceCents != null ? product.priceCents : null;
   const payCents = product.salePriceCents ?? product.priceCents;
   const lineTotalCents = payCents * qty;
+  const lowStock = selected ? (selected.stock ?? 0) > 0 && (selected.stock ?? 0) <= 3 : false;
 
   useEffect(() => {
     let mounted = true;
@@ -160,6 +161,20 @@ export function ProductClient({
               Line total ({qty}): <span className="font-semibold text-black/80">{formatUsd(lineTotalCents)}</span>
             </div>
           ) : null}
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {[
+              ["Curated find", "Selected for boutique style and everyday wear."],
+              ["Secure checkout", "Card and wallet payments are processed safely."],
+              ["Tracked orders", "Order status stays available in your account."],
+              ["Support ready", "Questions about sizing or delivery are welcome."],
+            ].map(([title, body]) => (
+              <div key={title} className="rounded-2xl border border-black/10 bg-white/70 p-4">
+                <div className="text-sm font-semibold text-black/82">{title}</div>
+                <div className="mt-1 text-xs leading-5 text-black/52">{body}</div>
+              </div>
+            ))}
+          </div>
 
           <div className="mt-6 rounded-3xl border border-black/10 bg-white/80 p-6">
           <div className="font-semibold">Size</div>
@@ -284,7 +299,17 @@ export function ProductClient({
 
           {selected ? (
             <div className="mt-4 space-y-1 text-sm text-black/55">
-              <div>{selected.stock > 0 ? `${selected.stock} in stock` : "Sold out"}</div>
+              <div>
+                {selected.stock > 0 ? (
+                  lowStock ? (
+                    <span className="font-semibold text-amber-800">Only {selected.stock} left in this size</span>
+                  ) : (
+                    `${selected.stock} in stock`
+                  )
+                ) : (
+                  "Sold out"
+                )}
+              </div>
               {selected.sku ? (
                 <div className="text-black/45">
                   SKU: <span className="font-mono text-black/70">{selected.sku}</span>
@@ -340,9 +365,28 @@ export function ProductClient({
       </div>
 
       {product.description ? (
-        <section className="border-t border-black/10 pt-10 lg:pt-12">
-          <h2 className="text-xl font-semibold">Product details</h2>
-          <p className="mt-4 max-w-3xl text-black/65 leading-8 whitespace-pre-wrap">{product.description}</p>
+        <section className="grid gap-6 border-t border-black/10 pt-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pt-12">
+          <div>
+            <h2 className="text-xl font-semibold">Product details</h2>
+            <p className="mt-4 max-w-3xl text-black/65 leading-8 whitespace-pre-wrap">{product.description}</p>
+          </div>
+          <aside className="rounded-3xl border border-black/10 bg-white/75 p-6">
+            <h3 className="text-base font-semibold">Before you order</h3>
+            <div className="mt-4 grid gap-3 text-sm text-black/62">
+              <div>
+                <span className="font-semibold text-black/80">Fit:</span> Review the selected size and product notes before
+                checkout.
+              </div>
+              <div>
+                <span className="font-semibold text-black/80">Delivery:</span> Orders are prepared with tracking when
+                available.
+              </div>
+              <div>
+                <span className="font-semibold text-black/80">Need help?</span> Save it to your wishlist or message support
+                before buying.
+              </div>
+            </div>
+          </aside>
         </section>
       ) : null}
 
@@ -380,4 +424,3 @@ export function ProductClient({
     </div>
   );
 }
-

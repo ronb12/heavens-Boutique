@@ -13,7 +13,11 @@ struct AdminProductEditorView: View {
     @State private var name = ""
     @State private var slug = ""
     @State private var description = ""
-    @State private var category = ""
+    /// Picker + optional custom text → API `category`.
+    @State private var selectedCategoryOption = "Dresses"
+    @State private var categoryCustom = ""
+    /// When on, show compare-at field (sale-style pricing).
+    @State private var salePricingEnabled = false
     /// What the customer pays (maps to `priceCents` alone, or `salePriceCents` when compare-at is set).
     @State private var sellingPriceDollars = ""
     /// Optional higher “was” price (strike-through); maps to `priceCents` when sale is active.
@@ -21,6 +25,10 @@ struct AdminProductEditorView: View {
     @State private var costDollars = ""
     @State private var isFeatured = false
     @State private var shopLookGroup = ""
+    /// Vendor / reorder context (matches API `supplier_*` fields).
+    @State private var supplierName = ""
+    @State private var supplierUrl = ""
+    @State private var supplierNotes = ""
     @State private var imageEntries: [AdminProductImageEntry] = []
     @State private var manualPublicIdsText = ""
     @State private var photoPickerItems: [PhotosPickerItem] = []
@@ -35,11 +43,77 @@ struct AdminProductEditorView: View {
     @State private var confirmDeleteProduct = false
     @State private var showAdvanced = false
 
+    private static let categoryPickerOptions = [
+        "Dresses", "Tops", "Bottoms", "Sets & jumpsuits", "Outerwear", "Accessories", "Shoes", "Jewelry", "New arrivals", "Sale", "Custom…",
+    ]
+
+    /// Known `shopLookGroup` slugs + empty; unknown loaded values are appended for the picker.
+    private static let shopLookPresetSlugs = ["", "new-arrivals", "featured", "limited-edition", "seasonal-drop"]
+
     private var isEditing: Bool { productId != nil }
+
+    private var resolvedCategory: String {
+        if selectedCategoryOption == "Custom…" {
+            let t = categoryCustom.trimmingCharacters(in: .whitespacesAndNewlines)
+            return t.isEmpty ? "General" : t
+        }
+        return selectedCategoryOption
+    }
+
+    private func syncCategoryFields(from stored: String) {
+        let t = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.isEmpty {
+            selectedCategoryOption = "Dresses"
+            categoryCustom = ""
+            return
+        }
+        if Self.categoryPickerOptions.contains(t) {
+            selectedCategoryOption = t
+            categoryCustom = ""
+        } else {
+            selectedCategoryOption = "Custom…"
+            categoryCustom = t
+        }
+    }
+
+    private func shopLookPickerTags(current: String) -> [String] {
+        let c = current.trimmingCharacters(in: .whitespacesAndNewlines)
+        var tags = Self.shopLookPresetSlugs
+        if !c.isEmpty, !tags.contains(c) {
+            tags.append(c)
+        }
+        return tags
+    }
+
+    private func shopLookLabel(for slug: String) -> String {
+        switch slug {
+        case "": return "None"
+        case "new-arrivals": return "New arrivals"
+        case "featured": return "Featured look"
+        case "limited-edition": return "Limited edition"
+        case "seasonal-drop": return "Seasonal drop"
+        default: return slug.isEmpty ? "None" : "Custom: \(slug)"
+        }
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                if !isLoading, let hint = saveDisabledHint {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundStyle(.orange)
+                        Text(hint)
+                            .font(HBFont.caption().weight(.medium))
+                            .foregroundStyle(HBColors.charcoal)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.orange.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+
                 if isUploadingImages {
                     HStack(spacing: 10) {
                         ProgressView()
@@ -69,20 +143,44 @@ struct AdminProductEditorView: View {
 
                 adminFormSection(title: "Pricing") {
                     VStack(alignment: .leading, spacing: 14) {
-                        labeledField("Price", subtitle: "What customers pay") {
+                        Text(
+                            "Price is what customers pay at checkout. Compare-at is optional: if you set both, checkout uses Price and Compare-at appears as the higher “was” amount. Cost is internal only — it never appears in the store."
+                        )
+                        .font(HBFont.caption())
+                        .foregroundStyle(HBColors.mutedGray)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                        Toggle(isOn: $salePricingEnabled) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Compare-at (sale) pricing")
+                                    .font(.body)
+                                Text("Turn on to show a higher “was” price with a strike-through.")
+                                    .font(HBFont.caption())
+                                    .foregroundStyle(HBColors.mutedGray)
+                            }
+                        }
+                        .tint(HBColors.gold)
+                        .onChange(of: salePricingEnabled) { _, enabled in
+                            if !enabled { compareAtPriceDollars = "" }
+                        }
+
+                        labeledField("Price", subtitle: "Amount charged at checkout") {
                             TextField("0.00", text: $sellingPriceDollars)
                                 .keyboardType(.decimalPad)
                                 .font(.body.monospacedDigit())
                         }
-                        labeledField("Compare-at price", subtitle: "Optional — shows as strikethrough when lower than this") {
-                            TextField("Optional", text: $compareAtPriceDollars)
-                                .keyboardType(.decimalPad)
-                                .font(.body.monospacedDigit())
+
+                        if salePricingEnabled {
+                            labeledField("Compare-at price", subtitle: "Higher amount shown as “was” (must be above Price)") {
+                                TextField("0.00", text: $compareAtPriceDollars)
+                                    .keyboardType(.decimalPad)
+                                    .font(.body.monospacedDigit())
+                            }
                         }
 
                         DisclosureGroup {
                             VStack(alignment: .leading, spacing: 12) {
-                                labeledField("Cost per item", subtitle: "Your cost; shoppers never see this") {
+                                labeledField("Cost per item", subtitle: "Your landed cost — used for profit checks only") {
                                     TextField("0.00", text: $costDollars)
                                         .keyboardType(.decimalPad)
                                         .font(.body.monospacedDigit())
@@ -121,15 +219,34 @@ struct AdminProductEditorView: View {
 
                 adminFormSection(title: "Organization") {
                     VStack(alignment: .leading, spacing: 14) {
-                        labeledField("Product category", subtitle: "Used for Shop filters") {
-                            TextField("Dresses, Accessories…", text: $category)
-                                .font(.body)
+                        labeledField("Product category", subtitle: "Used for Shop filters — pick a preset or enter your own") {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Picker("Category", selection: $selectedCategoryOption) {
+                                    ForEach(Self.categoryPickerOptions, id: \.self) { option in
+                                        Text(option).tag(option)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                if selectedCategoryOption == "Custom…" {
+                                    TextField("Custom category name", text: $categoryCustom)
+                                        .font(.body)
+                                        .textInputAutocapitalization(.words)
+                                }
+                            }
                         }
-                        labeledField("Shop the Look", subtitle: "Optional group id for curated sets") {
-                            TextField("e.g. spring-soiree", text: $shopLookGroup)
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .font(.body)
+                        labeledField("Collection / drop tag", subtitle: "Choose a preset or type a short URL-style label — groups “Shop the look” sets") {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Picker("Collection", selection: $shopLookGroup) {
+                                    ForEach(shopLookPickerTags(current: shopLookGroup), id: \.self) { slug in
+                                        Text(shopLookLabel(for: slug)).tag(slug)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                TextField("Custom label (e.g. spring-soiree)", text: $shopLookGroup)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .font(.body.monospaced())
+                            }
                         }
                         Toggle(isOn: $isFeatured) {
                             VStack(alignment: .leading, spacing: 2) {
@@ -141,6 +258,27 @@ struct AdminProductEditorView: View {
                             }
                         }
                         .tint(HBColors.gold)
+                    }
+                }
+
+                adminFormSection(title: "Supplier & reordering") {
+                    VStack(alignment: .leading, spacing: 14) {
+                        labeledField("Vendor / supplier name", subtitle: "Who you buy from (any source — wholesale, marketplace, local…) — shown on reorder suggestions.") {
+                            TextField("Supplier name", text: $supplierName)
+                                .font(.body)
+                        }
+                        labeledField("Supplier product link", subtitle: "Paste the URL you use to reorder (optional).") {
+                            TextField("https://…", text: $supplierUrl)
+                                .keyboardType(.URL)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .font(.body)
+                        }
+                        labeledField("Supplier notes", subtitle: "SKU hints, MOQ, lead times — optional.") {
+                            TextField("Notes", text: $supplierNotes, axis: .vertical)
+                                .lineLimit(3 ... 8)
+                                .font(.body)
+                        }
                     }
                 }
 
@@ -189,7 +327,17 @@ struct AdminProductEditorView: View {
         .navigationTitle(isEditing ? "Edit product" : "Add product")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
+            ToolbarItemGroup(placement: .primaryAction) {
+                if let productId, let shareURL = Config.productPageURL(productId: productId) {
+                    ShareLink(
+                        item: shareURL,
+                        subject: Text(name.isEmpty ? "Product" : name),
+                        message: Text("Storefront link — Heaven’s Boutique")
+                    ) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .accessibilityLabel("Share public product link")
+                }
                 Button("Save") {
                     Task { await save() }
                 }
@@ -291,6 +439,7 @@ struct AdminProductEditorView: View {
                                     .foregroundStyle(.white, Color.black.opacity(0.5))
                                     .font(.title3)
                             }
+                            .accessibilityLabel("Remove image")
                             .offset(x: 6, y: -6)
                         }
                     }
@@ -444,6 +593,7 @@ struct AdminProductEditorView: View {
     }
 
     private var parsedCompareAtCents: Int? {
+        guard salePricingEnabled else { return nil }
         let t = compareAtPriceDollars.trimmingCharacters(in: .whitespacesAndNewlines)
         if t.isEmpty { return nil }
         return AdminMoney.cents(fromDollarString: t)
@@ -488,27 +638,45 @@ struct AdminProductEditorView: View {
         )
     }
 
-    private var profitAllowsSave: Bool {
-        guard let cost = parsedCostCents else { return true }
-        guard let minCh = minChargeCents else { return false }
-        let net = minCh - AdminProfitGuard.estimatedCardFeeCents(chargeCents: minCh)
-        return net >= cost
-    }
-
+    /// Server enforces profit vs cost via `validateProductProfit` — don’t block Save in `canSave` (fee env can differ from `AdminProfitGuard` below).
     private var canSave: Bool {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !n.isEmpty else { return false }
         guard let sell = parsedSellingCents, sell >= 0 else { return false }
-        if let compare = parsedCompareAtCents {
-            guard compare > sell else { return false }
+        if salePricingEnabled {
+            guard let compare = parsedCompareAtCents, compare > sell else { return false }
         }
         let validRows = variantRows.filter { !$0.size.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         guard !validRows.isEmpty else { return false }
         for row in validRows {
             guard let s = Int(row.stockText.trimmingCharacters(in: .whitespacesAndNewlines)), s >= 0 else { return false }
         }
-        guard profitAllowsSave else { return false }
         return true
+    }
+
+    /// Shown when Save is disabled so it never feels “broken.”
+    private var saveDisabledHint: String? {
+        if canSave { return nil }
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if n.isEmpty { return "Add a product name to enable Save." }
+        if parsedSellingCents == nil { return "Enter a valid price (numbers like 12.99)." }
+        if let sell = parsedSellingCents, sell < 0 { return "Price can’t be negative." }
+        if salePricingEnabled {
+            if parsedCompareAtCents == nil { return "With Compare-at pricing on, enter a compare-at price above the price you charge." }
+            if let c = parsedCompareAtCents, let s = parsedSellingCents, c <= s {
+                return "Compare-at must be higher than the price customers pay."
+            }
+        }
+        let validRows = variantRows.filter { !$0.size.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        if validRows.isEmpty { return "Add at least one variant and fill in Size." }
+        for row in validRows {
+            if let s = Int(row.stockText.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                if s < 0 { return "Stock can’t be negative (use 0 or more per variant)." }
+            } else {
+                return "Each variant needs a whole-number stock (0 or more)."
+            }
+        }
+        return "Fix the fields above to enable Save."
     }
 
     private func load(productId: String) async {
@@ -520,11 +688,13 @@ struct AdminProductEditorView: View {
             name = p.name
             slug = p.slug
             description = p.description ?? ""
-            category = p.category
+            syncCategoryFields(from: p.category)
             if let sale = p.salePriceCents {
+                salePricingEnabled = true
                 sellingPriceDollars = AdminMoney.dollarsString(cents: sale)
                 compareAtPriceDollars = AdminMoney.dollarsString(cents: p.priceCents)
             } else {
+                salePricingEnabled = false
                 sellingPriceDollars = AdminMoney.dollarsString(cents: p.priceCents)
                 compareAtPriceDollars = ""
             }
@@ -535,6 +705,9 @@ struct AdminProductEditorView: View {
             }
             isFeatured = p.isFeatured
             shopLookGroup = p.shopLookGroup ?? ""
+            supplierName = p.supplierName ?? ""
+            supplierUrl = p.supplierUrl ?? ""
+            supplierNotes = p.supplierNotes ?? ""
             let ids = p.images.compactMap { Self.cloudinaryPublicId(fromImageURL: $0) }
             imageEntries = ids.map { AdminProductImageEntry(publicId: $0) }
             manualPublicIdsText = ids.joined(separator: ", ")
@@ -592,7 +765,8 @@ struct AdminProductEditorView: View {
             do {
                 guard let data = try await item.loadTransferable(type: Data.self) else { continue }
                 guard let uiImage = UIImage(data: data) else { continue }
-                guard let jpeg = Self.jpegDataForUpload(from: uiImage) else { continue }
+                let jpeg = Self.jpegDataForUpload(from: uiImage)
+                guard let jpeg else { continue }
                 let b64 = jpeg.base64EncodedString()
                 let res: AdminUploadImageResponse = try await api.request(
                     "/admin/upload",
@@ -609,7 +783,7 @@ struct AdminProductEditorView: View {
         }
     }
 
-    private static func jpegDataForUpload(from image: UIImage) -> Data? {
+    private nonisolated static func jpegDataForUpload(from image: UIImage) -> Data? {
         var maxDimension: CGFloat = 2048
         var quality: CGFloat = 0.82
         for _ in 0 ..< 10 {
@@ -625,7 +799,7 @@ struct AdminProductEditorView: View {
         return jpegDataScaled(from: image, maxDimension: 720, quality: 0.5)
     }
 
-    private static func jpegDataScaled(from image: UIImage, maxDimension: CGFloat, quality: CGFloat) -> Data? {
+    private nonisolated static func jpegDataScaled(from image: UIImage, maxDimension: CGFloat, quality: CGFloat) -> Data? {
         let w = image.size.width
         let h = image.size.height
         let maxSide = max(w, h)
@@ -688,7 +862,7 @@ struct AdminProductEditorView: View {
                 var body: [String: Any] = [
                     "name": name.trimmingCharacters(in: .whitespacesAndNewlines),
                     "description": description.trimmingCharacters(in: .whitespacesAndNewlines),
-                    "category": category.trimmingCharacters(in: .whitespacesAndNewlines),
+                    "category": resolvedCategory.trimmingCharacters(in: .whitespacesAndNewlines),
                     "priceCents": priceCents,
                     "isFeatured": isFeatured,
                     "variants": variantPayload,
@@ -713,13 +887,14 @@ struct AdminProductEditorView: View {
                 } else {
                     body["costCents"] = NSNull()
                 }
+                applySupplierFields(to: &body)
                 let _: ProductSingleResponse = try await api.request("/products/\(productId)", method: "PATCH", jsonBody: body)
             } else {
                 var body: [String: Any] = [
                     "name": name.trimmingCharacters(in: .whitespacesAndNewlines),
-                    "category": category.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    "category": resolvedCategory.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                         ? "General"
-                        : category.trimmingCharacters(in: .whitespacesAndNewlines),
+                        : resolvedCategory.trimmingCharacters(in: .whitespacesAndNewlines),
                     "priceCents": priceCents,
                     "isFeatured": isFeatured,
                     "variants": variantPayload,
@@ -735,6 +910,7 @@ struct AdminProductEditorView: View {
                 } else {
                     body["costCents"] = NSNull()
                 }
+                applySupplierFields(to: &body)
                 let _: ProductSingleResponse = try await api.request("/products", method: "POST", jsonBody: body)
             }
             HBFeedback.success()
@@ -743,6 +919,15 @@ struct AdminProductEditorView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func applySupplierFields(to body: inout [String: Any]) {
+        let sn = supplierName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let su = supplierUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        let nt = supplierNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        body["supplierName"] = sn.isEmpty ? NSNull() : sn
+        body["supplierUrl"] = su.isEmpty ? NSNull() : su
+        body["supplierNotes"] = nt.isEmpty ? NSNull() : nt
     }
 
     private func deleteProduct() async {

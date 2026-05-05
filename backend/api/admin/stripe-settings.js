@@ -1,11 +1,11 @@
 import { getDb } from '../../lib/db.js';
-import { requireAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { requireStoreAccess, PERM } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { getStripePublishableKey } from '../../lib/stripeCredentials.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
-  const admin = await requireAdmin(req);
+  const admin = await requireStoreAccess(req, PERM.SETTINGS);
   if (admin.error) return json(res, admin.status, { error: admin.error });
 
   const sql = getDb();
@@ -81,3 +81,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

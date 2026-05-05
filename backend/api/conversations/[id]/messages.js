@@ -1,9 +1,9 @@
 import { getDb } from '../../../lib/db.js';
-import { requireUser } from '../../../lib/auth.js';
-import { json, readJson, handleCors } from '../../../lib/http.js';
+import { requireUser, requireStoreAccess, PERM } from '../../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../../lib/http.js';
 import { sendPushToToken } from '../../../lib/fcm.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const conversationId = req.query?.id;
   if (!conversationId) return json(res, 400, { error: 'Missing conversation id' });
@@ -14,14 +14,13 @@ export default async function handler(req, res) {
     const auth = requireUser(req);
     if (auth.error) return json(res, auth.status, { error: auth.error });
 
-    const roleRows = await sql`SELECT role FROM users WHERE id = ${auth.userId} LIMIT 1`;
-    const dbRole = roleRows[0]?.role || auth.role || 'customer';
-    const isAdmin = dbRole === 'admin';
+    const teamGate = await requireStoreAccess(req, PERM.CUSTOMERS);
+    const isTeam = !teamGate.error;
 
     const conv = await sql`SELECT * FROM conversations WHERE id = ${conversationId} LIMIT 1`;
     const c = conv[0];
     if (!c) return json(res, 404, { error: 'Not found' });
-    if (c.user_id !== auth.userId && !isAdmin) {
+    if (c.user_id !== auth.userId && !isTeam) {
       return json(res, 403, { error: 'Forbidden' });
     }
 
@@ -35,7 +34,7 @@ export default async function handler(req, res) {
         LIMIT 500
       `;
 
-      if (isAdmin) {
+      if (isTeam) {
         await sql`
           UPDATE messages SET read_at = now()
           WHERE conversation_id = ${conversationId} AND sender_id = ${c.user_id} AND read_at IS NULL
@@ -78,7 +77,9 @@ export default async function handler(req, res) {
       `;
 
       const m = ins[0];
-      const recipientId = isAdmin ? c.user_id : (await sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`)[0]?.id;
+      const recipientId = isTeam
+        ? c.user_id
+        : (await sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`)[0]?.id;
 
       if (recipientId) {
         const u = await sql`SELECT fcm_token FROM users WHERE id = ${recipientId} LIMIT 1`;
@@ -112,7 +113,43 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      // Allow customer who owns the conversation, or any admin, to clear all messages.
+      let body = {};
+      try {
+        body = await readJson(req);
+      } catch {
+        body = {};
+      }
+      let messageId = body.messageId != null ? String(body.messageId).trim() : '';
+      if (!messageId) {
+        try {
+          const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+          const q = url.searchParams.get('messageId');
+          if (q) messageId = String(q).trim();
+        } catch {
+          /* ignore */
+        }
+      }
+      if (messageId) {
+        const rows = await sql`
+          SELECT id, sender_id FROM messages
+          WHERE id = ${messageId} AND conversation_id = ${conversationId}
+          LIMIT 1
+        `;
+        const row = rows[0];
+        if (!row) return json(res, 404, { error: 'Message not found' });
+        const canDelete = row.sender_id === auth.userId || isTeam;
+        if (!canDelete) return json(res, 403, { error: 'Forbidden' });
+        await sql`DELETE FROM messages WHERE id = ${messageId}`;
+        const last = await sql`
+          SELECT max(created_at) as t FROM messages WHERE conversation_id = ${conversationId}
+        `;
+        const t = last[0]?.t;
+        await sql`
+          UPDATE conversations SET last_message_at = ${t || null} WHERE id = ${conversationId}
+        `;
+        return json(res, 200, { ok: true });
+      }
+      // Clear all messages (empty body or no messageId).
       await sql`DELETE FROM messages WHERE conversation_id = ${conversationId}`;
       await sql`UPDATE conversations SET last_message_at = NULL WHERE id = ${conversationId}`;
       return json(res, 200, { ok: true, cleared: true });
@@ -124,3 +161,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

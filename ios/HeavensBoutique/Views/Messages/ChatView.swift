@@ -2,11 +2,17 @@ import SwiftUI
 
 struct ChatView: View {
     let conversationId: String
+    var onConversationDeleted: (() -> Void)?
 
     @EnvironmentObject private var api: APIClient
     @EnvironmentObject private var session: SessionViewModel
+    @EnvironmentObject private var appModel: AppModel
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var vm = MessagesViewModel()
     @State private var draft = ""
+    @State private var confirmClear = false
+    @State private var confirmDeleteConversation = false
+    @State private var messageIdPendingDelete: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -79,6 +85,69 @@ struct ChatView: View {
         .hbScreenBackground()
         .navigationTitle("Chat")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button("Clear messages", systemImage: "text.badge.xmark") {
+                        confirmClear = true
+                    }
+                    .disabled(vm.messages.isEmpty)
+                    Button("Delete chat", systemImage: "trash", role: .destructive) {
+                        confirmDeleteConversation = true
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(HBColors.gold)
+                }
+                .accessibilityLabel("Chat actions")
+            }
+        }
+        .alert("Clear messages?", isPresented: $confirmClear) {
+            Button("Clear", role: .destructive) {
+                HBFeedback.warning()
+                Task { await vm.clearMessages(api: api) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes every message in this thread but keeps the conversation open.")
+        }
+        .alert("Delete this chat?", isPresented: $confirmDeleteConversation) {
+            Button("Delete", role: .destructive) {
+                HBFeedback.warning()
+                Task {
+                    let ok = await vm.deleteConversation(
+                        conversationId: conversationId,
+                        api: api,
+                        listUsesAdminAll: appModel.showAdminChrome
+                    )
+                    if ok {
+                        onConversationDeleted?()
+                        dismiss()
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("The whole conversation will be removed. This cannot be undone.")
+        }
+        .alert("Delete this message?", isPresented: Binding(
+            get: { messageIdPendingDelete != nil },
+            set: { if !$0 { messageIdPendingDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                let mid = messageIdPendingDelete
+                messageIdPendingDelete = nil
+                if let mid {
+                    HBFeedback.warning()
+                    Task { await vm.deleteMessage(messageId: mid, api: api) }
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                messageIdPendingDelete = nil
+            }
+        } message: {
+            Text("This message will be permanently removed.")
+        }
         .task {
             await vm.openConversation(conversationId, api: api)
         }
@@ -90,6 +159,8 @@ struct ChatView: View {
     @ViewBuilder
     private func bubble(_ m: MessageDTO) -> some View {
         let mine = m.senderId == session.user?.id
+        let canModerate = appModel.showAdminChrome
+        let canDeleteMessage = mine || canModerate
         HStack {
             if mine { Spacer(minLength: 48) }
             VStack(alignment: mine ? .trailing : .leading, spacing: 4) {
@@ -99,13 +170,27 @@ struct ChatView: View {
                         .foregroundStyle(HBColors.mutedGray)
                 }
                 if let body = m.body, !body.isEmpty {
-                    Text(body)
-                        .font(HBFont.body())
-                        .foregroundStyle(mine ? Color.white : HBColors.charcoal)
-                        .padding(12)
-                        .background(mine ? HBColors.gold : HBColors.chipIdleBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                    HStack(alignment: .top, spacing: 6) {
+                        Text(body)
+                            .font(HBFont.body())
+                            .foregroundStyle(mine ? Color.white : HBColors.charcoal)
+                            .padding(12)
+                            .background(mine ? HBColors.gold : HBColors.chipIdleBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                        if canDeleteMessage {
+                            Button {
+                                messageIdPendingDelete = m.id
+                            } label: {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(HBColors.rosePink)
+                                    .padding(8)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel("Delete message")
+                        }
+                    }
                 }
                 if mine, m.readAt != nil {
                     Text("Read")

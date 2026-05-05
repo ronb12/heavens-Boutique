@@ -1,9 +1,9 @@
 import { getDb } from '../lib/db.js';
 import { requireUser } from '../lib/auth.js';
-import { json, handleCors } from '../lib/http.js';
+import { json, handleCors, withCorsContext } from '../lib/http.js';
 import { mapProduct } from '../lib/productsMap.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const auth = requireUser(req);
   if (auth.error) return json(res, auth.status, { error: auth.error });
@@ -51,3 +51,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

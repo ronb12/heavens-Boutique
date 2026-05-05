@@ -6,182 +6,157 @@
   "redirects": [
     {
       "source": "/_next/static/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/_next/static/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/_next/static/:path*",
       "permanent": false
     },
     {
       "source": "/_next/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/_next/:path*",
-      "permanent": false
-    },
-    {
-      "source": "/icon.png",
-      "destination": "https://heavens-boutique-web.vercel.app/icon.png",
-      "permanent": false
-    },
-    {
-      "source": "/apple-icon.png",
-      "destination": "https://heavens-boutique-web.vercel.app/apple-icon.png",
-      "permanent": false
-    },
-    {
-      "source": "/marketing.css",
-      "destination": "https://heavens-boutique-web.vercel.app/marketing.css",
-      "permanent": false
-    },
-    {
-      "source": "/app-icon.png",
-      "destination": "https://heavens-boutique-web.vercel.app/app-icon.png",
-      "permanent": false
-    },
-    {
-      "source": "/favicon.svg",
-      "destination": "https://heavens-boutique-web.vercel.app/favicon.svg",
-      "permanent": false
-    },
-    {
-      "source": "/site.webmanifest",
-      "destination": "https://heavens-boutique-web.vercel.app/site.webmanifest",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/_next/:path*",
       "permanent": false
     },
     {
       "source": "/shop/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/shop/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/shop/:path*",
       "permanent": false
     },
     {
       "source": "/cart/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/cart/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/cart/:path*",
       "permanent": false
     },
     {
       "source": "/checkout/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/checkout/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/checkout/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/gift-cards/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/gift-cards/:path*",
       "permanent": false
     },
     {
       "source": "/account/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/account/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/account/:path*",
       "permanent": false
     },
     {
       "source": "/orders/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/orders/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/orders/:path*",
       "permanent": false
     },
     {
       "source": "/wishlist/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/wishlist/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/wishlist/:path*",
       "permanent": false
     },
     {
       "source": "/messages/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/messages/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/messages/:path*",
       "permanent": false
     },
     {
       "source": "/returns/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/returns/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/returns/:path*",
       "permanent": false
     },
     {
       "source": "/blog/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/blog/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/blog/:path*",
       "permanent": false
     },
     {
       "source": "/pages/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/pages/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/pages/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/admin/",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/admin/",
       "permanent": false
     },
     {
       "source": "/admin/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/admin/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/admin/:path*",
       "permanent": false
     },
     {
       "source": "/login/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/login/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/login/:path*",
       "permanent": false
     },
     {
       "source": "/register/:path*",
-      "destination": "https://heavens-boutique-web.vercel.app/register/:path*",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/register/:path*",
       "permanent": false
     },
     {
       "source": "/shop",
-      "destination": "https://heavens-boutique-web.vercel.app/shop",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/shop",
       "permanent": false
     },
     {
       "source": "/cart",
-      "destination": "https://heavens-boutique-web.vercel.app/cart",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/cart",
       "permanent": false
     },
     {
       "source": "/checkout",
-      "destination": "https://heavens-boutique-web.vercel.app/checkout",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/checkout",
+      "permanent": false
+    },
+    {
+      "source": "/gift-cards",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/gift-cards",
       "permanent": false
     },
     {
       "source": "/account",
-      "destination": "https://heavens-boutique-web.vercel.app/account",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/account",
       "permanent": false
     },
     {
       "source": "/orders",
-      "destination": "https://heavens-boutique-web.vercel.app/orders",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/orders",
       "permanent": false
     },
     {
       "source": "/wishlist",
-      "destination": "https://heavens-boutique-web.vercel.app/wishlist",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/wishlist",
       "permanent": false
     },
     {
       "source": "/messages",
-      "destination": "https://heavens-boutique-web.vercel.app/messages",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/messages",
       "permanent": false
     },
     {
       "source": "/returns",
-      "destination": "https://heavens-boutique-web.vercel.app/returns",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/returns",
       "permanent": false
     },
     {
       "source": "/blog",
-      "destination": "https://heavens-boutique-web.vercel.app/blog",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/blog",
       "permanent": false
     },
     {
       "source": "/pages",
-      "destination": "https://heavens-boutique-web.vercel.app/pages",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/pages",
       "permanent": false
     },
     {
       "source": "/admin",
-      "destination": "https://heavens-boutique-web.vercel.app/admin",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/admin",
       "permanent": false
     },
     {
       "source": "/login",
-      "destination": "https://heavens-boutique-web.vercel.app/login",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/login",
       "permanent": false
     },
     {
       "source": "/register",
-      "destination": "https://heavens-boutique-web.vercel.app/register",
-      "permanent": false
-    },
-    {
-      "source": "/robots.txt",
-      "destination": "https://heavens-boutique-web.vercel.app/robots.txt",
-      "permanent": false
-    },
-    {
-      "source": "/sitemap.xml",
-      "destination": "https://heavens-boutique-web.vercel.app/sitemap.xml",
+      "destination": "https://heavens-boutique-web-steel.vercel.app/register",
       "permanent": false
     }
   ],

@@ -114,18 +114,32 @@ export function SiteHeader({
             <Link href="/account" className={pillInline(active === "account")}>
               Account
             </Link>
-            {user && !loading ? (
-              <>
-                <Link href="/orders" className={pillInline(active === "orders")}>
-                  Orders
-                </Link>
-                <Link href="/returns" className={pillInline(active === "returns")}>
-                  Returns
-                </Link>
-                <Link href="/messages" className={pillInline(active === "messages")}>
-                  Messages
-                </Link>
-              </>
+            {!loading ? (
+              user ? (
+                <>
+                  <Link href="/orders" className={pillInline(active === "orders")}>
+                    Orders
+                  </Link>
+                  <Link href="/returns" className={pillInline(active === "returns")}>
+                    Returns
+                  </Link>
+                  <Link href="/messages" className={pillInline(active === "messages")}>
+                    Messages
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login?next=%2Forders" className={pillInline(active === "orders")}>
+                    Orders
+                  </Link>
+                  <Link href="/login?next=%2Freturns" className={pillInline(active === "returns")}>
+                    Returns
+                  </Link>
+                  <Link href="/login?next=%2Fmessages" className={pillInline(active === "messages")}>
+                    Messages
+                  </Link>
+                </>
+              )
             ) : null}
             {!loading && user?.role === "admin" ? (
               <Link href="/admin" className={pillInline(active === "admin")}>
@@ -195,18 +209,44 @@ export function SiteHeader({
               <Link href="/account" className={pill(active === "account")} onClick={() => setMenuOpen(false)}>
                 Account
               </Link>
-              {user && !loading ? (
-                <>
-                  <Link href="/orders" className={pill(active === "orders")} onClick={() => setMenuOpen(false)}>
-                    Orders
-                  </Link>
-                  <Link href="/returns" className={pill(active === "returns")} onClick={() => setMenuOpen(false)}>
-                    Returns
-                  </Link>
-                  <Link href="/messages" className={pill(active === "messages")} onClick={() => setMenuOpen(false)}>
-                    Messages
-                  </Link>
-                </>
+              {!loading ? (
+                user ? (
+                  <>
+                    <Link href="/orders" className={pill(active === "orders")} onClick={() => setMenuOpen(false)}>
+                      Orders
+                    </Link>
+                    <Link href="/returns" className={pill(active === "returns")} onClick={() => setMenuOpen(false)}>
+                      Returns
+                    </Link>
+                    <Link href="/messages" className={pill(active === "messages")} onClick={() => setMenuOpen(false)}>
+                      Messages
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login?next=%2Forders"
+                      className={pill(active === "orders")}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Orders
+                    </Link>
+                    <Link
+                      href="/login?next=%2Freturns"
+                      className={pill(active === "returns")}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Returns
+                    </Link>
+                    <Link
+                      href="/login?next=%2Fmessages"
+                      className={pill(active === "messages")}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Messages
+                    </Link>
+                  </>
+                )
               ) : null}
               {!loading && user?.role === "admin" ? (
                 <Link href="/admin" className={pill(active === "admin")} onClick={() => setMenuOpen(false)}>

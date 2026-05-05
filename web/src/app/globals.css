@@ -92,3 +92,140 @@ h3 {
 .hb-hero-anim-fade .hb-hero-fade-layer {
   animation: hb-hero-fade-pulse 6s ease-in-out infinite alternate;
 }
+
+/* Home page — soft animated backdrop (pairs with iOS shop / welcome ambience) */
+@keyframes hb-home-drift-a {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(4%, -3%, 0) scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes hb-home-drift-b {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(-5%, 4%, 0) scale(1.12);
+    opacity: 0.95;
+  }
+}
+
+@keyframes hb-home-shimmer {
+  0% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0.22;
+  }
+}
+
+@keyframes hb-home-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hb-home-hero-frame {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+.hb-home-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hb-home-ambient::before {
+  content: "";
+  position: absolute;
+  width: min(120vw, 900px);
+  height: min(120vw, 900px);
+  left: -25%;
+  top: -35%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(234, 176, 200, 0.42) 0%,
+    rgba(252, 232, 240, 0.15) 45%,
+    transparent 70%
+  );
+  filter: blur(2px);
+  animation: hb-home-drift-a 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hb-home-ambient::after {
+  content: "";
+  position: absolute;
+  width: min(100vw, 720px);
+  height: min(100vw, 720px);
+  right: -20%;
+  bottom: -25%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 60% 55%,
+    rgba(241, 229, 172, 0.35) 0%,
+    rgba(234, 176, 200, 0.12) 50%,
+    transparent 68%
+  );
+  filter: blur(3px);
+  animation: hb-home-drift-b 28s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hb-home-ambient-mesh {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    165deg,
+    transparent 0%,
+    rgba(255, 251, 252, 0.5) 38%,
+    rgba(253, 238, 244, 0.35) 62%,
+    transparent 100%
+  );
+  animation: hb-home-shimmer 10s ease-in-out infinite alternate;
+}
+
+.hb-home-reveal {
+  animation: hb-home-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hb-home-hero-float {
+  animation: hb-home-hero-frame 9s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-home-ambient::before,
+  .hb-home-ambient::after,
+  .hb-home-ambient-mesh {
+    animation: none !important;
+  }
+
+  .hb-home-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .hb-home-hero-float {
+    animation: none !important;
+  }
+}

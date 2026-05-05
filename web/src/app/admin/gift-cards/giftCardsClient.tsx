@@ -41,10 +41,13 @@ function apiErrMessage(err: unknown): string {
 
 export function GiftCardsAdminClient() {
   const [rows, setRows] = useState<Row[]>([]);
-  const [purchaseEnabled, setPurchaseEnabled] = useState(true);
+  /** Last value persisted on the server */
+  const [purchaseSettingSaved, setPurchaseSettingSaved] = useState(true);
+  /** Local checkbox state until admin clicks Save */
+  const [purchaseSettingDraft, setPurchaseSettingDraft] = useState(true);
   const [purchaseForcedOffByEnv, setPurchaseForcedOffByEnv] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(true);
-  const [toggleSaving, setToggleSaving] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState("25");
   const [note, setNote] = useState("");
@@ -90,7 +93,9 @@ export function GiftCardsAdminClient() {
           giftCardsPurchaseDisabledByEnv?: boolean;
         }>("/api/admin/store-settings", { method: "GET" });
         if (!alive) return;
-        setPurchaseEnabled(r.giftCardsPurchaseEnabled !== false);
+        const on = r.giftCardsPurchaseEnabled !== false;
+        setPurchaseSettingSaved(on);
+        setPurchaseSettingDraft(on);
         setPurchaseForcedOffByEnv(Boolean(r.giftCardsPurchaseDisabledByEnv));
       } catch {
         if (!alive) return;
@@ -102,6 +107,27 @@ export function GiftCardsAdminClient() {
       alive = false;
     };
   }, []);
+
+  const purchaseSettingsDirty = purchaseSettingDraft !== purchaseSettingSaved;
+
+  async function savePurchaseSetting() {
+    if (purchaseForcedOffByEnv || settingsSaving) return;
+    setSettingsSaving(true);
+    setError(null);
+    try {
+      const saved = await apiFetch<{ giftCardsPurchaseEnabled?: boolean }>("/api/admin/store-settings", {
+        method: "PATCH",
+        body: JSON.stringify({ giftCardsPurchaseEnabled: purchaseSettingDraft }),
+      });
+      const on = saved.giftCardsPurchaseEnabled !== false;
+      setPurchaseSettingSaved(on);
+      setPurchaseSettingDraft(on);
+    } catch (err: unknown) {
+      setError(apiErrMessage(err));
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
 
   async function openRecovery(id: string) {
     setRecoveryTargetId(id);
@@ -181,33 +207,31 @@ export function GiftCardsAdminClient() {
             Emergency server flag is forcing purchases off — toggling below has no effect until that is cleared.
           </p>
         ) : null}
-        <label className="mt-4 flex items-center gap-3 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            className="h-5 w-5 rounded border-black/20"
-            checked={purchaseEnabled}
-            disabled={settingsLoading || toggleSaving || purchaseForcedOffByEnv}
-            onChange={async (e) => {
-              const on = e.target.checked;
-              setToggleSaving(true);
-              setError(null);
-              try {
-                const saved = await apiFetch<{ giftCardsPurchaseEnabled?: boolean }>("/api/admin/store-settings", {
-                  method: "PATCH",
-                  body: JSON.stringify({ giftCardsPurchaseEnabled: on }),
-                });
-                setPurchaseEnabled(saved.giftCardsPurchaseEnabled !== false);
-              } catch (err: unknown) {
-                setError(apiErrMessage(err));
-              } finally {
-                setToggleSaving(false);
-              }
-            }}
-          />
-          <span className="text-sm font-semibold text-black/80">
-            {settingsLoading ? "Loading…" : "Allow customers to purchase gift cards online"}
-          </span>
-        </label>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="h-5 w-5 rounded border-black/20"
+              checked={purchaseSettingDraft}
+              disabled={settingsLoading || settingsSaving || purchaseForcedOffByEnv}
+              onChange={(e) => setPurchaseSettingDraft(e.target.checked)}
+            />
+            <span className="text-sm font-semibold text-black/80">
+              {settingsLoading ? "Loading…" : "Allow customers to purchase gift cards online"}
+            </span>
+          </label>
+          <button
+            type="button"
+            disabled={settingsLoading || settingsSaving || purchaseForcedOffByEnv || !purchaseSettingsDirty}
+            onClick={savePurchaseSetting}
+            className="h-10 shrink-0 rounded-full bg-[color:var(--gold)] px-6 text-sm font-semibold text-[color:var(--charcoal)] shadow-[0_4px_18px_rgba(212,175,55,0.35)] disabled:opacity-50 disabled:shadow-none"
+          >
+            {settingsSaving ? "Saving…" : "Save"}
+          </button>
+        </div>
+        {purchaseSettingsDirty && !settingsLoading && !purchaseForcedOffByEnv ? (
+          <p className="mt-2 text-xs font-medium text-amber-800/90">You have unsaved changes — click Save to apply.</p>
+        ) : null}
       </div>
 
       {error ? <div className="mt-4 text-sm text-rose-700 font-semibold">{error}</div> : null}

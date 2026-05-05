@@ -76,26 +76,46 @@ export function MessagesClient() {
         <div className="mt-8 grid gap-3">
           {conversations.length ? (
             conversations.map((c) => (
-              <Link
+              <div
                 key={c.id}
-                href={`/messages/${c.id}`}
-                className="block rounded-3xl border border-black/10 bg-white/80 p-6 no-underline hover:shadow-sm transition-shadow"
+                className="flex gap-2 items-stretch rounded-3xl border border-black/10 bg-white/80 overflow-hidden hover:shadow-sm transition-shadow"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="font-semibold">{c.title || "Chat"}</div>
-                    {user.role === "admin" ? (
+                <Link
+                  href={`/messages/${c.id}`}
+                  className="flex-1 block p-6 no-underline min-w-0"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="font-semibold text-[color:var(--charcoal)]">{c.title || "Chat"}</div>
+                      {user.role === "admin" ? (
+                        <div className="mt-1 text-sm text-black/55">
+                          {c.customerName || c.customerEmail || ""}
+                        </div>
+                      ) : null}
                       <div className="mt-1 text-sm text-black/55">
-                        {c.customerName || c.customerEmail || ""}
+                        {c.lastMessageAt ? `Last message: ${new Date(c.lastMessageAt).toLocaleString()}` : "No messages yet"}
                       </div>
-                    ) : null}
-                    <div className="mt-1 text-sm text-black/55">
-                      {c.lastMessageAt ? `Last message: ${new Date(c.lastMessageAt).toLocaleString()}` : "No messages yet"}
                     </div>
+                    <div className="text-sm font-semibold text-[color:var(--gold)] shrink-0">Open →</div>
                   </div>
-                  <div className="text-sm font-semibold text-[color:var(--gold)]">Open →</div>
-                </div>
-              </Link>
+                </Link>
+                <button
+                  type="button"
+                  className="shrink-0 px-4 text-sm font-semibold text-rose-700 bg-rose-50/90 hover:bg-rose-100 border-l border-black/10"
+                  onClick={async () => {
+                    if (!confirm("Delete this conversation and all its messages?")) return;
+                    setError(null);
+                    try {
+                      await apiFetch(`/api/conversations/${encodeURIComponent(c.id)}`, { method: "DELETE" });
+                      setConversations((prev) => prev.filter((x) => x.id !== c.id));
+                    } catch (e: any) {
+                      setError(e?.message || "Failed to delete conversation");
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             ))
           ) : (
             <div className="rounded-3xl border border-black/10 bg-white/80 p-8 text-black/60">

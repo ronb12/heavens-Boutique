@@ -379,18 +379,19 @@ struct AdminCustomerDetailView: View {
         NumberFormatter.localizedString(from: NSNumber(value: Double(cents) / 100), number: .currency)
     }
 
+    private static let _isoFractional: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]; return f
+    }()
+    private static let _iso: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime]; return f
+    }()
+    private static let _mediumDateTime: DateFormatter = {
+        let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short; return f
+    }()
+
     private static func formatDate(_ iso: String) -> String {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        var d = f.date(from: iso)
-        if d == nil {
-            f.formatOptions = [.withInternetDateTime]
-            d = f.date(from: iso)
-        }
+        let d = _isoFractional.date(from: iso) ?? _iso.date(from: iso)
         guard let date = d else { return iso }
-        let out = DateFormatter()
-        out.dateStyle = .medium
-        out.timeStyle = .short
-        return out.string(from: date)
+        return _mediumDateTime.string(from: date)
     }
 }

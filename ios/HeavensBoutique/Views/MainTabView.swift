@@ -11,7 +11,7 @@ struct MainTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if appModel.session.isAdmin && appModel.customerViewPreview {
+            if appModel.session.canOpenAdminPortal && appModel.customerViewPreview {
                 customerPreviewBanner
             }
             TabView(selection: $appModel.tabSelection) {
@@ -23,17 +23,21 @@ struct MainTabView: View {
                 .tabItem { Label("Shop", systemImage: "bag.fill") }
                 .tag(1)
                 .accessibilityIdentifier("tab_shop")
+            CustomerOrdersTabView()
+                .tabItem { Label("Orders", systemImage: "shippingbox.fill") }
+                .tag(2)
+                .accessibilityIdentifier("tab_orders")
             ConversationsListView()
                 .tabItem { Label("Messages", systemImage: "bubble.left.and.bubble.right.fill") }
-                .tag(2)
+                .tag(3)
                 .accessibilityIdentifier("tab_messages")
             NotificationCenterView()
                 .tabItem { Label("Notifications", systemImage: "bell.fill") }
-                .tag(3)
+                .tag(4)
                 .accessibilityIdentifier("tab_notifications")
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.crop.circle.fill") }
-                .tag(4)
+                .tag(5)
                 .accessibilityIdentifier("tab_profile")
             }
             .tint(HBColors.gold)
@@ -43,9 +47,9 @@ struct MainTabView: View {
             let type = (info["type"] as? String)?.lowercased()
             if let oid = hbPushString(info["orderId"]) ?? hbPushString(info["order_id"]), !oid.isEmpty {
                 appModel.pendingOrderIdToOpen = oid
-                appModel.openProfileTab()
+                appModel.openOrdersTab()
             } else if type == "order" {
-                appModel.openProfileTab()
+                appModel.openOrdersTab()
             }
             if let cid = hbPushString(info["conversationId"]) ?? hbPushString(info["conversation_id"]), !cid.isEmpty {
                 appModel.pendingConversationIdToOpen = cid

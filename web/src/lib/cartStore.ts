@@ -38,7 +38,13 @@ export function addToCart(items: CartItem[], next: CartItem): CartItem[] {
   const idx = items.findIndex((i) => i.variantId === next.variantId);
   if (idx >= 0) {
     const copy = items.slice();
-    copy[idx] = { ...copy[idx], quantity: copy[idx].quantity + qty };
+    copy[idx] = {
+      ...copy[idx],
+      quantity: copy[idx].quantity + qty,
+      unitPriceCents: next.unitPriceCents,
+      name: next.name,
+      size: next.size != null ? next.size : copy[idx].size,
+    };
     return copy;
   }
   return [...items, { ...next, quantity: qty }];

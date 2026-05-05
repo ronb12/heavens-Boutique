@@ -13,8 +13,10 @@ final class SessionViewModel: ObservableObject {
     }
 
     var isLoggedIn: Bool { user != nil }
-    /// Matches API `users.role` (Postgres); tolerate any casing.
-    var isAdmin: Bool { (user?.role ?? "").lowercased() == "admin" }
+    /// Store owner (`admin` role).
+    var isAdmin: Bool { user?.isStoreOwner == true }
+    /// Admin or active staff with at least one permission (store team).
+    var canOpenAdminPortal: Bool { user?.canOpenAdminPortal == true }
 
     func restore() async {
         isRestoring = true
@@ -28,6 +30,9 @@ final class SessionViewModel: ObservableObject {
             user = me
             await pushCoordinator?.sessionDidAuthenticate()
         } catch {
+            #if DEBUG
+            print("[SessionViewModel] restore failed: \(error)")
+            #endif
             api.setToken(nil)
             user = nil
         }
@@ -50,6 +55,10 @@ final class SessionViewModel: ObservableObject {
         do {
             let me: UserDTO = try await api.request("/users/me", method: "GET")
             user = me
-        } catch { }
+        } catch {
+            #if DEBUG
+            print("[SessionViewModel] refreshProfile failed: \(error)")
+            #endif
+        }
     }
 }

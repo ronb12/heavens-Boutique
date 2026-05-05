@@ -11,6 +11,7 @@ type StaffRow = {
   role: string;
   staffPermissions: Record<string, boolean>;
   staffActive: boolean;
+  staffTitle: string | null;
   createdAt?: string | null;
 };
 
@@ -23,7 +24,7 @@ const LABELS: { key: keyof typeof PERM; label: string }[] = [
   { key: "DISCOUNTS", label: "Discount codes" },
   { key: "GIFT_CARDS", label: "Gift cards" },
   { key: "CONTENT", label: "Pages & journal" },
-  { key: "HOMEPAGE", label: "App home screen (CMS)" },
+  { key: "HOMEPAGE", label: "Store home (photos & promos)" },
   { key: "MARKETING", label: "Marketing notifications" },
   { key: "REPORTS", label: "Financial reports" },
   { key: "SETTINGS", label: "Stripe & EasyPost keys" },
@@ -32,22 +33,41 @@ const LABELS: { key: keyof typeof PERM; label: string }[] = [
   { key: "PRODUCTS_CSV", label: "Bulk CSV import/export" },
 ];
 
+const DEFAULT_TITLE_OPTIONS = [
+  "Sales associate",
+  "Stylist",
+  "Assistant manager",
+  "Store manager",
+  "Visual merchandising",
+  "Customer service",
+  "Operations & inventory",
+  "Other",
+] as const;
+
 export function StaffAdminClient() {
   const [rows, setRows] = useState<StaffRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [titleOptions, setTitleOptions] = useState<string[]>([...DEFAULT_TITLE_OPTIONS]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [staffTitle, setStaffTitle] = useState<string>(DEFAULT_TITLE_OPTIONS[0] ?? "Sales associate");
   const [invitePerms, setInvitePerms] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const r = await apiFetch<{ staff: StaffRow[] }>("/api/admin/staff", { method: "GET" });
+      const r = await apiFetch<{ staff: StaffRow[]; titleOptions?: string[] }>("/api/admin/staff", {
+        method: "GET",
+      });
       setRows(r.staff);
+      if (r.titleOptions?.length) {
+        setTitleOptions(r.titleOptions);
+        setStaffTitle((t) => (r.titleOptions!.includes(t) ? t : r.titleOptions![0]!));
+      }
     } catch (e: unknown) {
       const msg = e && typeof e === "object" && "message" in e ? String((e as { message: string }).message) : "Failed";
       setError(msg);
@@ -76,12 +96,14 @@ export function StaffAdminClient() {
           email,
           password,
           fullName: fullName.trim() || undefined,
+          staffTitle: staffTitle.trim() || titleOptions[0],
           permissions: permObj,
         }),
       });
       setEmail("");
       setPassword("");
       setFullName("");
+      setStaffTitle(titleOptions[0] ?? "Sales associate");
       setInvitePerms({});
       await load();
     } catch (err: unknown) {
@@ -162,6 +184,21 @@ export function StaffAdminClient() {
               onChange={(e) => setFullName(e.target.value)}
             />
           </label>
+          <label className="block text-sm sm:col-span-2">
+            <span className="font-medium text-black/80">Job title</span>
+            <select
+              className="mt-1 w-full rounded-xl border border-black/12 bg-white px-3 py-2"
+              value={staffTitle}
+              onChange={(e) => setStaffTitle(e.target.value)}
+              required
+            >
+              {titleOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
           <div className="sm:col-span-2">
             <div className="text-sm font-medium text-black/80">Permissions</div>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -220,6 +257,7 @@ export function StaffAdminClient() {
                       <span className="text-red-700">Deactivated</span>
                     )}
                     {row.fullName ? ` · ${row.fullName}` : ""}
+                    {row.role === "staff" && row.staffTitle ? ` · ${row.staffTitle}` : ""}
                   </div>
                   {row.role === "staff" ? (
                     <div className="mt-2 text-xs text-black/45">

@@ -54,8 +54,8 @@ export function HomeHero({ hero }: { hero: HomepageHero }) {
   }
 
   return (
-    <section className="relative mx-auto max-w-6xl px-4 pt-8 pb-2">
-      <div className="relative overflow-hidden rounded-[2rem] border border-[color:var(--border-subtle)] shadow-[0_24px_60px_rgba(43,43,43,0.14)]">
+    <section className="hb-home-reveal relative mx-auto max-w-6xl px-4 pt-8 pb-2">
+      <div className="hb-home-hero-float relative overflow-hidden rounded-[2rem] border border-[color:var(--border-subtle)] shadow-[0_24px_60px_rgba(43,43,43,0.14)]">
         <div
           className={`relative aspect-[21/11] min-h-[280px] w-full max-h-[min(52vh,560px)] overflow-hidden md:aspect-[21/9] ${wrapperAnim}`}
         >

@@ -1,13 +1,14 @@
 import { getDb } from '../../lib/db.js';
 import { signToken } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { verifyAppleIdentityToken, syntheticEmailFromSub } from '../../lib/appleIdToken.js';
 import { notifyAllAdmins } from '../../lib/adminNotify.js';
+import { applyNewsletterInterestOnSignup } from '../../lib/newsletterSignup.js';
 
 const AUDIENCE =
   process.env.APPLE_IOS_BUNDLE_ID || process.env.APPLE_CLIENT_ID || 'com.heavensboutique.app';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
@@ -146,6 +147,12 @@ export default async function handler(req, res) {
 
     if (user.role === 'customer') {
       try {
+        const em = String(user.email || '').trim().toLowerCase();
+        if (em) await applyNewsletterInterestOnSignup(sql, em, user.id);
+      } catch (e) {
+        console.error('newsletter signup merge (apple)', e);
+      }
+      try {
         const label = [fullNameFromClient, email].filter(Boolean).join(' · ') || email;
         await notifyAllAdmins(sql, {
           title: 'New customer signup',
@@ -172,3 +179,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Apple sign-in failed' });
   }
 }
+export default withCorsContext(handler);

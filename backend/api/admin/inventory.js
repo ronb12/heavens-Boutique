@@ -1,18 +1,19 @@
 import { getDb } from '../../lib/db.js';
-import { requireAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { requireStoreAccessAny, PERM } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { getLowStockThreshold } from '../../lib/adminNotify.js';
 import { applyAdminVariantStockOnly } from '../../lib/inventoryStockAdmin.js';
+import { resolveProductImageUrl } from '../../lib/productImages.js';
 
 /**
- * GET /api/admin/inventory — Shopify-style rows: each variant with on-hand qty.
+ * GET /api/admin/inventory — one row per variant with on-hand qty.
  * Query: q (search name/sku/size), lowStock=1 (at/below threshold only)
  *
  * PATCH /api/admin/inventory — { updates: [{ productId, variantId, stock }] }
  */
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
-  const admin = await requireAdmin(req);
+  const admin = await requireStoreAccessAny(req, [PERM.INVENTORY, PERM.PRODUCTS]);
   if (admin.error) return json(res, admin.status, { error: admin.error });
 
   const sql = getDb();
@@ -32,7 +33,8 @@ export default async function handler(req, res) {
           pv.sku,
           pv.stock,
           p.name AS product_name,
-          p.category AS category
+          p.category AS category,
+          p.cloudinary_ids[1] AS first_image
         FROM product_variants pv
         INNER JOIN products p ON p.id = pv.product_id
         ORDER BY p.name ASC NULLS LAST, pv.size ASC NULLS LAST
@@ -47,6 +49,7 @@ export default async function handler(req, res) {
         sku: r.sku || null,
         stock: Number(r.stock ?? 0),
         lowStock: Number(r.stock ?? 0) <= threshold,
+        imageRef: resolveProductImageUrl(r.first_image),
       }));
 
       if (qNorm) {
@@ -101,3 +104,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

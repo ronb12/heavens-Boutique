@@ -1,19 +1,20 @@
 import SwiftUI
 
+private let productPriceFormatter: NumberFormatter = {
+    let f = NumberFormatter()
+    f.numberStyle = .currency
+    f.locale = Locale.current
+    f.currencyCode = Locale.current.currency?.identifier ?? "USD"
+    return f
+}()
+
 struct ProductCardView: View {
     let product: ProductDTO
 
     private var displayPrice: String {
         let cents = product.salePriceCents ?? product.priceCents
-        let f = NumberFormatter()
-        f.numberStyle = .currency
-        f.locale = Locale.current
-        if let code = Locale.current.currency?.identifier {
-            f.currencyCode = code
-        } else {
-            f.currencyCode = "USD"
-        }
-        return f.string(from: NSNumber(value: Double(cents) / 100)) ?? "$\(Double(cents) / 100)"
+        return productPriceFormatter.string(from: NSNumber(value: Double(cents) / 100))
+            ?? "$\(Double(cents) / 100)"
     }
 
     private var totalStock: Int {
@@ -21,26 +22,28 @@ struct ProductCardView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ZStack(alignment: .topLeading) {
+        VStack(alignment: .leading, spacing: 8) {
+            // Slightly shorter image + inner inset so the tile reads clearly even if the parent grid is tight to the lead edge.
+            ZStack(alignment: .topTrailing) {
                 image
-                    .frame(height: 200)
+                    .frame(height: 148)
                     .frame(maxWidth: .infinity)
                     .clipped()
+                    .padding(.horizontal, 4)
 
                 if product.salePriceCents != nil {
                     Text("Sale")
                         .font(HBFont.caption().weight(.semibold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
                         .background(HBColors.softPink)
                         .foregroundStyle(HBColors.charcoal)
                         .clipShape(Capsule())
-                        .padding(10)
+                        .padding(8)
                         .accessibilityHidden(true)
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
             Text(product.name)
                 .font(HBFont.headline())
@@ -71,10 +74,21 @@ struct ProductCardView: View {
                 }
             }
         }
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        .padding(6)
         .hbCardStyle()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(cardAccessibilityLabel)
         .task {
             await ProductImagePrefetcher.shared.prefetch(urlStrings: product.images)
         }
+    }
+
+    private var cardAccessibilityLabel: String {
+        var parts = [product.name, displayPrice]
+        if product.salePriceCents != nil { parts.append("On sale") }
+        if totalStock > 0, totalStock < 6 { parts.append("Only \(totalStock) left") }
+        return parts.joined(separator: ", ")
     }
 
     private var strikethroughPrice: String {

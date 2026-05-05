@@ -1,12 +1,12 @@
 import { getDb } from '../lib/db.js';
-import { json, handleCors } from '../lib/http.js';
+import { json, handleCors, withCorsContext } from '../lib/http.js';
 
 /**
  * GET /api/pages — public CMS.
  * ?slug=about — single published page/post
  * no slug — lists published pages + blog posts (titles/slugs only)
  */
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   if (req.method !== 'GET') return json(res, 405, { error: 'Method not allowed' });
 
@@ -72,3 +72,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

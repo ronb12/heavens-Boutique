@@ -75,6 +75,135 @@ enum HBShadow {
     }
 }
 
+/// Animated boutique backdrop for the shop home tab — mirrors the web home ambient layer.
+struct HBHomeAmbientBackground: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            HBColors.cream
+
+            if reduceMotion {
+                staticPinkBlob
+                staticGoldBlob
+                staticRoseBlob
+            } else {
+                TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
+                    let t = context.date.timeIntervalSinceReferenceDate
+                    ZStack {
+                        animatedPinkBlob(t: t)
+                        animatedGoldBlob(t: t)
+                        animatedRoseBlob(t: t)
+                    }
+                }
+            }
+
+            LinearGradient(
+                colors: [HBColors.goldLight.opacity(0.14), Color.clear, HBColors.softPink.opacity(0.08)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        .ignoresSafeArea()
+    }
+
+    private var staticPinkBlob: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.softPink.opacity(0.5), HBColors.softPink.opacity(0)],
+                    center: .center,
+                    startRadius: 24,
+                    endRadius: 200
+                )
+            )
+            .frame(width: 400, height: 400)
+            .offset(x: -130, y: -320)
+            .blur(radius: 10)
+    }
+
+    private var staticGoldBlob: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.goldLight.opacity(0.4), HBColors.goldLight.opacity(0)],
+                    center: .center,
+                    startRadius: 16,
+                    endRadius: 160
+                )
+            )
+            .frame(width: 320, height: 320)
+            .offset(x: 150, y: 180)
+            .blur(radius: 12)
+    }
+
+    private var staticRoseBlob: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.rosePink.opacity(0.28), HBColors.rosePink.opacity(0)],
+                    center: .center,
+                    startRadius: 12,
+                    endRadius: 150
+                )
+            )
+            .frame(width: 300, height: 300)
+            .offset(x: -80, y: 240)
+            .blur(radius: 8)
+    }
+
+    private func animatedPinkBlob(t: TimeInterval) -> some View {
+        let dx = sin(t * 0.33) * 18
+        let dy = cos(t * 0.27) * 14
+        return Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.softPink.opacity(0.5), HBColors.softPink.opacity(0)],
+                    center: .center,
+                    startRadius: 24,
+                    endRadius: 200
+                )
+            )
+            .frame(width: 400, height: 400)
+            .offset(x: -130 + dx, y: -320 + dy)
+            .blur(radius: 10)
+    }
+
+    private func animatedGoldBlob(t: TimeInterval) -> some View {
+        let dx = cos(t * 0.24) * 22
+        let dy = sin(t * 0.29) * 16
+        return Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.goldLight.opacity(0.42), HBColors.goldLight.opacity(0)],
+                    center: .center,
+                    startRadius: 16,
+                    endRadius: 160
+                )
+            )
+            .frame(width: 320, height: 320)
+            .offset(x: 150 + dx, y: 180 + dy)
+            .blur(radius: 12)
+    }
+
+    private func animatedRoseBlob(t: TimeInterval) -> some View {
+        let dx = sin(t * 0.21) * 16
+        let dy = cos(t * 0.25) * 20
+        return Circle()
+            .fill(
+                RadialGradient(
+                    colors: [HBColors.rosePink.opacity(0.28), HBColors.rosePink.opacity(0)],
+                    center: .center,
+                    startRadius: 12,
+                    endRadius: 150
+                )
+            )
+            .frame(width: 300, height: 300)
+            .offset(x: -80 + dx, y: 240 + dy)
+            .blur(radius: 8)
+    }
+}
+
 extension Color {
     init(hex: UInt32, alpha: Double = 1) {
         self.init(

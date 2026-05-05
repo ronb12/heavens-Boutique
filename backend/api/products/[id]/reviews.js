@@ -1,6 +1,6 @@
 import { getDb } from '../../../lib/db.js';
 import { requireUser } from '../../../lib/auth.js';
-import { json, readJson, handleCors } from '../../../lib/http.js';
+import { json, readJson, handleCors, withCorsContext } from '../../../lib/http.js';
 
 function fmt(r) {
   return {
@@ -15,7 +15,7 @@ function fmt(r) {
   };
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const id = req.query?.id;
   if (!id) return json(res, 400, { error: 'Missing product id' });
@@ -94,4 +94,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
-
+export default withCorsContext(handler);

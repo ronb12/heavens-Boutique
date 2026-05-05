@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
+import { AccountSubNav } from "@/components/AccountSubNav";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -80,6 +81,7 @@ export function AccountClient() {
       <SiteHeader active="account" />
 
       <main className="mx-auto max-w-4xl px-4 py-12 flex-1">
+        <AccountSubNav />
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl">Account</h1>
@@ -122,6 +124,13 @@ export function AccountClient() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <Link
+            href="/returns"
+            className="rounded-3xl border border-black/10 bg-white/80 p-6 no-underline hover:shadow-sm transition-shadow"
+          >
+            <div className="font-semibold text-lg text-[color:var(--foreground)]">Returns</div>
+            <div className="mt-2 text-sm text-black/60">Start or track a return for items you have purchased.</div>
+          </Link>
+          <Link
             href="/account/profile"
             className="rounded-3xl border border-black/10 bg-white/80 p-6 no-underline hover:shadow-sm transition-shadow"
           >
@@ -139,8 +148,15 @@ export function AccountClient() {
             href="/account/payment-methods"
             className="rounded-3xl border border-black/10 bg-white/80 p-6 no-underline hover:shadow-sm transition-shadow"
           >
-            <div className="font-semibold text-lg text-[color:var(--foreground)]">Saved cards</div>
-            <div className="mt-2 text-sm text-black/60">Save a card for faster checkout (Stripe).</div>
+            <div className="font-semibold text-lg text-[color:var(--foreground)]">Secure payments</div>
+            <div className="mt-2 text-sm text-black/60">How we use Stripe — card details are entered at checkout, not stored on your profile.</div>
+          </Link>
+          <Link
+            href="/messages"
+            className="rounded-3xl border border-black/10 bg-white/80 p-6 no-underline hover:shadow-sm transition-shadow"
+          >
+            <div className="font-semibold text-lg text-[color:var(--foreground)]">Messages</div>
+            <div className="mt-2 text-sm text-black/60">Store conversations and support threads.</div>
           </Link>
           <Link
             href="/wishlist"

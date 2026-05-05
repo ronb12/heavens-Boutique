@@ -37,8 +37,10 @@ export default function AdminLandingPage() {
           className="rounded-3xl border border-black/10 bg-white/80 p-6 no-underline hover:shadow-sm transition-shadow"
           href="/admin/homepage"
         >
-          <div className="font-semibold">App home screen</div>
-          <div className="text-sm text-black/55 mt-1">Sliding promos and product rows on the iPhone app (not the website)</div>
+          <div className="font-semibold">Store home</div>
+          <div className="text-sm text-black/55 mt-1">
+            Top photo on website + app; swipe promos and extra product rows on the iPhone app
+          </div>
         </Link>
         <Link
           className="rounded-3xl border border-black/10 bg-white/80 p-6 no-underline hover:shadow-sm transition-shadow"

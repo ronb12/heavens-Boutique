@@ -81,6 +81,20 @@ struct ConversationsListView: View {
                             }
                         }
                         .listRowBackground(HBColors.surface)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                HBFeedback.warning()
+                                Task {
+                                    _ = await vm.deleteConversation(
+                                        conversationId: c.id,
+                                        api: api,
+                                        listUsesAdminAll: useAdminMessageList
+                                    )
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                     .listStyle(.plain)
                 }
@@ -110,7 +124,9 @@ struct ConversationsListView: View {
                 }
             }
             .navigationDestination(for: String.self) { id in
-                ChatView(conversationId: id)
+                ChatView(conversationId: id, onConversationDeleted: {
+                    Task { await vm.loadConversations(api: api, adminAll: useAdminMessageList) }
+                })
             }
             .task {
                 guard !needsSignIn else { return }

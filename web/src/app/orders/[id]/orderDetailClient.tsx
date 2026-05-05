@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { formatUsd } from "@/lib/money";
+import { AccountSubNav } from "@/components/AccountSubNav";
 import { SiteHeader } from "@/components/SiteHeader";
 
 type OrderDetail = {
@@ -60,7 +61,10 @@ export function OrderDetailClient({ id }: { id: string }) {
     return (
       <div className="min-h-full flex flex-col">
         <SiteHeader active="orders" />
-        <div className="mx-auto max-w-5xl flex-1 px-4 py-12 text-black/60">Loading…</div>
+        <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-12 text-black/60">
+          <AccountSubNav />
+          Loading…
+        </div>
       </div>
     );
   }
@@ -69,6 +73,7 @@ export function OrderDetailClient({ id }: { id: string }) {
       <div className="min-h-full flex flex-col">
         <SiteHeader active="orders" />
         <div className="mx-auto max-w-5xl flex-1 px-4 py-12">
+          <AccountSubNav />
           <h1 className="text-3xl">Order</h1>
           <p className="mt-2 text-black/60">Sign in to view this order.</p>
         </div>
@@ -90,6 +95,7 @@ export function OrderDetailClient({ id }: { id: string }) {
       </div>
 
       <main className="mx-auto max-w-5xl flex-1 px-4 py-12">
+        <AccountSubNav />
         <h1 className="text-3xl">Order {id.slice(0, 8)}</h1>
         {error ? <div className="mt-6 text-sm text-rose-700 font-semibold">{error}</div> : null}
 

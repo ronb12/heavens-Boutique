@@ -8,12 +8,14 @@ struct AdminOrderDetailView: View {
     @EnvironmentObject private var api: APIClient
     @State private var order: OrderDTO?
     @State private var selectedStatus = "paid"
+    @State private var selectedFulfillmentStatus = "unfulfilled"
     @State private var trackingText = ""
     @State private var isLoading = true
     @State private var isSaving = false
     @State private var loadError: String?
     @State private var saveError: String?
     @State private var saveMessage: String?
+    @State private var showShippingLabel = false
 
     var body: some View {
         ScrollView {
@@ -71,6 +73,20 @@ struct AdminOrderDetailView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
+                        Text("Fulfillment")
+                            .font(HBFont.caption())
+                            .foregroundStyle(HBColors.mutedGray)
+                        Picker("Fulfillment", selection: $selectedFulfillmentStatus) {
+                            Text("Unfulfilled").tag("unfulfilled")
+                            Text("Label purchased").tag("label_purchased")
+                            Text("Packed").tag("packed")
+                            Text("Handed off").tag("handed_off")
+                            Text("Delivered").tag("delivered")
+                        }
+                        .pickerStyle(.menu)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("Tracking number")
                             .font(HBFont.caption())
                             .foregroundStyle(HBColors.mutedGray)
@@ -78,6 +94,25 @@ struct AdminOrderDetailView: View {
                             .padding()
                             .background(HBColors.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+
+                    if o.shippingAddress != nil {
+                        Button {
+                            showShippingLabel = true
+                            HBFeedback.light()
+                        } label: {
+                            HStack {
+                                Image(systemName: "shippingbox.fill")
+                                Text(o.labelUrl == nil ? "Create shipping label" : "View shipping label")
+                            }
+                            .font(HBFont.caption().weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(HBColors.gold.opacity(0.15))
+                            .foregroundStyle(HBColors.charcoal)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     if let saveMessage {
@@ -120,6 +155,12 @@ struct AdminOrderDetailView: View {
         .navigationTitle("Order")
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
+        .sheet(isPresented: $showShippingLabel) {
+            if let o = order {
+                AdminShippingLabelView(orderId: orderId, order: o)
+                    .environmentObject(api)
+            }
+        }
     }
 
     private func shortId(_ uuid: String) -> String {
@@ -134,6 +175,7 @@ struct AdminOrderDetailView: View {
             let r: OrderDetailResponse = try await api.request("/orders/\(orderId)", method: "GET")
             order = r.order
             selectedStatus = r.order.status
+            selectedFulfillmentStatus = r.order.fulfillmentStatus ?? "unfulfilled"
             trackingText = r.order.trackingNumber ?? ""
         } catch {
             loadError = error.localizedDescription
@@ -152,6 +194,7 @@ struct AdminOrderDetailView: View {
                 method: "PATCH",
                 jsonBody: [
                     "status": selectedStatus,
+                    "fulfillmentStatus": selectedFulfillmentStatus,
                     "trackingNumber": trackingText.trimmingCharacters(in: .whitespacesAndNewlines),
                 ]
             )

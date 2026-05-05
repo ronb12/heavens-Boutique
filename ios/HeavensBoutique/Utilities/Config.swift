@@ -23,6 +23,26 @@ enum Config {
         return origin.isEmpty ? nil : origin
     }
 
+    /// Public Next.js storefront for sharing product links (HTTPS). Prefer this when the API host (`API_BASE_URL` without `/api`) differs from the shop domain.
+    static var storefrontBaseURL: String? {
+        let explicit = (Bundle.main.object(forInfoDictionaryKey: "STOREFRONT_URL") as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !explicit.isEmpty {
+            var s = explicit
+            while s.last == "/" { s.removeLast() }
+            return s
+        }
+        return websiteOrigin
+    }
+
+    /// Customer-facing product URL for social sharing (same path as web `/shop/[id]`).
+    static func productPageURL(productId: String) -> URL? {
+        guard let base = storefrontBaseURL, !base.isEmpty else { return nil }
+        let trimmed = productId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return URL(string: base + "/shop/" + trimmed)
+    }
+
     /// Marketing / legal pages (e.g. `https://project.vercel.app/terms.html`).
     static var termsOfServiceURL: URL? {
         guard let o = websiteOrigin else { return nil }

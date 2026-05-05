@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { getDb } from '../../lib/db.js';
-import { json, readRawBody, handleCors } from '../../lib/http.js';
+import { json, readRawBody, handleCors, withCorsContext } from '../../lib/http.js';
 import { sendPushToToken } from '../../lib/fcm.js';
 import {
   notifyAllAdmins,
@@ -9,8 +9,9 @@ import {
 } from '../../lib/adminNotify.js';
 import { getStripeSecretKey, getStripeWebhookSecret } from '../../lib/stripeCredentials.js';
 import { sendOrderConfirmation } from '../../lib/emailTemplates.js';
+import { fulfillGiftCardPurchaseFromPaymentIntent } from '../../lib/giftCardPurchaseFulfillment.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
@@ -39,6 +40,16 @@ export default async function handler(req, res) {
 
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
+
+    if (pi.metadata?.kind === 'gift_card_purchase') {
+      try {
+        await fulfillGiftCardPurchaseFromPaymentIntent(sql, pi);
+      } catch (e) {
+        console.error('gift_card_purchase fulfillment', e);
+      }
+      return json(res, 200, { received: true });
+    }
+
     const userId = pi.metadata?.userId || null;
     const isGuest = pi.metadata?.guestCheckout === 'true';
     const guestEmail =
@@ -315,3 +326,4 @@ export default async function handler(req, res) {
 
   return json(res, 200, { received: true });
 }
+export default withCorsContext(handler);

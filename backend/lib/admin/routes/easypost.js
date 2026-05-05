@@ -1,4 +1,4 @@
-import { requireAdmin } from '../../auth.js';
+import { requireStoreAccess, PERM } from '../../auth.js';
 import { json, readJson, handleCors } from '../../http.js';
 import { getDb } from '../../db.js';
 import { createShipment, buyRate } from '../../easypost.js';
@@ -9,7 +9,7 @@ import { createShipment, buyRate } from '../../easypost.js';
  */
 export default async function handleEasyPost(req, res, segments) {
   if (handleCors(req, res)) return;
-  const auth = await requireAdmin(req);
+  const auth = await requireStoreAccess(req, PERM.ORDERS);
   if (auth.error) return json(res, auth.status, { error: auth.error });
 
   // segments[0] = 'easypost', segments[1] = orderId, segments[2] = 'rates' | 'buy'

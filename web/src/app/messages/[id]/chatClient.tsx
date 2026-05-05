@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
+import { canPerm, PERM } from "@/lib/staffPermissions";
 import { SiteHeader } from "@/components/SiteHeader";
 
 type Msg = {
@@ -15,6 +17,7 @@ type Msg = {
 };
 
 export function ChatClient({ id }: { id: string }) {
+  const router = useRouter();
   const { user, loading } = useAuth();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
@@ -78,22 +81,41 @@ export function ChatClient({ id }: { id: string }) {
           <Link href="/messages" className="font-semibold text-[color:var(--gold)] no-underline">
             ← Messages
           </Link>
-          <button
-            type="button"
-            className="rounded-full border border-black/10 bg-white/70 px-4 py-2 font-semibold"
-            onClick={async () => {
-              if (!confirm("Clear all messages in this conversation?")) return;
-              setError(null);
-              try {
-                await apiFetch(`/api/conversations/${encodeURIComponent(id)}/messages`, { method: "DELETE" });
-                setMessages([]);
-              } catch (e: any) {
-                setError(e?.message || "Failed to clear messages");
-              }
-            }}
-          >
-            Clear
-          </button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-full border border-black/10 bg-white/70 px-4 py-2 font-semibold text-sm"
+              onClick={async () => {
+                if (!confirm("Remove every message in this thread? The conversation stays open.")) return;
+                setError(null);
+                try {
+                  await apiFetch(`/api/conversations/${encodeURIComponent(id)}/messages`, { method: "DELETE" });
+                  setMessages([]);
+                } catch (e: any) {
+                  setError(e?.message || "Failed to clear messages");
+                }
+              }}
+            >
+              Clear messages
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 font-semibold text-sm text-rose-800"
+              onClick={async () => {
+                if (!confirm("Delete this entire conversation? This cannot be undone.")) return;
+                setError(null);
+                try {
+                  await apiFetch(`/api/conversations/${encodeURIComponent(id)}`, { method: "DELETE" });
+                  router.push("/messages");
+                  router.refresh();
+                } catch (e: any) {
+                  setError(e?.message || "Failed to delete conversation");
+                }
+              }}
+            >
+              Delete chat
+            </button>
+          </div>
         </div>
       </div>
 
@@ -103,16 +125,40 @@ export function ChatClient({ id }: { id: string }) {
         <div className="grid gap-3">
           {messages.map((m) => {
             const mine = m.senderId === user.id;
+            const canModerate = user.role === "admin" || canPerm(user, PERM.CUSTOMERS);
+            const canDeleteMessage = mine || canModerate;
             return (
               <div key={m.id} className={mine ? "flex justify-end" : "flex justify-start"}>
                 <div
                   className={[
-                    "max-w-[85%] rounded-3xl px-4 py-3 border",
+                    "max-w-[85%] rounded-3xl px-4 py-3 border relative group",
                     mine
                       ? "bg-[color:var(--soft-pink)] border-black/10 text-[color:var(--charcoal)]"
                       : "bg-white border-black/10 text-black/70",
                   ].join(" ")}
                 >
+                  {canDeleteMessage ? (
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 z-10 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-full bg-white border border-black/15 px-2 py-0.5 text-[11px] font-semibold text-rose-700 shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus:opacity-100 transition-opacity"
+                      aria-label="Delete message"
+                      onClick={async () => {
+                        if (!confirm("Delete this message?")) return;
+                        setError(null);
+                        try {
+                          await apiFetch(`/api/conversations/${encodeURIComponent(id)}/messages`, {
+                            method: "DELETE",
+                            body: JSON.stringify({ messageId: m.id }),
+                          });
+                          await load();
+                        } catch (e: any) {
+                          setError(e?.message || "Failed to delete message");
+                        }
+                      }}
+                    >
+                      ×
+                    </button>
+                  ) : null}
                   <div className="text-sm leading-6 whitespace-pre-wrap">{m.body || ""}</div>
                   <div className="mt-2 text-[11px] text-black/45">
                     {new Date(m.createdAt).toLocaleString()}

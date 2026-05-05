@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { requireAdmin } from '../../auth.js';
+import { requireStoreAccessAny, PERM } from '../../auth.js';
 import { json, readJson, handleCors } from '../../http.js';
 import { uploadProductImageToBlob } from '../../blobUpload.js';
 import { uploadProductImageBuffer } from '../../cloudinaryUpload.js';
@@ -9,7 +9,7 @@ const MAX_BYTES = 8 * 1024 * 1024;
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
-  const admin = await requireAdmin(req);
+  const admin = await requireStoreAccessAny(req, [PERM.PRODUCTS, PERM.HOMEPAGE]);
   if (admin.error) return json(res, admin.status, { error: admin.error });
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 

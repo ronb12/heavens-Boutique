@@ -10,6 +10,7 @@ final class MessagesViewModel: ObservableObject {
     @Published var activeConversationId: String?
 
     private var pollTask: Task<Void, Never>?
+    private var isFetchingMessages = false
 
     deinit {
         pollTask?.cancel()
@@ -31,14 +32,17 @@ final class MessagesViewModel: ObservableObject {
     func openConversation(_ id: String, api: APIClient) async {
         error = nil
         activeConversationId = id
-        await loadMessages(api: api)
+        await loadMessages(api: api, force: true)
         startPolling(api: api)
     }
 
-    func loadMessages(api: APIClient) async {
+    /// - Parameter force: When true, loads even if a poll is in flight (needed after send/delete so the list updates).
+    func loadMessages(api: APIClient, force: Bool = false) async {
         guard let id = activeConversationId else { return }
+        if !force, isFetchingMessages { return }
+        isFetchingMessages = true
         isLoadingMessages = true
-        defer { isLoadingMessages = false }
+        defer { isFetchingMessages = false; isLoadingMessages = false }
         do {
             let r: MessagesResponse = try await api.request("/conversations/\(id)/messages", method: "GET")
             messages = r.messages
@@ -55,9 +59,51 @@ final class MessagesViewModel: ObservableObject {
                 method: "POST",
                 jsonBody: ["body": text]
             )
-            await loadMessages(api: api)
+            await loadMessages(api: api, force: true)
         } catch {
             self.error = error.localizedDescription
+        }
+    }
+
+    func clearMessages(api: APIClient) async {
+        guard let id = activeConversationId else { return }
+        do {
+            try await api.requestVoid("/conversations/\(id)/messages", method: "DELETE")
+            messages = []
+            await loadMessages(api: api, force: true)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    func deleteMessage(messageId: String, api: APIClient) async {
+        guard let id = activeConversationId else { return }
+        do {
+            try await api.requestVoid(
+                "/conversations/\(id)/messages",
+                method: "DELETE",
+                jsonBody: ["messageId": messageId]
+            )
+            messages.removeAll { $0.id == messageId }
+            await loadMessages(api: api, force: true)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    func deleteConversation(conversationId: String, api: APIClient, listUsesAdminAll: Bool) async -> Bool {
+        do {
+            try await api.requestVoid("/conversations/\(conversationId)", method: "DELETE")
+            if activeConversationId == conversationId {
+                activeConversationId = nil
+                messages = []
+                stopPolling()
+            }
+            await loadConversations(api: api, adminAll: listUsesAdminAll)
+            return true
+        } catch {
+            self.error = error.localizedDescription
+            return false
         }
     }
 
@@ -89,9 +135,20 @@ final class MessagesViewModel: ObservableObject {
     private func startPolling(api: APIClient) {
         pollTask?.cancel()
         pollTask = Task {
+            var consecutiveErrors = 0
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 4_000_000_000)
-                await loadMessages(api: api)
+                let delayNs: UInt64 = consecutiveErrors > 0
+                    ? min(UInt64(4_000_000_000) * UInt64(1 << min(consecutiveErrors, 4)), 60_000_000_000)
+                    : 4_000_000_000
+                try? await Task.sleep(nanoseconds: delayNs)
+                guard !Task.isCancelled else { break }
+                let hadError = error != nil
+                await loadMessages(api: api, force: false)
+                if error != nil && (hadError || consecutiveErrors > 0) {
+                    consecutiveErrors += 1
+                } else {
+                    consecutiveErrors = 0
+                }
             }
         }
     }

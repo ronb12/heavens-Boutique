@@ -10,6 +10,26 @@ struct SettingsView: View {
 
     var body: some View {
         List {
+            if session.isLoggedIn {
+                Section("Account") {
+                    NavigationLink {
+                        AccountDetailsView()
+                    } label: {
+                        Label("Account details", systemImage: "person.crop.circle")
+                            .foregroundStyle(HBColors.charcoal)
+                    }
+                    .listRowBackground(HBColors.surface)
+
+                    NavigationLink {
+                        PaymentMethodsView()
+                    } label: {
+                        Label("Secure payments", systemImage: "lock.shield.fill")
+                            .foregroundStyle(HBColors.charcoal)
+                    }
+                    .listRowBackground(HBColors.surface)
+                }
+            }
+
             if appModel.showAdminChrome {
                 Section("Store admin") {
                     Button {
@@ -22,7 +42,7 @@ struct SettingsView: View {
                 }
             }
 
-            if session.isAdmin && appModel.customerViewPreview {
+            if session.canOpenAdminPortal && appModel.customerViewPreview {
                 Section {
                     Button {
                         appModel.exitCustomerViewPreview()
@@ -95,6 +115,35 @@ struct SettingsView: View {
                     }
                     .listRowBackground(HBColors.surface)
                 }
+            }
+
+            Section("Store info") {
+                NavigationLink {
+                    ContentPageReaderView(slug: "about", navigationTitle: "About us")
+                        .environmentObject(api)
+                } label: {
+                    Label("About us", systemImage: "heart.text.square")
+                        .foregroundStyle(HBColors.charcoal)
+                }
+                .listRowBackground(HBColors.surface)
+
+                NavigationLink {
+                    ContentPageReaderView(slug: "shipping", navigationTitle: "Shipping")
+                        .environmentObject(api)
+                } label: {
+                    Label("Shipping", systemImage: "shippingbox")
+                        .foregroundStyle(HBColors.charcoal)
+                }
+                .listRowBackground(HBColors.surface)
+
+                NavigationLink {
+                    ContentPageReaderView(slug: "returns", navigationTitle: "Returns")
+                        .environmentObject(api)
+                } label: {
+                    Label("Returns policy", systemImage: "arrow.uturn.left.circle")
+                        .foregroundStyle(HBColors.charcoal)
+                }
+                .listRowBackground(HBColors.surface)
             }
 
             Section("Legal") {
@@ -179,4 +228,62 @@ struct SettingsView: View {
     private static let aboutAppDescription = """
     Heaven’s Boutique brings the boutique to your iPhone: discover curated pieces, save favorites to your wishlist, and check out securely. Create an account to sync your bag, track orders with shipment updates, get notifications, and message our stylists for fit and styling help — or browse and use guest checkout when you prefer.
     """
+}
+
+// MARK: - CMS reader (`GET /pages?slug=`)
+
+struct ContentPageReaderView: View {
+    let slug: String
+    let navigationTitle: String
+
+    @EnvironmentObject private var api: APIClient
+    @State private var page: ContentPageDTO?
+    @State private var loadError: String?
+    @State private var isLoading = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if isLoading && page == nil {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 32)
+                } else if let loadError {
+                    Text(loadError)
+                        .font(HBFont.body())
+                        .foregroundStyle(HBColors.rosePink)
+                } else if let page {
+                    Text(page.title)
+                        .font(HBFont.title(24))
+                        .foregroundStyle(HBColors.charcoal)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Text(page.body)
+                        .font(HBFont.body())
+                        .foregroundStyle(HBColors.charcoal)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .padding(24)
+        }
+        .hbScreenBackground()
+        .navigationTitle(navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await load() }
+        .refreshable { await load() }
+    }
+
+    private func load() async {
+        isLoading = true
+        loadError = nil
+        defer { isLoading = false }
+        let encoded = slug.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? slug
+        let path = "/pages?slug=\(encoded)"
+        do {
+            let r: ContentPageDetailResponse = try await api.request(path, method: "GET")
+            page = r.page
+        } catch {
+            loadError = error.localizedDescription
+        }
+    }
 }

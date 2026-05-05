@@ -1,12 +1,13 @@
 import { getDb } from '../../lib/db.js';
-import { requireAdmin, optionalAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { requireStoreAccess, PERM, optionalAdmin } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { mapProduct } from '../../lib/productsMap.js';
 import { validateProductProfit } from '../../lib/productProfit.js';
 import { notifyBackInStock } from '../../lib/backInStock.js';
 import { notifyAdminsLowStockForVariants, getLowStockThreshold } from '../../lib/adminNotify.js';
+import { postgresClientError } from '../../lib/postgresClientError.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const id = req.query?.id;
   if (!id) return json(res, 400, { error: 'Missing id' });
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PUT' || req.method === 'PATCH') {
-      const auth = await requireAdmin(req);
+      const auth = await requireStoreAccess(req, PERM.PRODUCTS);
       if (auth.error) return json(res, auth.status, { error: auth.error });
 
       const body = await readJson(req);
@@ -179,7 +180,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      const auth = await requireAdmin(req);
+      const auth = await requireStoreAccess(req, PERM.PRODUCTS);
       if (auth.error) return json(res, auth.status, { error: auth.error });
       const orderRefs = await sql`
         SELECT COUNT(*)::int AS c FROM order_items WHERE product_id = ${id}
@@ -197,6 +198,8 @@ export default async function handler(req, res) {
     return json(res, 405, { error: 'Method not allowed' });
   } catch (e) {
     console.error(e);
-    return json(res, 500, { error: 'Request failed' });
+    const { status, error } = postgresClientError(e);
+    return json(res, status, { error, code: e?.code });
   }
 }
+export default withCorsContext(handler);

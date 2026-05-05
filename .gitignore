@@ -12,6 +12,7 @@ npm-debug.log*
 firebase-debug.log*
 
 # Xcode / iOS
+ios/.derivedData/
 ios/HeavensBoutique/GoogleService-Info.plist
 ios/**/*.xcodeproj/xcuserdata/
 ios/**/*.xcworkspace/xcuserdata/
@@ -22,6 +23,7 @@ DerivedData/
 *.ipa
 *.dSYM.zip
 *.dSYM
+ios/AppStoreScreenshotOutput/
 
 # Swift PM (if used outside XcodeGen resolve)
 .build/

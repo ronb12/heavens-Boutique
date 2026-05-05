@@ -10,7 +10,7 @@ export function HomeProductCard({ product }: { product: ProductDTO }) {
   return (
     <Link
       href={`/shop/${product.id}`}
-      className="group block overflow-hidden rounded-2xl border border-black/[0.08] bg-white no-underline shadow-sm transition hover:shadow-md"
+      className="group block overflow-hidden rounded-2xl border border-black/[0.08] bg-white no-underline shadow-sm transition duration-300 ease-out hover:-translate-y-1 hover:shadow-md motion-reduce:transform-none"
     >
       <div className="aspect-[3/4] w-full overflow-hidden bg-black/[0.04]">
         {img ? (

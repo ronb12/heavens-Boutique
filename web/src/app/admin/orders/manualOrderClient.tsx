@@ -47,6 +47,7 @@ export function ManualOrderClient() {
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
   const [customersLoaded, setCustomersLoaded] = useState(false);
+  const [customersError, setCustomersError] = useState<string | null>(null);
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -95,11 +96,14 @@ export function ManualOrderClient() {
   useEffect(() => {
     let m = true;
     (async () => {
+      setCustomersError(null);
       try {
         const r = await apiFetch<{ customers: CustomerRow[] }>("/api/admin/customers", { method: "GET" });
         if (m) setCustomers(r.customers || []);
-      } catch {
-        if (m) setCustomers([]);
+      } catch (e: unknown) {
+        if (!m) return;
+        setCustomers([]);
+        setCustomersError(e instanceof Error ? e.message : "Failed to load customers");
       } finally {
         if (m) setCustomersLoaded(true);
       }
@@ -347,6 +351,16 @@ export function ManualOrderClient() {
                       ))}
                     </select>
                   </label>
+                ) : customersLoaded && customersError ? (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+                    <div className="font-semibold">Couldn’t load customers</div>
+                    <div className="mt-1 text-rose-900/80">{customersError}</div>
+                    <div className="mt-2 text-rose-900/70">
+                      If this says the Store API isn’t configured, set <code className="font-mono">BACKEND_PROXY_ORIGIN</code>{" "}
+                      (or <code className="font-mono">NEXT_PUBLIC_API_BASE_URL</code>) on the <strong>web</strong> Vercel
+                      project.
+                    </div>
+                  </div>
                 ) : customersLoaded ? (
                   <p className="text-sm text-black/55">
                     Customer directory isn&apos;t available on your permission set. Paste the account ID from{" "}
@@ -585,15 +599,44 @@ export function ManualOrderClient() {
             </label>
 
             <div className="sm:col-span-2 rounded-2xl border border-black/[0.06] bg-[#fdf5fa]/80 px-4 py-4">
-              <div className="flex flex-wrap justify-between gap-2 text-sm">
-                <span className="text-black/55">Subtotal</span>
-                <span className="font-semibold">{formatUsd(subtotalCents)}</span>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-black/45">Total breakdown</div>
+
+              <div className="mt-3 grid gap-2 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-black/60">Items subtotal</span>
+                  <span className="font-semibold tabular-nums">{formatUsd(subtotalCents)}</span>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-black/60">Discount</span>
+                  <span className="font-semibold tabular-nums text-emerald-800">
+                    {discountCents > 0 ? `− ${formatUsd(discountCents)}` : formatUsd(0)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-black/60">Tax</span>
+                  <span className="font-semibold tabular-nums">{taxCents > 0 ? `+ ${formatUsd(taxCents)}` : formatUsd(0)}</span>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-black/60">Shipping</span>
+                  <span className="font-semibold tabular-nums">
+                    {shippingCents > 0 ? `+ ${formatUsd(shippingCents)}` : formatUsd(0)}
+                  </span>
+                </div>
               </div>
-              <div className="mt-2 flex flex-wrap justify-between gap-2 text-sm">
-                <span className="text-black/55">Total</span>
-                <span className="font-[family-name:var(--font-display)] text-xl font-semibold text-[color:var(--charcoal)]">
-                  {formatUsd(totalCents)}
-                </span>
+
+              <div className="mt-4 border-t border-black/10 pt-3">
+                <div className="flex items-end justify-between gap-3">
+                  <span className="text-black/60">Final total</span>
+                  <span className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[color:var(--charcoal)] tabular-nums">
+                    {formatUsd(totalCents)}
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-black/50">
+                  This is what will be saved to the order. (Items subtotal − discount + tax + shipping.)
+                </div>
               </div>
             </div>
           </div>

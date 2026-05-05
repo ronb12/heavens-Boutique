@@ -1,10 +1,11 @@
 import { getDb } from '../../lib/db.js';
-import { requireAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { requireStoreAccess, PERM } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { mapProduct } from '../../lib/productsMap.js';
 import { validateProductProfit } from '../../lib/productProfit.js';
+import { postgresClientError } from '../../lib/postgresClientError.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const sql = getDb();
 
@@ -112,7 +113,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const auth = await requireAdmin(req);
+      const auth = await requireStoreAccess(req, PERM.PRODUCTS);
       if (auth.error) return json(res, auth.status, { error: auth.error });
 
       const body = await readJson(req);
@@ -201,10 +202,9 @@ export default async function handler(req, res) {
 
     return json(res, 405, { error: 'Method not allowed' });
   } catch (e) {
-    if (e.code === '23505') {
-      return json(res, 409, { error: 'Slug already exists' });
-    }
     console.error(e);
-    return json(res, 500, { error: 'Request failed' });
+    const { status, error } = postgresClientError(e);
+    return json(res, status, { error, code: e?.code });
   }
 }
+export default withCorsContext(handler);

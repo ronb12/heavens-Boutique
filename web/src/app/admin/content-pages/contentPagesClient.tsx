@@ -43,8 +43,8 @@ export function ContentPagesAdminClient() {
   return (
     <AdminShell title="Pages & journal">
       <p className="text-black/60 max-w-2xl">
-        Edit policy pages and blog posts. Slugs become URLs: <code className="text-sm">/pages/slug</code> or{" "}
-        <code className="text-sm">/blog/slug</code>.
+        Edit policy pages and blog posts. Each item has a <strong>URL path</strong> (the last part of the web address), for example{" "}
+        <code className="text-sm">yoursite.com/pages/shipping-policy</code> or <code className="text-sm">yoursite.com/blog/spring-edit</code>.
       </p>
       {error ? <div className="mt-4 text-sm text-rose-700 font-semibold">{error}</div> : null}
 
@@ -130,7 +130,10 @@ export function ContentPagesAdminClient() {
         >
           <div className="font-semibold">{editing.id ? "Edit" : "Create"}</div>
           <label className="grid gap-1">
-            <span className="text-sm font-semibold">Slug</span>
+            <span className="text-sm font-semibold">URL path</span>
+            <span className="text-xs text-black/50">
+              Lowercase words separated by hyphens — this becomes the link shoppers use (no spaces or special characters).
+            </span>
             <input
               value={editing.slug}
               onChange={(e) => setEditing({ ...editing, slug: e.target.value })}

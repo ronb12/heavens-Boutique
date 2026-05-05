@@ -5,8 +5,6 @@ struct ProfileView: View {
     @EnvironmentObject private var api: APIClient
     @EnvironmentObject private var cart: CartStore
     @EnvironmentObject private var appModel: AppModel
-    @StateObject private var ordersVM = OrdersViewModel()
-    @State private var ordersNavPath = NavigationPath()
     @State private var wishlist: [ProductDTO] = []
     @State private var showDeleteConfirm = false
     @State private var deleteError: String?
@@ -14,7 +12,7 @@ struct ProfileView: View {
     @State private var showAdminHub = false
 
     var body: some View {
-        NavigationStack(path: $ordersNavPath) {
+        NavigationStack {
             Group {
                 if session.isLoggedIn {
                     memberProfileList
@@ -25,9 +23,6 @@ struct ProfileView: View {
             .scrollContentBackground(.hidden)
             .background(HBColors.cream.ignoresSafeArea())
             .navigationTitle("Profile")
-            .navigationDestination(for: String.self) { id in
-                CustomerOrderDetailView(orderId: id)
-            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
@@ -41,25 +36,14 @@ struct ProfileView: View {
             }
             .task {
                 if session.isLoggedIn {
-                    await ordersVM.load(api: api, adminAll: false)
                     await loadWishlist()
                     await session.refreshProfile()
-                    openPendingOrderIfNeeded()
                 }
             }
             .refreshable {
                 guard session.isLoggedIn else { return }
-                await ordersVM.load(api: api, adminAll: false)
                 await loadWishlist()
                 await session.refreshProfile()
-            }
-            .onChange(of: appModel.pendingOrderIdToOpen) { _, _ in
-                openPendingOrderIfNeeded()
-            }
-            .onChange(of: session.user?.id) { _, _ in
-                if session.isLoggedIn {
-                    openPendingOrderIfNeeded()
-                }
             }
             .confirmationDialog(
                 "Delete your account?",
@@ -156,6 +140,44 @@ struct ProfileView: View {
                 .listRowBackground(HBColors.surface)
             }
 
+            Section("Account") {
+                NavigationLink {
+                    AccountDetailsView()
+                } label: {
+                    Label("Account details", systemImage: "person.crop.circle")
+                        .foregroundStyle(HBColors.charcoal)
+                }
+                .listRowBackground(HBColors.surface)
+
+                NavigationLink {
+                    PaymentMethodsView()
+                } label: {
+                    Label("Secure payments", systemImage: "lock.shield.fill")
+                        .foregroundStyle(HBColors.charcoal)
+                }
+                .listRowBackground(HBColors.surface)
+            }
+
+            Section("Shipping") {
+                NavigationLink {
+                    AddressBookView()
+                } label: {
+                    Label("Shipping addresses", systemImage: "location.fill")
+                        .foregroundStyle(HBColors.charcoal)
+                }
+                .listRowBackground(HBColors.surface)
+            }
+
+            Section("Returns") {
+                NavigationLink {
+                    ReturnsListView()
+                } label: {
+                    Label("My returns", systemImage: "arrow.uturn.left")
+                        .foregroundStyle(HBColors.charcoal)
+                }
+                .listRowBackground(HBColors.surface)
+            }
+
             if appModel.showAdminChrome {
                 Section("Store admin") {
                     Button {
@@ -168,7 +190,7 @@ struct ProfileView: View {
                 }
             }
 
-            if session.isAdmin && appModel.customerViewPreview {
+            if session.canOpenAdminPortal && appModel.customerViewPreview {
                 Section("Customer view") {
                     Button {
                         appModel.exitCustomerViewPreview()
@@ -178,64 +200,6 @@ struct ProfileView: View {
                             .foregroundStyle(HBColors.charcoal)
                     }
                     .listRowBackground(HBColors.surface)
-                }
-            }
-
-            Section("Orders") {
-                if ordersVM.isLoading && ordersVM.orders.isEmpty {
-                    HStack {
-                        Spacer()
-                        ProgressView()
-                            .tint(HBColors.gold)
-                        Spacer()
-                    }
-                    .listRowBackground(HBColors.surface)
-                } else if let err = ordersVM.error, ordersVM.orders.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("We couldn’t load orders")
-                            .font(HBFont.headline())
-                            .foregroundStyle(HBColors.charcoal)
-                        Text(err)
-                            .font(HBFont.caption())
-                            .foregroundStyle(HBColors.mutedGray)
-                        Button("Try again") {
-                            Task { await ordersVM.load(api: api, adminAll: false) }
-                        }
-                        .font(HBFont.caption().weight(.semibold))
-                        .foregroundStyle(HBColors.gold)
-                    }
-                    .listRowBackground(HBColors.surface)
-                } else if ordersVM.orders.isEmpty {
-                    Text("No orders yet — after checkout, receipts and tracking show up here.")
-                        .font(HBFont.body())
-                        .foregroundStyle(HBColors.mutedGray)
-                        .listRowBackground(HBColors.surface)
-                } else {
-                    ForEach(ordersVM.orders) { o in
-                        NavigationLink(value: o.id) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Text(formatCents(o.totalCents))
-                                        .font(HBFont.caption().weight(.semibold))
-                                        .foregroundStyle(HBColors.charcoal)
-                                    Spacer()
-                                    Text(o.status.replacingOccurrences(of: "_", with: " ").capitalized)
-                                        .font(HBFont.caption())
-                                        .foregroundStyle(HBColors.mutedGray)
-                                }
-                                OrderTrackingStatusBar(status: o.status, compact: true)
-                                if let t = o.trackingNumber, !t.isEmpty {
-                                    Text("Tracking: \(t)")
-                                        .font(HBFont.caption())
-                                        .foregroundStyle(HBColors.gold)
-                                        .lineLimit(1)
-                                        .accessibilityLabel("Tracking number \(t)")
-                                }
-                            }
-                            .padding(.vertical, 4)
-                        }
-                        .listRowBackground(HBColors.surface)
-                    }
                 }
             }
 
@@ -294,21 +258,11 @@ struct ProfileView: View {
         }
     }
 
-    private func formatCents(_ cents: Int) -> String {
-        NumberFormatter.localizedString(from: NSNumber(value: Double(cents) / 100), number: .currency)
-    }
-
     private func loadWishlist() async {
         do {
             let r: ProductsResponse = try await api.request("/wishlist", method: "GET")
             wishlist = r.products
         } catch { }
-    }
-
-    private func openPendingOrderIfNeeded() {
-        guard session.isLoggedIn, let id = appModel.pendingOrderIdToOpen else { return }
-        appModel.pendingOrderIdToOpen = nil
-        ordersNavPath.append(id)
     }
 }
 

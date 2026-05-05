@@ -1,9 +1,10 @@
 import { getDb } from '../../lib/db.js';
-import { requireUser } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { selectUserProfileById } from '../../lib/userStaffRow.js';
+import { requireUser, normalizeStaffPermissions } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { hashPassword, comparePassword } from '../../lib/auth.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
 
   const auth = requireUser(req);
@@ -12,10 +13,7 @@ export default async function handler(req, res) {
   try {
     const sql = getDb();
     if (req.method === 'GET') {
-      const rows = await sql`
-        SELECT id, email, full_name, phone, role, loyalty_points, tags, created_at
-        FROM users WHERE id = ${auth.userId} LIMIT 1
-      `;
+      const rows = await selectUserProfileById(sql, auth.userId);
       const u = rows[0];
       if (!u) return json(res, 404, { error: 'User not found' });
 
@@ -24,7 +22,7 @@ export default async function handler(req, res) {
         FROM user_addresses WHERE user_id = ${auth.userId} ORDER BY is_default DESC, created_at DESC
       `;
 
-      return json(res, 200, {
+      const body = {
         id: u.id,
         email: u.email,
         fullName: u.full_name,
@@ -43,7 +41,14 @@ export default async function handler(req, res) {
           country: a.country,
           isDefault: a.is_default,
         })),
-      });
+      };
+      if (u.role === 'staff') {
+        body.staffPermissions = normalizeStaffPermissions(u.staff_permissions);
+        body.staffActive = u.staff_active !== false;
+        if (u.staff_title) body.staffTitle = u.staff_title;
+      }
+
+      return json(res, 200, body);
     }
 
     if (req.method === 'PATCH') {
@@ -107,3 +112,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

@@ -1,9 +1,9 @@
 import { getDb } from '../lib/db.js';
-import { json, handleCors } from '../lib/http.js';
+import { json, handleCors, withCorsContext } from '../lib/http.js';
 import { getStripePublishableKey } from '../lib/stripeCredentials.js';
 
 /** Public: publishable key for the mobile app (Info.plist fallback if empty). */
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   if (req.method !== 'GET') return json(res, 405, { error: 'Method not allowed' });
 
@@ -19,3 +19,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

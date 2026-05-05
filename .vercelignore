@@ -1,0 +1,9 @@
+# Speed up & shrink CLI deploys of the serverless API from repo root (see scripts/deploy-vercel-api.sh).
+# The Next app deploys from web/; iOS and docs are not part of the API bundle.
+web
+ios
+.claude
+docs
+node_modules
+*.log
+ios-build*.log

@@ -10,12 +10,14 @@ final class AppModel: ObservableObject {
         authSheetMode = mode
         showAuthSheet = true
     }
-    /// Main `TabView` selection: Home 0, Shop 1, Messages 2, Notifications 3, Profile 4.
+    /// Main `TabView` selection: Home 0, Shop 1, Orders 2, Messages 3, Notifications 4, Profile 5.
     @Published var tabSelection: Int = 0
     /// When set, `ConversationsListView` can push this conversation (e.g. after a notification tap).
     @Published var pendingConversationIdToOpen: String?
-    /// When set, `ProfileView` pushes order detail (e.g. after an order notification tap).
+    /// When set, `CustomerOrdersTabView` pushes order detail (e.g. after an order notification tap).
     @Published var pendingOrderIdToOpen: String?
+    /// When set, `ShopView` can push product detail (e.g. deep link).
+    @Published var pendingProductIdToOpen: String?
 
     /// Admins only: hide admin entry points and use customer APIs (e.g. Messages = my threads only).
     @Published var customerViewPreview = false
@@ -39,16 +41,20 @@ final class AppModel: ObservableObject {
     }
 
     func openProfileTab() {
-        tabSelection = 4
+        tabSelection = 5
+    }
+
+    func openOrdersTab() {
+        tabSelection = 2
     }
 
     func openMessagesTab() {
-        tabSelection = 2
+        tabSelection = 3
     }
 
     /// Admin toolbar, Profile/Settings admin rows, long-press shortcut, and `?all=1` message list.
     var showAdminChrome: Bool {
-        session.isAdmin && !customerViewPreview
+        session.canOpenAdminPortal && !customerViewPreview
     }
 
     func exitCustomerViewPreview() {

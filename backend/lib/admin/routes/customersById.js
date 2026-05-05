@@ -1,10 +1,10 @@
 import { getDb } from '../../db.js';
-import { requireAdmin } from '../../auth.js';
+import { requireStoreAccess, PERM } from '../../auth.js';
 import { json, readJson, handleCors } from '../../http.js';
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
-  const admin = await requireAdmin(req);
+  const admin = await requireStoreAccess(req, PERM.CUSTOMERS);
   if (admin.error) return json(res, admin.status, { error: admin.error });
 
   const userId = req.query?.id;

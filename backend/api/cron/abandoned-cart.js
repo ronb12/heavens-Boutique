@@ -1,9 +1,9 @@
 import { getDb } from '../../lib/db.js';
-import { json, handleCors } from '../../lib/http.js';
+import { json, handleCors, withCorsContext } from '../../lib/http.js';
 import { sendPushToToken } from '../../lib/fcm.js';
 
 /** Vercel Cron: schedule hourly. Set CRON_SECRET and Authorization: Bearer <secret> */
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -86,3 +86,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: String(e.message) });
   }
 }
+export default withCorsContext(handler);

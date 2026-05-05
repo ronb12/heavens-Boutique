@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 /**
@@ -9,10 +10,12 @@ export function GiftCardCheckoutPanel({
   value,
   onChange,
   id = "gift-card-code",
+  disabled = false,
 }: {
   value: string;
   onChange: (next: string) => void;
   id?: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[color:var(--gold)]/50 shadow-[0_12px_44px_rgba(43,43,43,0.28),inset_0_1px_0_rgba(255,255,255,0.15)]">
@@ -48,8 +51,12 @@ export function GiftCardCheckoutPanel({
               card processing.
             </p>
           </div>
-          <div
-            className="mt-0.5 h-11 w-[4.25rem] shrink-0 rounded-md bg-gradient-to-br from-[#fdeef4] via-[color:var(--gold)] to-[#5c4a16] shadow-[inset_0_2px_8px_rgba(255,255,255,0.4)] ring-1 ring-[#eab0c8]/40"
+          <Image
+            src="/app-icon.png"
+            alt=""
+            width={50}
+            height={50}
+            className="mt-0.5 h-[50px] w-[50px] shrink-0 rounded-[11px] object-cover shadow-[0_6px_20px_rgba(212,175,55,0.32)] ring-1 ring-[#eab0c8]/40"
             aria-hidden
           />
         </div>
@@ -63,8 +70,9 @@ export function GiftCardCheckoutPanel({
               spellCheck={false}
               value={value}
               onChange={(e) => onChange(e.target.value)}
+              disabled={disabled}
               placeholder="HB-XXXXXXXX"
-              className="w-full rounded-lg border border-white/10 bg-[#0a0809]/90 px-3.5 py-3 font-mono text-[0.95rem] tracking-[0.14em] text-[#fef7fa] placeholder:text-[#eab0c8]/45 outline-none ring-0 focus:border-[color:var(--gold)]/55 focus:bg-black/50 focus:ring-1 focus:ring-[color:var(--gold)]/40"
+              className="w-full rounded-lg border border-white/10 bg-[#0a0809]/90 px-3.5 py-3 font-mono text-[0.95rem] tracking-[0.14em] text-[#fef7fa] placeholder:text-[#eab0c8]/45 outline-none ring-0 focus:border-[color:var(--gold)]/55 focus:bg-black/50 focus:ring-1 focus:ring-[color:var(--gold)]/40 disabled:opacity-55"
             />
           </div>
           <span className="mt-2 block text-[11px] font-medium uppercase tracking-[0.12em] text-[color:var(--gold-light)]/85">

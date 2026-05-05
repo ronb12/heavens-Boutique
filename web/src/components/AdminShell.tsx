@@ -104,6 +104,8 @@ export function AdminShell({
   const pathname = usePathname();
   const [navOpen, setNavOpen] = React.useState(false);
   const closeNav = React.useCallback(() => setNavOpen(false), []);
+  const mobileMenuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const prevNavOpenRef = React.useRef(navOpen);
   const isLg = React.useSyncExternalStore(
     (onStoreChange) => {
       if (typeof window === "undefined") return () => undefined;
@@ -116,8 +118,17 @@ export function AdminShell({
   );
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Close the mobile nav immediately after route changes.
     setNavOpen(false);
   }, [pathname]);
+
+  React.useEffect(() => {
+    const prev = prevNavOpenRef.current;
+    prevNavOpenRef.current = navOpen;
+    if (prev && !navOpen && !isLg) {
+      mobileMenuButtonRef.current?.focus({ preventScroll: true });
+    }
+  }, [navOpen, isLg]);
 
   React.useEffect(() => {
     if (!navOpen) return;
@@ -198,6 +209,7 @@ export function AdminShell({
           }`}
         >
           <button
+            ref={mobileMenuButtonRef}
             type="button"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-black/10 bg-white/80 text-[color:var(--charcoal)] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--gold)]/55"
             aria-expanded={navOpen}
@@ -231,7 +243,7 @@ export function AdminShell({
           className={`shrink-0 border-b border-black/10 bg-white/85 lg:static lg:z-auto lg:min-h-screen lg:translate-x-0 lg:w-60 lg:border-b-0 lg:border-r lg:border-black/10 max-lg:fixed max-lg:bottom-0 max-lg:left-0 max-lg:top-14 max-lg:z-[60] max-lg:w-[min(20rem,88vw)] max-lg:overflow-y-auto max-lg:shadow-2xl max-lg:transition-transform max-lg:duration-200 max-lg:ease-out ${
             navOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
           }`}
-          aria-hidden={!isLg && !navOpen ? true : undefined}
+          inert={!isLg && !navOpen ? true : undefined}
           aria-modal={!isLg && navOpen ? true : undefined}
           role={!isLg && navOpen ? "dialog" : undefined}
           aria-label="Admin navigation"
@@ -287,6 +299,9 @@ export function AdminShell({
               <GuardedNavLink href="/admin/products" user={user}>
                 Products
               </GuardedNavLink>
+              <GuardedNavLink href="/admin/product-imports" user={user}>
+                Import queue
+              </GuardedNavLink>
               <GuardedNavLink href="/admin/products-csv" user={user}>
                 Bulk CSV
               </GuardedNavLink>
@@ -312,7 +327,7 @@ export function AdminShell({
 
             <NavSection label="Content">
               <GuardedNavLink href="/admin/homepage" user={user}>
-                App home screen
+                Store home
               </GuardedNavLink>
               <GuardedNavLink href="/admin/content-pages" user={user}>
                 Pages &amp; journal

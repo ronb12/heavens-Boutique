@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
+import { AccountSubNav } from "@/components/AccountSubNav";
 import { SiteHeader } from "@/components/SiteHeader";
 import { formatUsd } from "@/lib/money";
 
@@ -42,7 +43,10 @@ export function OrdersClient() {
     return (
       <div className="min-h-full flex flex-col">
         <SiteHeader active="orders" />
-        <div className="mx-auto max-w-5xl flex-1 px-4 py-12 text-black/60">Loading…</div>
+        <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-12 text-black/60">
+          <AccountSubNav />
+          Loading…
+        </div>
       </div>
     );
   }
@@ -52,6 +56,7 @@ export function OrdersClient() {
       <div className="min-h-full flex flex-col">
         <SiteHeader active="orders" />
         <div className="mx-auto max-w-5xl flex-1 px-4 py-12">
+          <AccountSubNav />
           <h1 className="text-3xl">Orders</h1>
           <p className="mt-2 text-black/60">Sign in to view your order history.</p>
           <div className="mt-6">
@@ -72,6 +77,7 @@ export function OrdersClient() {
       <SiteHeader active="orders" />
 
       <main className="mx-auto max-w-5xl flex-1 px-4 py-12">
+        <AccountSubNav />
         <h1 className="text-3xl">Orders</h1>
         {error ? <div className="mt-6 text-sm text-rose-700 font-semibold">{error}</div> : null}
         <div className="mt-8 grid gap-3">

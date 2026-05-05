@@ -36,8 +36,25 @@ final class CartStore: ObservableObject {
         scheduleSync()
     }
 
+    /// Reads the current line from the store by variant id so List row reuse can’t apply the wrong delta to another row.
+    func adjustQuantity(variantId: String, delta: Int) {
+        guard let i = lines.firstIndex(where: { $0.variant.id == variantId }) else { return }
+        let next = lines[i].quantity + delta
+        if next <= 0 {
+            lines.remove(at: i)
+        } else {
+            lines[i].quantity = next
+        }
+        persist()
+        scheduleSync()
+    }
+
     func remove(_ line: CartLine) {
-        lines.removeAll { $0.id == line.id }
+        removeVariant(id: line.variant.id)
+    }
+
+    func removeVariant(id: String) {
+        lines.removeAll { $0.variant.id == id }
         persist()
         scheduleSync()
     }
@@ -53,6 +70,29 @@ final class CartStore: ObservableObject {
             let unit = line.product.salePriceCents ?? line.product.priceCents
             return partial + unit * line.quantity
         }
+    }
+
+    /// Re-fetch each product from the API so list/sale prices match the server (what you pay at checkout).
+    /// The bag stores a snapshot from when the item was added; admin or web price changes won’t show until this runs.
+    func refreshLinePrices() async {
+        guard !lines.isEmpty else { return }
+        let productIds = Array(Set(lines.map(\.product.id)))
+        for pid in productIds {
+            do {
+                let r: ProductSingleResponse = try await api.request("/products/\(pid)", method: "GET")
+                let fresh = r.product
+                for i in lines.indices where lines[i].product.id == fresh.id {
+                    let variantId = lines[i].variant.id
+                    let newVariant = fresh.variants.first(where: { $0.id == variantId }) ?? lines[i].variant
+                    lines[i] = CartLine(product: fresh, variant: newVariant, quantity: lines[i].quantity)
+                }
+            } catch {
+                #if DEBUG
+                print("[CartStore] refreshLinePrices failed for \(pid): \(error)")
+                #endif
+            }
+        }
+        persist()
     }
 
     private func persist() {
@@ -77,7 +117,11 @@ final class CartStore: ObservableObject {
         }
         do {
             try await api.requestVoid("/cart", method: "POST", jsonBody: ["items": items])
-        } catch { }
+        } catch {
+            #if DEBUG
+            print("[CartStore] syncToServer failed: \(error)")
+            #endif
+        }
     }
 }
 

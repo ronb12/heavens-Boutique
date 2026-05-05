@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { getDb } from '../../db.js';
-import { requireAdmin } from '../../auth.js';
+import { requireStoreAccess, PERM } from '../../auth.js';
 import { isAllowedOrderStatus } from '../../orderStatuses.js';
 import { json, readJson, handleCors } from '../../http.js';
 import {
@@ -13,7 +13,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 export default async function handler(req, res) {
   if (handleCors(req, res)) return;
-  const admin = await requireAdmin(req);
+  const admin = await requireStoreAccess(req, PERM.ORDERS);
   if (admin.error) return json(res, admin.status, { error: admin.error });
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 

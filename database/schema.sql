@@ -11,7 +11,10 @@ CREATE TABLE users (
   apple_sub     TEXT,
   full_name     TEXT,
   phone         TEXT,
-  role          TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
+  role          TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'admin', 'staff')),
+  staff_permissions JSONB NOT NULL DEFAULT '{}'::jsonb,
+  staff_active  BOOLEAN NOT NULL DEFAULT true,
+  staff_title   TEXT,
   fcm_token     TEXT,
   tags          TEXT[] DEFAULT '{}',
   loyalty_points INTEGER NOT NULL DEFAULT 0,
@@ -51,6 +54,9 @@ CREATE TABLE products (
   is_featured BOOLEAN NOT NULL DEFAULT false,
   shop_look_group TEXT,
   cloudinary_ids TEXT[] DEFAULT '{}',
+  supplier_name  TEXT,
+  supplier_url   TEXT,
+  supplier_notes TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -145,7 +151,14 @@ CREATE TABLE orders (
   stripe_checkout_session_id TEXT,
   shipping_address JSONB,
   tracking_number TEXT,
-  promo_code_id   UUID REFERENCES promo_codes(id),
+  supplier_order_status TEXT NOT NULL DEFAULT 'not_needed'
+    CHECK (supplier_order_status IN ('not_needed', 'needs_order', 'ordered', 'supplier_shipped', 'received', 'cancelled')),
+  supplier_name TEXT,
+  supplier_order_url TEXT,
+  supplier_order_number TEXT,
+  supplier_tracking_url TEXT,
+  fulfillment_notes TEXT,
+  promo_code_id   UUID REFERENCES promo_codes(id) ON DELETE SET NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   CHECK (user_id IS NOT NULL OR (guest_email IS NOT NULL AND length(trim(guest_email)) > 0))
@@ -153,6 +166,35 @@ CREATE TABLE orders (
 
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
+
+CREATE TABLE product_import_queue (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  status TEXT NOT NULL DEFAULT 'draft'
+    CHECK (status IN ('draft', 'ready', 'published', 'archived')),
+  supplier_name TEXT,
+  supplier_url TEXT NOT NULL,
+  title TEXT,
+  boutique_name TEXT,
+  category TEXT,
+  description TEXT,
+  price_cents INTEGER CHECK (price_cents IS NULL OR price_cents >= 0),
+  sale_price_cents INTEGER CHECK (sale_price_cents IS NULL OR sale_price_cents >= 0),
+  cost_cents INTEGER CHECK (cost_cents IS NULL OR cost_cents >= 0),
+  image_urls TEXT[] DEFAULT '{}',
+  sizes TEXT[] DEFAULT '{}',
+  stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  ships_from TEXT,
+  delivery_days_min INTEGER CHECK (delivery_days_min IS NULL OR delivery_days_min >= 0),
+  delivery_days_max INTEGER CHECK (delivery_days_max IS NULL OR delivery_days_max >= 0),
+  backup_supplier_url TEXT,
+  notes TEXT,
+  published_product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_product_import_queue_status ON product_import_queue(status);
+CREATE INDEX idx_product_import_queue_created_at ON product_import_queue(created_at DESC);
 
 CREATE TABLE order_items (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

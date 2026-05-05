@@ -13,11 +13,17 @@ export function AdminProductsCsvClient() {
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
   const base = getApiBaseUrl();
+  const sampleCsv = [
+    "name,slug,category,description,price,cost,supplier_name,supplier_url,supplier_notes,image_urls,size,sku,stock,is_featured",
+    "\"Midnight Glow Curve Maxi Dress\",midnight-glow-curve-maxi-dress,Dresses,\"Curve-friendly black maxi dress for date night and birthday looks\",39.99,12.14,AliExpress,https://www.aliexpress.us/item/3256810343301765.html,\"Ships from U.S. partner warehouse if available. Verify sizes before ordering.\",\"https://example.com/image1.jpg|https://example.com/image2.jpg\",1X,HB-MIDNIGHT-1X,10,true",
+    "\"Midnight Glow Curve Maxi Dress\",midnight-glow-curve-maxi-dress,Dresses,\"Curve-friendly black maxi dress for date night and birthday looks\",39.99,12.14,AliExpress,https://www.aliexpress.us/item/3256810343301765.html,\"Ships from U.S. partner warehouse if available. Verify sizes before ordering.\",\"https://example.com/image1.jpg|https://example.com/image2.jpg\",2X,HB-MIDNIGHT-2X,10,true",
+  ].join("\n");
 
   return (
     <AdminShell title="Products CSV">
       <p className="text-black/60 max-w-3xl">
-        Export products to CSV or import/update via CSV. (Requires admin.)
+        Export products or import 10-100 supplier-sourced items at once. Use one row per variant/size; rows with the same
+        slug update the same product.
       </p>
 
       {status ? <div className="mt-4 text-sm text-emerald-700 font-semibold">{status}</div> : null}
@@ -48,7 +54,9 @@ export function AdminProductsCsvClient() {
 
         <div className="rounded-3xl border border-black/10 bg-white/80 p-6">
           <div className="font-semibold">Import</div>
-          <p className="mt-2 text-sm text-black/60">Upload a CSV file to upsert products.</p>
+          <p className="mt-2 text-sm text-black/60">
+            Upload a CSV file to upsert products, supplier links, image URLs, cost, pricing, and variants.
+          </p>
           <div className="mt-4 flex flex-col gap-3">
             <label
               htmlFor={uploadInputId}
@@ -84,9 +92,11 @@ export function AdminProductsCsvClient() {
                 });
                 const j = await r.json().catch(() => ({}));
                 if (!r.ok) throw new Error(j?.error || "Import failed");
-                setStatus("Import complete.");
-              } catch (e2: any) {
-                setError(e2?.message || "Import failed");
+                setStatus(
+                  `Import complete. Created ${j?.createdProducts ?? 0}, updated ${j?.updatedProducts ?? 0}, variants ${j?.upsertedVariants ?? 0}.`,
+                );
+              } catch (e2: unknown) {
+                setError(e2 instanceof Error ? e2.message : "Import failed");
               } finally {
                 e.currentTarget.value = "";
               }
@@ -102,7 +112,29 @@ export function AdminProductsCsvClient() {
           </div>
         </div>
       </div>
+
+      <div className="mt-6 rounded-3xl border border-black/10 bg-white/80 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="font-semibold">Bulk import template</div>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-black/60">
+              Required columns: <span className="font-semibold">name</span>, <span className="font-semibold">slug</span>,{" "}
+              <span className="font-semibold">price</span>, and <span className="font-semibold">size</span>. Optional
+              supplier columns let the store track AliExpress cost, URL, and notes.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold"
+            onClick={() => navigator.clipboard?.writeText(sampleCsv)}
+          >
+            Copy sample
+          </button>
+        </div>
+        <pre className="mt-4 max-h-56 overflow-auto rounded-2xl bg-black/[0.04] p-4 text-xs leading-5 text-black/70">
+          {sampleCsv}
+        </pre>
+      </div>
     </AdminShell>
   );
 }
-

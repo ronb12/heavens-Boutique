@@ -1,7 +1,7 @@
 import { getDb } from '../../lib/db.js';
-import { requireUser, requireAdmin } from '../../lib/auth.js';
-import { json, handleCors } from '../../lib/http.js';
-export default async function handler(req, res) {
+import { requireUser, requireStoreAccess, PERM } from '../../lib/auth.js';
+import { json, handleCors, withCorsContext } from '../../lib/http.js';
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const sql = getDb();
 
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
       const asAdmin = url.searchParams.get('all') === '1';
 
       if (asAdmin) {
-        const admin = await requireAdmin(req);
+        const admin = await requireStoreAccess(req, PERM.ORDERS);
         if (admin.error) return json(res, admin.status, { error: admin.error });
         const orders = await sql`
           SELECT o.*, u.email as user_email, u.full_name as user_name
@@ -76,3 +76,4 @@ function mapOrderRow(o, items) {
     })),
   };
 }
+export default withCorsContext(handler);

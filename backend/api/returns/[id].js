@@ -1,8 +1,8 @@
 import { getDb } from '../../lib/db.js';
 import { requireUser } from '../../lib/auth.js';
-import { json, handleCors } from '../../lib/http.js';
+import { json, handleCors, withCorsContext } from '../../lib/http.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   if (req.method !== 'GET') return json(res, 405, { error: 'Method not allowed' });
 
@@ -37,3 +37,4 @@ export default async function handler(req, res) {
     },
   });
 }
+export default withCorsContext(handler);

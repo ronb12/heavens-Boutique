@@ -1,4 +1,4 @@
-import { requireAdmin } from '../../auth.js';
+import { requireStoreAccess, PERM } from '../../auth.js';
 import { json, readJson, handleCors } from '../../http.js';
 import { getDb } from '../../db.js';
 import { createReturnLabel } from '../../easypost.js';
@@ -10,7 +10,7 @@ import { sendReturnLabelEmail } from '../../emailTemplates.js';
  */
 export default async function handleAdminReturns(req, res, segments) {
   if (handleCors(req, res)) return;
-  const auth = await requireAdmin(req);
+  const auth = await requireStoreAccess(req, PERM.RETURNS);
   if (auth.error) return json(res, auth.status, { error: auth.error });
 
   const sql = getDb();

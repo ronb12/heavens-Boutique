@@ -18,7 +18,9 @@ final class HBAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
         if HBFirebaseBootstrap.configureIfNeeded() {
             Messaging.messaging().delegate = self
         }
-        UNUserNotificationCenter.current().delegate = self
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
+        registerNotificationCategories(center: center)
         return true
     }
 
@@ -57,5 +59,26 @@ final class HBAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         completionHandler([.banner, .sound, .list])
+    }
+
+    private func registerNotificationCategories(center: UNUserNotificationCenter) {
+        let view = UNNotificationAction(
+            identifier: "HB_VIEW",
+            title: "View",
+            options: [.foreground]
+        )
+        let order = UNNotificationCategory(
+            identifier: "HB_ORDER",
+            actions: [view],
+            intentIdentifiers: [],
+            options: []
+        )
+        let backInStock = UNNotificationCategory(
+            identifier: "HB_BACK_IN_STOCK",
+            actions: [view],
+            intentIdentifiers: [],
+            options: []
+        )
+        center.setNotificationCategories([order, backInStock])
     }
 }

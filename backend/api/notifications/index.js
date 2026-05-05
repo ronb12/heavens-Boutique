@@ -1,9 +1,9 @@
 import { getDb } from '../../lib/db.js';
-import { requireUser, requireAdmin } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { requireUser, requireStoreAccess, PERM } from '../../lib/auth.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { sendPushToToken } from '../../lib/fcm.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   const sql = getDb();
 
@@ -52,8 +52,24 @@ export default async function handler(req, res) {
       return json(res, 200, { ok: true });
     }
 
+    if (req.method === 'DELETE') {
+      const auth = requireUser(req);
+      if (auth.error) return json(res, auth.status, { error: auth.error });
+      const body = await readJson(req);
+      if (body.deleteAll) {
+        await sql`DELETE FROM notifications WHERE user_id = ${auth.userId}`;
+      } else if (Array.isArray(body.ids) && body.ids.length) {
+        for (const nid of body.ids) {
+          await sql`DELETE FROM notifications WHERE id = ${nid} AND user_id = ${auth.userId}`;
+        }
+      } else {
+        return json(res, 400, { error: 'Provide ids (array) or deleteAll: true' });
+      }
+      return json(res, 200, { ok: true });
+    }
+
     if (req.method === 'POST') {
-      const admin = await requireAdmin(req);
+      const admin = await requireStoreAccess(req, PERM.MARKETING);
       if (admin.error) return json(res, admin.status, { error: admin.error });
       const body = await readJson(req);
       const type = body.type || 'promotion';
@@ -154,3 +170,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

@@ -1,4 +1,4 @@
-import { handleCors, json } from '../../lib/http.js';
+import { handleCors, json, withCorsContext } from '../../lib/http.js';
 import handleUpload from '../../lib/admin/routes/upload.js';
 import handleReports from '../../lib/admin/routes/reports.js';
 import handleOrdersPost from '../../lib/admin/routes/ordersPost.js';
@@ -11,12 +11,15 @@ import handleInventory from './inventory.js';
 import handleHomepage from './homepage.js';
 import handlePromoAnalytics from './promo-analytics.js';
 import handleProductsCsv from './products-csv.js';
+import handleProductImports from './product-imports.js';
 import handlePurchaseOrders from './purchase-orders.js';
 import handleContentPages from './content-pages.js';
 import handleGiftCards from './gift-cards.js';
 import handlePromos from './promos.js';
 import handleStripeSettings from './stripe-settings.js';
 import handleEasypostSettings from './easypost-settings.js';
+import handleStaff from './staff.js';
+import handleAdminStoreSettings from './store-settings.js';
 
 /** First path segment after /api/admin or /admin — used when URL parsing is ambiguous. */
 const ADMIN_ROUTE_HEADS = new Set([
@@ -27,6 +30,7 @@ const ADMIN_ROUTE_HEADS = new Set([
   'promos',
   'promo-analytics',
   'products-csv',
+  'product-imports',
   'easypost',
   'easypost-settings',
   'returns',
@@ -37,6 +41,8 @@ const ADMIN_ROUTE_HEADS = new Set([
   'content-pages',
   'gift-cards',
   'stripe-settings',
+  'store-settings',
+  'staff',
 ]);
 
 function normalizeSegments(query) {
@@ -105,7 +111,7 @@ function segmentsFromUrl(req) {
   return [];
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const fromUrl = segmentsFromUrl(req);
   const segments = fromUrl.length > 0 ? fromUrl : normalizeSegments(req.query || {});
   const head = segments[0];
@@ -171,6 +177,14 @@ export default async function handler(req, res) {
     return handleStripeSettings(req, res);
   }
 
+  if (head === 'store-settings') {
+    if (segments.length !== 1) {
+      if (handleCors(req, res)) return;
+      return json(res, 404, { error: 'Not found' });
+    }
+    return handleAdminStoreSettings(req, res);
+  }
+
   if (head === 'promos') {
     if (segments.length !== 1) {
       if (handleCors(req, res)) return;
@@ -223,6 +237,14 @@ export default async function handler(req, res) {
     return handleProductsCsv(req, res);
   }
 
+  if (head === 'product-imports') {
+    if (segments.length !== 1) {
+      if (handleCors(req, res)) return;
+      return json(res, 404, { error: 'Not found' });
+    }
+    return handleProductImports(req, res);
+  }
+
   if (head === 'purchase-orders') {
     if (segments.length !== 1) {
       if (handleCors(req, res)) return;
@@ -240,13 +262,22 @@ export default async function handler(req, res) {
   }
 
   if (head === 'gift-cards') {
+    if (segments.length < 1 || segments.length > 3) {
+      if (handleCors(req, res)) return;
+      return json(res, 404, { error: 'Not found' });
+    }
+    return handleGiftCards(req, res, segments);
+  }
+
+  if (head === 'staff') {
     if (segments.length !== 1) {
       if (handleCors(req, res)) return;
       return json(res, 404, { error: 'Not found' });
     }
-    return handleGiftCards(req, res);
+    return handleStaff(req, res);
   }
 
   if (handleCors(req, res)) return;
   return json(res, 404, { error: 'Not found' });
 }
+export default withCorsContext(handler);

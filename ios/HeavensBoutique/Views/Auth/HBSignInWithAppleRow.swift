@@ -35,7 +35,7 @@ struct HBSignInWithAppleRow: View {
                 error = err.localizedDescription
             }
         }
-        .signInWithAppleButtonStyle(.black)
+        .signInWithAppleButtonStyle(.whiteOutline)
         .frame(height: 50)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .disabled(isLoading)
@@ -65,7 +65,12 @@ struct HBSignInWithAppleRow: View {
 
     private static func makeRawNonce(length: Int = 32) -> String {
         let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-        return String((0..<length).map { _ in charset.randomElement()! })
+        var bytes = [UInt8](repeating: 0, count: length)
+        let result = SecRandomCopyBytes(kSecRandomDefault, length, &bytes)
+        guard result == errSecSuccess else {
+            return String((0..<length).map { _ in charset[Int.random(in: 0..<charset.count)] })
+        }
+        return String(bytes.map { charset[Int($0) % charset.count] })
     }
 
     private static func sha256Hex(_ input: String) -> String {

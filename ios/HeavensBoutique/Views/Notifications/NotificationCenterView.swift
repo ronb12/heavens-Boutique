@@ -5,6 +5,7 @@ struct NotificationCenterView: View {
     @EnvironmentObject private var session: SessionViewModel
     @EnvironmentObject private var appModel: AppModel
     @StateObject private var vm = NotificationsViewModel()
+    @State private var confirmDeleteAll = false
 
     private var needsSignIn: Bool { !session.isLoggedIn }
 
@@ -68,6 +69,14 @@ struct NotificationCenterView: View {
                                     }
                                 }
                                 .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        HBFeedback.warning()
+                                        Task { await vm.delete(ids: [n.id], api: api) }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -80,12 +89,31 @@ struct NotificationCenterView: View {
             .navigationTitle("Notifications")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Mark all read") {
-                        Task { await vm.markAllRead(api: api) }
+                    Menu {
+                        Button("Mark all read") {
+                            Task { await vm.markAllRead(api: api) }
+                        }
+                        .disabled(vm.items.isEmpty)
+                        Button("Delete all", systemImage: "trash", role: .destructive) {
+                            confirmDeleteAll = true
+                        }
+                        .disabled(vm.items.isEmpty)
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(HBColors.gold)
                     }
-                    .foregroundStyle(HBColors.gold)
                     .disabled(needsSignIn || vm.items.isEmpty)
+                    .accessibilityLabel("Notification actions")
                 }
+            }
+            .alert("Delete all notifications?", isPresented: $confirmDeleteAll) {
+                Button("Delete all", role: .destructive) {
+                    HBFeedback.warning()
+                    Task { await vm.deleteAll(api: api) }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This permanently removes every notification in your list.")
             }
             .task {
                 guard !needsSignIn else { return }
@@ -201,19 +229,21 @@ struct NotificationCenterView: View {
         }
     }
 
+    private static let _isoFractional: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]; return f
+    }()
+    private static let _iso: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime]; return f
+    }()
+    private static let _relativeFormatter: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter(); f.unitsStyle = .abbreviated; return f
+    }()
+
     private func formattedNotificationTime(_ iso: String?) -> String? {
         guard let iso, !iso.isEmpty else { return nil }
-        let isoFmt = ISO8601DateFormatter()
-        isoFmt.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        var date = isoFmt.date(from: iso)
-        if date == nil {
-            isoFmt.formatOptions = [.withInternetDateTime]
-            date = isoFmt.date(from: iso)
-        }
+        let date = Self._isoFractional.date(from: iso) ?? Self._iso.date(from: iso)
         guard let date else { return nil }
-        let rel = RelativeDateTimeFormatter()
-        rel.unitsStyle = .abbreviated
-        return rel.localizedString(for: date, relativeTo: Date())
+        return Self._relativeFormatter.localizedString(for: date, relativeTo: Date())
     }
 
     private func routeFromNotification(_ n: NotificationDTO) {
@@ -221,9 +251,9 @@ struct NotificationCenterView: View {
         let adminOrderTap = t == "admin_alert" && n.data?.kind?.lowercased() == "new_order"
         if let oid = n.data?.orderId, !oid.isEmpty, t == "order" || adminOrderTap {
             appModel.pendingOrderIdToOpen = oid
-            appModel.openProfileTab()
+            appModel.openOrdersTab()
         } else if t == "order" {
-            appModel.openProfileTab()
+            appModel.openOrdersTab()
         }
         if let cid = n.data?.conversationId {
             appModel.pendingConversationIdToOpen = cid

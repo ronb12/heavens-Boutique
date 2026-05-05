@@ -140,9 +140,13 @@ jobs:
       - name: Smoke test API (production)
         env:
           SMOKE_BASE: ${{ vars.VERCEL_SMOKE_BASE }}
+          API_SMOKE_BASE: ${{ vars.VERCEL_API_SMOKE_BASE }}
         run: |
           set -euo pipefail
-          base="${SMOKE_BASE:-https://heavens-boutique.vercel.app}"
+          # After splitting API vs Next storefront: set VERCEL_API_SMOKE_BASE to the API deployment
+          # (e.g. https://heavens-boutique-api.vercel.app). Until then, defaults hit the storefront URL,
+          # which resolves /api when BACKEND_PROXY_ORIGIN is set on that project.
+          base="${API_SMOKE_BASE:-${SMOKE_BASE:-https://heavens-boutique.vercel.app}}"
           ok=0
           for i in 1 2 3 4 5; do
             code=$(curl -sS -o /tmp/hb-api-smoke.json -w "%{http_code}" "${base}/api/products" || echo "000")
@@ -168,3 +172,80 @@ jobs:
             fi
             echo "POST ${base}/api/${path} → HTTP $code (expect not 404)"
           done
+
+  # Next.js storefront (`web/`). Requires a separate Vercel project so it is not overwritten by the API bundle.
+  # Repo variable: VERCEL_WEB_PROJECT_SLUG — when set, pushes to main also deploy production for `web/`.
+  deploy-storefront:
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: ${{ vars.VERCEL_WEB_PROJECT_SLUG != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (web/)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Deploy Next.js storefront to Vercel (production)
+        env:
+          VERCEL_TELEMETRY_DISABLED: "1"
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_SCOPE_VAR: ${{ vars.VERCEL_SCOPE }}
+          VERCEL_WEB_PROJECT_SLUG_VAR: ${{ vars.VERCEL_WEB_PROJECT_SLUG }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_WEB_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+        working-directory: web
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "::error::VERCEL_TOKEN is empty or not set."
+            exit 1
+          fi
+          npm ci
+          VERCEL_PKG="vercel@50"
+          _scope_trim="$(echo -n "${VERCEL_SCOPE_VAR:-ronell-bradleys-projects}" | tr -d '[:space:]')"
+          SCOPE_ARGS=(--scope "$_scope_trim")
+          WEB_PROJ="$(echo -n "${VERCEL_WEB_PROJECT_SLUG_VAR}" | tr -d '[:space:]')"
+          if [ -z "$WEB_PROJ" ]; then
+            echo "::error::VERCEL_WEB_PROJECT_SLUG is empty"
+            exit 1
+          fi
+          rm -rf .vercel
+          echo "Storefront deploy target (Next.js root = web/): project=$WEB_PROJ"
+
+          if [ -n "${VERCEL_ORG_ID:-}" ] && [ -n "${VERCEL_WEB_PROJECT_ID:-}" ]; then
+            echo "::notice::Using VERCEL_ORG_ID + VERCEL_WEB_PROJECT_ID for storefront."
+            node -e "const fs=require('fs');const o=process.env.VERCEL_ORG_ID;const p=process.env.VERCEL_WEB_PROJECT_ID;if(!o||!p){console.error('missing org or VERCEL_WEB_PROJECT_ID');process.exit(1)}fs.mkdirSync('.vercel',{recursive:true});fs.writeFileSync('.vercel/project.json',JSON.stringify({orgId:o,projectId:p},null,2)+'\n');"
+            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive \
+              --token "$VERCEL_TOKEN" \
+              "${SCOPE_ARGS[@]}"
+          else
+            unset VERCEL_WEB_PROJECT_ID
+            npx --yes "$VERCEL_PKG" link --yes --non-interactive \
+              --token "$VERCEL_TOKEN" \
+              "${SCOPE_ARGS[@]}" \
+              --project "$WEB_PROJ"
+            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive \
+              --token "$VERCEL_TOKEN" \
+              "${SCOPE_ARGS[@]}"
+          fi
+
+      - name: Smoke test storefront (production)
+        env:
+          STORE_SMOKE_BASE: ${{ vars.VERCEL_STORE_SMOKE_BASE }}
+        run: |
+          set -euo pipefail
+          root="${STORE_SMOKE_BASE:-https://heavens-boutique.vercel.app}"
+          code=$(curl -sS -o /tmp/hb-root.txt -w "%{http_code}" "${root}/" || echo "000")
+          if [ "$code" != "200" ]; then
+            echo "::warning::GET ${root}/ returned HTTP $code (expected 200 once domain points at storefront project)."
+            cat /tmp/hb-root.txt 2>/dev/null || true
+            exit 0
+          fi
+          echo "GET ${root}/ OK"

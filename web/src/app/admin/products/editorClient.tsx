@@ -58,6 +58,16 @@ function parseDollarInputToCents(raw: string): number | null {
   return Math.round(n * 100);
 }
 
+function marginPercent(revenueCents: number | null, costCents: number | null): number | null {
+  if (revenueCents == null || costCents == null || revenueCents <= 0) return null;
+  return ((revenueCents - costCents) / revenueCents) * 100;
+}
+
+function markupPercent(revenueCents: number | null, costCents: number | null): number | null {
+  if (revenueCents == null || costCents == null || costCents <= 0) return null;
+  return ((revenueCents - costCents) / costCents) * 100;
+}
+
 function EditorSection({
   eyebrow,
   title,
@@ -160,6 +170,21 @@ export function AdminProductEditorClient({ id }: { id?: string }) {
   }, [category]);
 
   const storefrontShareUrl = useShopProductShareUrl(id ?? "");
+  const priceCentsPreview = parseDollarInputToCents(priceDollars);
+  const saleCentsPreview = salePriceDollars.trim() ? parseDollarInputToCents(salePriceDollars) : null;
+  const costCentsPreview = costDollars.trim() ? parseDollarInputToCents(costDollars) : null;
+  const effectiveRevenueCents = saleCentsPreview ?? priceCentsPreview;
+  const profitCents =
+    effectiveRevenueCents != null && costCentsPreview != null ? effectiveRevenueCents - costCentsPreview : null;
+  const marginPreview = marginPercent(effectiveRevenueCents, costCentsPreview);
+  const markupPreview = markupPercent(effectiveRevenueCents, costCentsPreview);
+  const suggestedPrices = costCentsPreview
+    ? [
+        ["2x", costCentsPreview * 2],
+        ["2.5x", Math.round(costCentsPreview * 2.5)],
+        ["3x", costCentsPreview * 3],
+      ]
+    : [];
 
   useEffect(() => {
     let mounted = true;
@@ -367,7 +392,9 @@ export function AdminProductEditorClient({ id }: { id?: string }) {
                   <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT_CLASS} placeholder="e.g. Silk wrap dress" />
                 </label>
                 <label className="grid gap-2">
-                  <FieldLabel hint="URL-friendly ID; lowercase, hyphens.">Slug</FieldLabel>
+                  <FieldLabel hint="The end of the product web address (lowercase, hyphens instead of spaces). Leave blank to auto-fill from the name.">
+                    Product URL handle
+                  </FieldLabel>
                   <input value={slug} onChange={(e) => setSlug(e.target.value)} className={INPUT_CLASS} placeholder="silk-wrap-dress" />
                 </label>
                 <div className="grid gap-2">
@@ -393,7 +420,7 @@ export function AdminProductEditorClient({ id }: { id?: string }) {
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                       className={INPUT_CLASS}
-                      placeholder="Custom category (slug)"
+                      placeholder="Custom category (short name, e.g. evening-wear)"
                     />
                   ) : null}
                 </div>
@@ -411,7 +438,7 @@ export function AdminProductEditorClient({ id }: { id?: string }) {
               <EditorSection
                 eyebrow="Commerce"
                 title="Pricing & visibility"
-                description="Enter dollar amounts (e.g. 24.99). We store cents in the database—same as checkout."
+                description="Enter supplier cost and selling price so every AliExpress, Temu, or vendor find has a visible profit target before it goes live."
               >
                 <div className="grid gap-4 sm:grid-cols-3">
                   <label className="grid gap-2">
@@ -470,6 +497,47 @@ export function AdminProductEditorClient({ id }: { id?: string }) {
                   </label>
                 </div>
 
+                <div className="grid gap-3 rounded-3xl border border-black/[0.07] bg-gradient-to-br from-[#fffafb] via-white to-[#f8fbf7] p-5 sm:grid-cols-3">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/40">Profit</div>
+                    <div className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--charcoal)]">
+                      {profitCents != null ? formatUsd(profitCents) : "—"}
+                    </div>
+                    <div className="mt-1 text-xs text-black/45">Selling price minus product cost.</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/40">Margin</div>
+                    <div className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--charcoal)]">
+                      {marginPreview != null ? `${marginPreview.toFixed(1)}%` : "—"}
+                    </div>
+                    <div className="mt-1 text-xs text-black/45">Profit as a share of selling price.</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/40">Markup</div>
+                    <div className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--charcoal)]">
+                      {markupPreview != null ? `${markupPreview.toFixed(0)}%` : "—"}
+                    </div>
+                    <div className="mt-1 text-xs text-black/45">Profit compared with product cost.</div>
+                  </div>
+                  {suggestedPrices.length ? (
+                    <div className="border-t border-black/[0.06] pt-4 sm:col-span-3">
+                      <div className="text-xs font-semibold text-black/55">Quick price targets from cost</div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {suggestedPrices.map(([label, cents]) => (
+                          <button
+                            key={label}
+                            type="button"
+                            onClick={() => setPriceDollars(centsToDollarInput(Number(cents)))}
+                            className="rounded-full border border-black/[0.08] bg-white px-4 py-2 text-xs font-semibold text-black/70 transition hover:border-[color:var(--gold)]/40 hover:bg-[#fffafb]"
+                          >
+                            {label}: {formatUsd(Number(cents))}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
                 <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-black/[0.07] bg-[#fffafb]/80 px-4 py-3.5 transition hover:border-[color:var(--gold)]/30">
                   <input
                     type="checkbox"
@@ -498,7 +566,7 @@ export function AdminProductEditorClient({ id }: { id?: string }) {
             <EditorSection
               eyebrow="Sourcing"
               title="Supplier"
-              description="Optional — wholesale, B2B portal, marketplace, or local vendor. Used in low-stock and purchase-order flows."
+              description="Save the AliExpress, Temu, wholesale, or local vendor details here so reorders, refunds, and profit checks do not live in memory."
             >
               <div className="grid gap-5 border-l-[3px] border-[color:var(--gold)]/85 pl-5">
                 <label className="grid gap-2">

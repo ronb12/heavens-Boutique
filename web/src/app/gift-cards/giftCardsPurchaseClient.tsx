@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { apiFetch } from "@/lib/api";
@@ -43,15 +42,37 @@ async function createGiftCardIntent(body: IntentBody) {
 function GiftPaymentSection({
   clientSecret,
   amountCents,
+  onStaleIntent,
 }: {
   clientSecret: string;
   amountCents: number;
+  /** PaymentIntent was canceled or is unusable — parent should clear `clientSecret` and ask user to continue again. */
+  onStaleIntent: () => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!stripe || !clientSecret) return;
+    let alive = true;
+    void (async () => {
+      try {
+        const { error: retrieveErr, paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+        if (!alive || retrieveErr) return;
+        if (paymentIntent?.status === "canceled") {
+          onStaleIntent();
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [stripe, clientSecret, onStaleIntent]);
 
   if (done) {
     return (
@@ -99,7 +120,18 @@ function GiftPaymentSection({
               clientSecret,
               redirect: "if_required",
             });
-            if (result.error) throw new Error(result.error.message || "Payment failed");
+            if (result.error) {
+              const pi = result.error.payment_intent;
+              const piStatus =
+                pi && typeof pi === "object" && pi !== null && "status" in pi
+                  ? String((pi as { status?: string }).status || "")
+                  : "";
+              if (piStatus === "canceled" || /cancell?ed/i.test(result.error.message || "")) {
+                onStaleIntent();
+                return;
+              }
+              throw new Error(result.error.message || "Payment failed");
+            }
             setDone(true);
           } catch (e: unknown) {
             setError(e instanceof Error ? e.message : "Payment failed");
@@ -116,7 +148,6 @@ function GiftPaymentSection({
 }
 
 export function GiftCardPurchaseClient() {
-  const router = useRouter();
   const { giftCardsPurchaseEnabled, loading: settingsLoading } = useStoreSettings();
   const { user, loading } = useAuth();
   const [amountCents, setAmountCents] = useState(5000);
@@ -130,6 +161,13 @@ export function GiftCardPurchaseClient() {
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const onStalePaymentIntent = useCallback(() => {
+    setClientSecret("");
+    setError(
+      "That checkout session had already been closed. Your details are still here — tap Continue to payment for a fresh secure form.",
+    );
+  }, []);
 
   useEffect(() => {
     let m = true;
@@ -147,21 +185,12 @@ export function GiftCardPurchaseClient() {
   }, []);
 
   useEffect(() => {
-    if (user?.email) setPurchaserEmail(user.email);
-  }, [user]);
-
-  useEffect(() => {
     if (!settingsLoading && !giftCardsPurchaseEnabled && clientSecret) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clear a stale payment intent when settings disable gift cards.
       setClientSecret("");
       setError(null);
     }
   }, [settingsLoading, giftCardsPurchaseEnabled, clientSecret]);
-
-  useEffect(() => {
-    if (!settingsLoading && !giftCardsPurchaseEnabled) {
-      router.replace("/shop");
-    }
-  }, [settingsLoading, giftCardsPurchaseEnabled, router]);
 
   const resolvedCents = useMemo(() => {
     const t = customAmount.trim();
@@ -175,9 +204,39 @@ export function GiftCardPurchaseClient() {
   if (!settingsLoading && !giftCardsPurchaseEnabled) {
     return (
       <div className="flex min-h-full flex-col">
-        <SiteHeader active="shop" />
-        <main className="mx-auto flex w-full flex-1 flex-col items-center justify-center px-4 py-20">
-          <p className="text-sm text-black/50">Gift card purchases aren&apos;t available — taking you to the shop.</p>
+        <SiteHeader active="gift-cards" />
+        <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-14 sm:py-20">
+          <nav className="mb-6 text-sm text-black/55">
+            <Link href="/" className="font-semibold text-[color:var(--gold)] no-underline">
+              Home
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-black/75">Gift cards</span>
+          </nav>
+          <section className="rounded-3xl border border-black/10 bg-white/80 p-7 shadow-sm sm:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-black/45">Gift cards</p>
+            <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-semibold text-[color:var(--charcoal)] sm:text-4xl">
+              Gift cards are not available yet
+            </h1>
+            <p className="mt-4 max-w-xl leading-relaxed text-black/60">
+              Online gift cards are currently turned off while the store finishes setup. You can still shop the latest
+              boutique finds or save items to your wishlist.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href="/shop"
+                className="inline-flex rounded-full bg-[color:var(--gold)] px-7 py-3 font-semibold text-[color:var(--charcoal)] no-underline"
+              >
+                Shop now
+              </Link>
+              <Link
+                href="/wishlist"
+                className="inline-flex rounded-full border border-black/10 bg-white px-7 py-3 font-semibold text-[color:var(--charcoal)] no-underline"
+              >
+                View wishlist
+              </Link>
+            </div>
+          </section>
         </main>
         <SiteFooter />
       </div>
@@ -208,8 +267,12 @@ export function GiftCardPurchaseClient() {
         {clientSecret ? (
           stripePromise ? (
             <div className="mt-10">
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <GiftPaymentSection clientSecret={clientSecret} amountCents={intentAmount} />
+              <Elements key={clientSecret} stripe={stripePromise} options={{ clientSecret }}>
+                <GiftPaymentSection
+                  clientSecret={clientSecret}
+                  amountCents={intentAmount}
+                  onStaleIntent={onStalePaymentIntent}
+                />
               </Elements>
               <button
                 type="button"
@@ -317,7 +380,7 @@ export function GiftCardPurchaseClient() {
               </span>
               <input
                 type="email"
-                value={purchaserEmail}
+                value={user?.email || purchaserEmail}
                 onChange={(e) => setPurchaserEmail(e.target.value)}
                 disabled={Boolean(user?.email)}
                 className="h-11 rounded-2xl border border-black/10 bg-white px-4 disabled:opacity-70"

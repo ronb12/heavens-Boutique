@@ -1,8 +1,8 @@
 import { getDb } from '../lib/db.js';
 import { requireUser } from '../lib/auth.js';
-import { json, readJson, handleCors } from '../lib/http.js';
+import { json, readJson, handleCors, withCorsContext } from '../lib/http.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
 
   try {
@@ -39,3 +39,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Request failed' });
   }
 }
+export default withCorsContext(handler);

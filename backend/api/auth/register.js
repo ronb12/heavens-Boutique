@@ -1,9 +1,10 @@
 import { getDb } from '../../lib/db.js';
 import { hashPassword, signToken } from '../../lib/auth.js';
-import { json, readJson, handleCors } from '../../lib/http.js';
+import { json, readJson, handleCors, withCorsContext } from '../../lib/http.js';
 import { notifyAllAdmins } from '../../lib/adminNotify.js';
+import { applyNewsletterInterestOnSignup } from '../../lib/newsletterSignup.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (handleCors(req, res)) return;
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
@@ -32,6 +33,11 @@ export default async function handler(req, res) {
     const token = signToken({ sub: user.id, role: user.role });
 
     if (user.role === 'customer') {
+      try {
+        await applyNewsletterInterestOnSignup(sql, email, user.id);
+      } catch (e) {
+        console.error('newsletter signup merge', e);
+      }
       try {
         const label = [fullName, email].filter(Boolean).join(' · ') || email;
         await notifyAllAdmins(sql, {
@@ -62,3 +68,4 @@ export default async function handler(req, res) {
     return json(res, 500, { error: 'Registration failed' });
   }
 }
+export default withCorsContext(handler);
