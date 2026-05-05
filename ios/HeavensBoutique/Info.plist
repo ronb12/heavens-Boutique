@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>API_BASE_URL</key>
-	<string>https://heavens-boutique-api.vercel.app/api</string>
+	<string>https://heavens-boutique.vercel.app/api</string>
 	<key>STOREFRONT_URL</key>
-	<string>https://heavens-boutique-web.vercel.app</string>
+	<string>https://heavens-boutique-web-steel.vercel.app</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

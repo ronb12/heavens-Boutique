@@ -55,8 +55,8 @@ targets:
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSHumanReadableCopyright: "Copyright © 2026 Heaven's Boutique. All rights reserved."
         UILaunchScreen: {}
-        API_BASE_URL: https://heavens-boutique-api.vercel.app/api
-        STOREFRONT_URL: https://heavens-boutique-web.vercel.app
+        API_BASE_URL: https://heavens-boutique.vercel.app/api
+        STOREFRONT_URL: https://heavens-boutique-web-steel.vercel.app
         NSCameraUsageDescription: "Heaven's Boutique uses the camera when store admins take photos to add or update product images in the catalog."
         NSPhotoLibraryUsageDescription: Heaven's Boutique needs photo access to add product images to your catalog.
         STRIPE_PUBLISHABLE_KEY: pk_test_REPLACE_ME

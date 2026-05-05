@@ -121,7 +121,7 @@ jobs:
           if [ -n "${VERCEL_ORG_ID:-}" ] && [ -n "${VERCEL_PROJECT_ID:-}" ]; then
             echo "::notice::Using VERCEL_ORG_ID + VERCEL_PROJECT_ID from secrets; writing .vercel/project.json (Vercel CLI 50+ needs a linked project file, not env vars alone)."
             node -e "const fs=require('fs');const o=process.env.VERCEL_ORG_ID;const p=process.env.VERCEL_PROJECT_ID;if(!o||!p){console.error('missing org/project');process.exit(1)}fs.mkdirSync('.vercel',{recursive:true});fs.writeFileSync('.vercel/project.json',JSON.stringify({orgId:o,projectId:p},null,2)+'\n');"
-            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive \
+            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive --archive=tgz \
               --token "$VERCEL_TOKEN" \
               "${SCOPE_ARGS[@]}"
           else
@@ -132,7 +132,7 @@ jobs:
               --token "$VERCEL_TOKEN" \
               "${SCOPE_ARGS[@]}" \
               --project "$PROJ"
-            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive \
+            npx --yes "$VERCEL_PKG" deploy --prod --yes --non-interactive --archive=tgz \
               --token "$VERCEL_TOKEN" \
               "${SCOPE_ARGS[@]}"
           fi
