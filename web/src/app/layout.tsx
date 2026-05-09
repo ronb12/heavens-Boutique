@@ -67,6 +67,9 @@ export default function RootLayout({
       lang="en"
       className={`${body.variable} ${display.variable} ${script.variable} h-full antialiased`}
     >
+      <head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3565666509316178" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <StoreSettingsProvider>
