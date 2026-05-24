@@ -31,6 +31,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: "Heaven’s Boutique — Curated fashion & elegance",
   description: defaultDescription,
+  other: {
+    "google-adsense-account": "ca-pub-3565666509316178",
+  },
   /** Explicit ICO + PNG + Apple touch so browsers get icons on first paint (not only streamed metadata). */
   icons: {
     icon: [
@@ -69,6 +72,7 @@ export default function RootLayout({
     >
       <head>
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3565666509316178" crossOrigin="anonymous" />
+        <meta name="google-adsense-account" content="ca-pub-3565666509316178" />
       </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
